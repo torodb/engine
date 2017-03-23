@@ -18,19 +18,19 @@
 
 package com.torodb.mongodb.commands.signatures.admin;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.exceptions.BadValueException;
-import com.eightkdata.mongowp.exceptions.InvalidNamespaceException;
-import com.eightkdata.mongowp.exceptions.NoSuchKeyException;
-import com.eightkdata.mongowp.exceptions.TypesMismatchException;
-import com.eightkdata.mongowp.fields.BooleanField;
-import com.eightkdata.mongowp.fields.StringField;
-import com.eightkdata.mongowp.messages.utils.NamespaceUtils;
-import com.eightkdata.mongowp.server.api.impl.AbstractNotAliasableCommand;
-import com.eightkdata.mongowp.server.api.tools.Empty;
-import com.eightkdata.mongowp.utils.BsonDocumentBuilder;
-import com.eightkdata.mongowp.utils.BsonReaderTool;
 import com.torodb.mongodb.commands.signatures.admin.RenameCollectionCommand.RenameCollectionArgument;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.commands.impl.AbstractNotAliasableCommand;
+import com.torodb.mongowp.commands.tools.Empty;
+import com.torodb.mongowp.exceptions.BadValueException;
+import com.torodb.mongowp.exceptions.InvalidNamespaceException;
+import com.torodb.mongowp.exceptions.NoSuchKeyException;
+import com.torodb.mongowp.exceptions.TypesMismatchException;
+import com.torodb.mongowp.fields.BooleanField;
+import com.torodb.mongowp.fields.StringField;
+import com.torodb.mongowp.messages.utils.NamespaceUtils;
+import com.torodb.mongowp.utils.BsonDocumentBuilder;
+import com.torodb.mongowp.utils.BsonReaderTool;
 
 /**
  *

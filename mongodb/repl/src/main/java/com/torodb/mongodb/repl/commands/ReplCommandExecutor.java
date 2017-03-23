@@ -18,11 +18,6 @@
 
 package com.torodb.mongodb.repl.commands;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandExecutor;
-import com.eightkdata.mongowp.server.api.Request;
-import com.eightkdata.mongowp.server.api.impl.MapBasedCommandExecutor;
 import com.torodb.mongodb.commands.signatures.admin.CreateCollectionCommand;
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand;
 import com.torodb.mongodb.commands.signatures.admin.DropCollectionCommand;
@@ -37,6 +32,11 @@ import com.torodb.mongodb.repl.commands.impl.DropIndexesReplImpl;
 import com.torodb.mongodb.repl.commands.impl.LogAndIgnoreReplImpl;
 import com.torodb.mongodb.repl.commands.impl.LogAndStopReplImpl;
 import com.torodb.mongodb.repl.commands.impl.RenameCollectionReplImpl;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandExecutor;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.commands.impl.MapBasedCommandExecutor;
 import com.torodb.torod.ExclusiveWriteTorodTransaction;
 
 import javax.inject.Inject;

@@ -18,14 +18,19 @@
 
 package com.torodb.mongodb.repl.oplogreplier.batch;
 
-import com.eightkdata.mongowp.bson.BsonValue;
-import com.eightkdata.mongowp.server.api.oplog.CollectionOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
+import static com.torodb.mongowp.commands.oplog.OplogOperationType.DB;
+import static com.torodb.mongowp.commands.oplog.OplogOperationType.DB_CMD;
+import static com.torodb.mongowp.commands.oplog.OplogOperationType.INSERT;
+import static com.torodb.mongowp.commands.oplog.OplogOperationType.UPDATE;
+
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.analyzed.AnalyzedOp;
 import com.torodb.mongodb.repl.oplogreplier.analyzed.AnalyzedOpReducer;
+import com.torodb.mongowp.bson.BsonValue;
+import com.torodb.mongowp.commands.oplog.CollectionOplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 
 import java.util.HashMap;
 import java.util.List;

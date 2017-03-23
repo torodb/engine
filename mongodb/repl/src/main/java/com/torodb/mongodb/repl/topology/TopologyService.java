@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.repl.topology;
 
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.google.common.net.HostAndPort;
+import com.torodb.common.util.Empty;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.services.IdleTorodbService;
 import com.torodb.mongodb.commands.pojos.ReplicaSetConfig;
+import com.torodb.mongowp.OpTime;
 import org.apache.logging.log4j.Logger;
 
 import java.time.Clock;

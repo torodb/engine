@@ -18,7 +18,7 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.8kdata.mongowp.bson</groupId>
+            <groupId>com.torodb.mongowp.bson</groupId>
             <artifactId>bson-core</artifactId>
         </dependency>
         <dependency>

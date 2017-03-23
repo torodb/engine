@@ -18,15 +18,15 @@
 
 package com.torodb.mongodb.commands.impl.admin;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.mongodb.commands.impl.ExclusiveWriteTorodbCommandImpl;
 import com.torodb.mongodb.commands.signatures.admin.RenameCollectionCommand.RenameCollectionArgument;
 import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.commands.tools.Empty;
 
 public class RenameCollectionImplementation implements
     ExclusiveWriteTorodbCommandImpl<RenameCollectionArgument, Empty> {

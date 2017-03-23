@@ -18,23 +18,11 @@
 
 package com.torodb.mongodb.repl;
 
-import static com.eightkdata.mongowp.bson.utils.DefaultBsonValues.EMPTY_DOC;
-import static com.eightkdata.mongowp.bson.utils.DefaultBsonValues.newLong;
+import static com.torodb.mongowp.bson.utils.DefaultBsonValues.EMPTY_DOC;
+import static com.torodb.mongowp.bson.utils.DefaultBsonValues.newLong;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.bson.BsonDateTime;
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.bson.utils.DefaultBsonValues;
-import com.eightkdata.mongowp.bson.utils.TimestampToDateTime;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.server.api.Request;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.server.api.tools.Empty;
-import com.eightkdata.mongowp.utils.BsonDocumentBuilder;
-import com.eightkdata.mongowp.utils.BsonReaderTool;
 import com.google.common.base.Preconditions;
+import com.torodb.common.util.Empty;
 import com.torodb.core.annotations.TorodbIdleService;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.logging.LoggerFactory;
@@ -57,6 +45,18 @@ import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.core.ReadOnlyMongodTransaction;
 import com.torodb.mongodb.core.WriteMongodTransaction;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.bson.BsonDateTime;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
+import com.torodb.mongowp.bson.utils.TimestampToDateTime;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.exceptions.MongoException;
+import com.torodb.mongowp.utils.BsonDocumentBuilder;
+import com.torodb.mongowp.utils.BsonReaderTool;
 import org.apache.logging.log4j.Logger;
 
 import java.io.Closeable;

@@ -18,9 +18,9 @@
 
 package com.torodb.mongodb.core;
 
-import com.eightkdata.mongowp.server.MongoServerConfig;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
+import com.torodb.mongowp.MongoServerConfig;
 
 /**
  *

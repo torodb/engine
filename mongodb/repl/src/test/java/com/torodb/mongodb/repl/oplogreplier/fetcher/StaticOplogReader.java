@@ -18,17 +18,17 @@
 
 package com.torodb.mongodb.repl.oplogreplier.fetcher;
 
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.exceptions.OplogOperationUnsupported;
-import com.eightkdata.mongowp.exceptions.OplogStartMissingException;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.server.api.pojos.IteratorMongoCursor;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.google.common.net.HostAndPort;
 import com.torodb.mongodb.repl.OplogReader;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.commands.pojos.IteratorMongoCursor;
+import com.torodb.mongowp.commands.pojos.MongoCursor;
+import com.torodb.mongowp.exceptions.MongoException;
+import com.torodb.mongowp.exceptions.OplogOperationUnsupported;
+import com.torodb.mongowp.exceptions.OplogStartMissingException;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;

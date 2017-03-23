@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.language;
 
-import com.eightkdata.mongowp.bson.BsonObjectId;
-import com.eightkdata.mongowp.bson.impl.IntBasedBsonObjectId;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.primitives.UnsignedInteger;
 import com.torodb.core.logging.DefaultLoggerFactory;
+import com.torodb.mongowp.bson.BsonObjectId;
+import com.torodb.mongowp.bson.impl.IntBasedBsonObjectId;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.management.ManagementFactory;

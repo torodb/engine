@@ -18,7 +18,7 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import com.eightkdata.mongowp.server.api.tools.Empty;
+import com.torodb.common.util.Empty;
 import com.torodb.mongodb.repl.oplogreplier.OplogApplier.ApplyingJob;
 import com.torodb.mongodb.repl.oplogreplier.OplogApplier.ApplyingJobFinishState;
 import com.torodb.mongodb.repl.oplogreplier.OplogApplier.UnexpectedOplogApplierException;

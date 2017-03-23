@@ -18,15 +18,15 @@
 
 package com.torodb.mongodb.filters;
 
-import com.eightkdata.mongowp.server.api.oplog.DbCmdOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.DbOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.DeleteOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.InsertOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.NoopOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperationVisitor;
-import com.eightkdata.mongowp.server.api.oplog.UpdateOplogOperation;
 import com.torodb.mongodb.language.Namespace;
+import com.torodb.mongowp.commands.oplog.DbCmdOplogOperation;
+import com.torodb.mongowp.commands.oplog.DbOplogOperation;
+import com.torodb.mongowp.commands.oplog.DeleteOplogOperation;
+import com.torodb.mongowp.commands.oplog.InsertOplogOperation;
+import com.torodb.mongowp.commands.oplog.NoopOplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogOperationVisitor;
+import com.torodb.mongowp.commands.oplog.UpdateOplogOperation;
 
 
 /**

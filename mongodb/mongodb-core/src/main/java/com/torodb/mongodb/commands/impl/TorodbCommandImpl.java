@@ -18,8 +18,8 @@
 
 package com.torodb.mongodb.commands.impl;
 
-import com.eightkdata.mongowp.server.api.CommandImplementation;
 import com.torodb.mongodb.core.MongodTransaction;
+import com.torodb.mongowp.commands.CommandImplementation;
 
 /**
  *

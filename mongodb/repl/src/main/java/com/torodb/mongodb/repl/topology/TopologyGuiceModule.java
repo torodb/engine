@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.repl.topology;
 
-import com.eightkdata.mongowp.client.core.MongoClientFactory;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Exposed;
 import com.google.inject.PrivateModule;
@@ -29,6 +28,7 @@ import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.SyncSourceProvider;
 import com.torodb.mongodb.repl.guice.MongoDbRepl;
 import com.torodb.mongodb.repl.guice.ReplSetName;
+import com.torodb.mongowp.client.core.MongoClientFactory;
 
 import java.time.Clock;
 import java.time.Duration;

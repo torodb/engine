@@ -18,11 +18,11 @@
 
 package com.torodb.mongodb.commands.signatures.aggregation;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.torodb.mongodb.commands.signatures.aggregation.CountCommand.CountArgument;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
 
 import java.util.Iterator;
 import java.util.Map;

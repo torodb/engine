@@ -18,7 +18,7 @@
 
 package com.torodb.mongodb.repl.exceptions;
 
-import com.eightkdata.mongowp.OpTime;
+import com.torodb.mongowp.OpTime;
 
 /**
  *

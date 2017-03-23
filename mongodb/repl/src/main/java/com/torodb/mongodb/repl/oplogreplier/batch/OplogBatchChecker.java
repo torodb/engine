@@ -18,8 +18,8 @@
 
 package com.torodb.mongodb.repl.oplogreplier.batch;
 
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
 import com.torodb.mongodb.repl.oplogreplier.UnexpectedOplogOperationException;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.inject.Inject;

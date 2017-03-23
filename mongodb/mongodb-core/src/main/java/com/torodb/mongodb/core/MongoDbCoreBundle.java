@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.core;
 
-import com.eightkdata.mongowp.server.api.CommandLibrary;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Injector;
 import com.torodb.core.bundle.AbstractBundle;
 import com.torodb.mongodb.guice.MongodCoreEssentialOverrideModule;
 import com.torodb.mongodb.guice.MongodCoreModule;
+import com.torodb.mongowp.commands.CommandLibrary;
 import com.torodb.torod.TorodBundle;
 
 import java.util.Collection;

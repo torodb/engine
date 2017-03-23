@@ -18,16 +18,6 @@
 
 package com.torodb.mongodb.repl.topology;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.client.core.MongoConnection.ErroneousRemoteCommandResponse;
-import com.eightkdata.mongowp.client.core.MongoConnection.FromExceptionRemoteCommandRequest;
-import com.eightkdata.mongowp.client.core.MongoConnection.RemoteCommandResponse;
-import com.eightkdata.mongowp.client.core.UnreachableMongoServerException;
-import com.eightkdata.mongowp.exceptions.InconsistentReplicaSetNamesException;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.server.api.MongoRuntimeException;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.google.common.net.HostAndPort;
 import com.torodb.common.util.CompletionExceptions;
 import com.torodb.core.logging.LoggerFactory;
@@ -36,6 +26,16 @@ import com.torodb.mongodb.commands.pojos.ReplicaSetConfig;
 import com.torodb.mongodb.commands.signatures.internal.ReplSetHeartbeatCommand.ReplSetHeartbeatArgument;
 import com.torodb.mongodb.commands.signatures.internal.ReplSetHeartbeatReply;
 import com.torodb.mongodb.repl.guice.ReplSetName;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.client.core.MongoConnection.ErroneousRemoteCommandResponse;
+import com.torodb.mongowp.client.core.MongoConnection.FromExceptionRemoteCommandRequest;
+import com.torodb.mongowp.client.core.MongoConnection.RemoteCommandResponse;
+import com.torodb.mongowp.client.core.UnreachableMongoServerException;
+import com.torodb.mongowp.commands.MongoRuntimeException;
+import com.torodb.mongowp.commands.tools.Empty;
+import com.torodb.mongowp.exceptions.InconsistentReplicaSetNamesException;
+import com.torodb.mongowp.exceptions.MongoException;
 import org.apache.logging.log4j.Logger;
 import org.jooq.lambda.UncheckedException;
 

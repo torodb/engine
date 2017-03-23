@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.commands.signatures.internal;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.bson.BsonTimestamp;
 import com.google.common.net.HostAndPort;
 import com.torodb.mongodb.commands.pojos.MemberState;
 import com.torodb.mongodb.commands.pojos.ReplicaSetConfig;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.bson.BsonTimestamp;
 
 import java.time.Duration;
 import java.util.Optional;

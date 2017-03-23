@@ -18,11 +18,11 @@
 
 package com.torodb.mongodb.repl.topology;
 
-import com.eightkdata.mongowp.client.core.MongoConnection.RemoteCommandResponse;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.torodb.mongodb.commands.pojos.ReplicaSetConfig;
 import com.torodb.mongodb.commands.signatures.internal.ReplSetHeartbeatCommand.ReplSetHeartbeatArgument;
 import com.torodb.mongodb.commands.signatures.internal.ReplSetHeartbeatReply;
+import com.torodb.mongowp.client.core.MongoConnection.RemoteCommandResponse;
+import com.torodb.mongowp.commands.tools.Empty;
 
 import java.util.concurrent.CompletableFuture;
 

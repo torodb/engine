@@ -18,9 +18,9 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.bson.BsonTimestamp;
-import com.eightkdata.mongowp.bson.utils.DefaultBsonValues;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.bson.BsonTimestamp;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
 
 import java.time.Instant;
 

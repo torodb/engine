@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.commands;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandExecutor;
 import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
 import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.ReadOnlyMongodTransaction;
 import com.torodb.mongodb.core.WriteMongodTransaction;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandExecutor;
 
 import java.util.stream.Stream;
 

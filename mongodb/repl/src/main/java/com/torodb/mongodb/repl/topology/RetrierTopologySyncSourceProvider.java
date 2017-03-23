@@ -18,13 +18,13 @@
 
 package com.torodb.mongodb.repl.topology;
 
-import com.eightkdata.mongowp.OpTime;
 import com.google.common.net.HostAndPort;
 import com.torodb.core.retrier.Retrier;
 import com.torodb.core.retrier.Retrier.Hint;
 import com.torodb.core.retrier.RetrierGiveUpException;
 import com.torodb.mongodb.repl.SyncSourceProvider;
 import com.torodb.mongodb.repl.exceptions.NoSyncSourceFoundException;
+import com.torodb.mongowp.OpTime;
 import org.jooq.lambda.UncheckedException;
 
 import java.util.Optional;

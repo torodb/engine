@@ -18,16 +18,16 @@
 
 package com.torodb.mongodb.commands.impl.diagnostic;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
 import com.torodb.mongodb.commands.impl.ConnectionTorodbCommandImpl;
 import com.torodb.mongodb.commands.signatures.diagnostic.GetLogCommand.AsteriskGetLogReply;
 import com.torodb.mongodb.commands.signatures.diagnostic.GetLogCommand.GetLogArgument;
 import com.torodb.mongodb.commands.signatures.diagnostic.GetLogCommand.GetLogReply;
 import com.torodb.mongodb.commands.signatures.diagnostic.GetLogCommand.LogGetLogReply;
 import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
 
 import java.util.Collections;
 

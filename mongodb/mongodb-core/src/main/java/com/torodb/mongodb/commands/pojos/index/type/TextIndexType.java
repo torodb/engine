@@ -18,7 +18,7 @@
 
 package com.torodb.mongodb.commands.pojos.index.type;
 
-import com.eightkdata.mongowp.bson.utils.DefaultBsonValues;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
 
 public class TextIndexType extends AbstractIndexType {
 

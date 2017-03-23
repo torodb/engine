@@ -20,8 +20,6 @@ package com.torodb.mongodb.repl.oplogreplier.batch;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
-import com.eightkdata.mongowp.server.api.oplog.DbCmdOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
 import com.google.common.util.concurrent.Service;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.metrics.ToroMetricRegistry;
@@ -30,6 +28,8 @@ import com.torodb.core.retrier.RetrierGiveUpException;
 import com.torodb.core.transaction.RollbackException;
 import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.OplogOperationApplier.OplogApplyingException;
+import com.torodb.mongowp.commands.oplog.DbCmdOplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;

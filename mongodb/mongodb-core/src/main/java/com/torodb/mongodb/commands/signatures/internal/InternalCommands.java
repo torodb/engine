@@ -18,9 +18,6 @@
 
 package com.torodb.mongodb.commands.signatures.internal;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.torodb.mongodb.commands.signatures.internal.HandshakeCommand.HandshakeArgument;
@@ -32,6 +29,9 @@ import com.torodb.mongodb.commands.signatures.internal.ReplSetGetRBIDCommand.Rep
 import com.torodb.mongodb.commands.signatures.internal.ReplSetHeartbeatCommand.ReplSetHeartbeatArgument;
 import com.torodb.mongodb.commands.signatures.internal.ReplSetUpdatePositionCommand.ReplSetUpdatePositionArgument;
 import com.torodb.mongodb.commands.signatures.internal.WhatsMyUriCommand.WhatsMyUriReply;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
+import com.torodb.mongowp.commands.tools.Empty;
 
 import java.util.Iterator;
 import java.util.Map;

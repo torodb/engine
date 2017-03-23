@@ -18,21 +18,20 @@
 
 package com.torodb.kvdocument.conversion.mongowp.values;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.bson.BsonDocument.Entry;
-import com.eightkdata.mongowp.bson.BsonValue;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
 import com.torodb.kvdocument.conversion.mongowp.MongoWpConverter;
 import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvValue;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.BsonDocument.Entry;
+import com.torodb.mongowp.bson.BsonValue;
 
 import java.util.NoSuchElementException;
 
 import javax.annotation.Nonnegative;
 
-/** */
 public class LazyBsonKvDocument extends KvDocument {
 
   private static final EntryTranslateFunction ENTRY_TRANSLATE_FUNCTION =

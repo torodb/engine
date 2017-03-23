@@ -18,13 +18,12 @@
 
 package com.torodb.kvdocument.conversion.mongowp;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
 import com.torodb.kvdocument.values.KvDocument;
+import com.torodb.mongowp.bson.BsonDocument;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.function.Function;
 
-/** */
 public class ToBsonDocumentTranslator implements Function<KvDocument, BsonDocument> {
 
   private ToBsonDocumentTranslator() {}

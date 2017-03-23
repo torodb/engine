@@ -18,14 +18,14 @@
 
 package com.torodb.mongodb.utils;
 
-import com.eightkdata.mongowp.client.core.MongoClient;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.exceptions.NotMasterException;
 import com.google.common.base.Supplier;
 import com.google.common.util.concurrent.Service;
 import com.torodb.core.exceptions.ToroRuntimeException;
 import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.filters.IndexFilter;
+import com.torodb.mongowp.client.core.MongoClient;
+import com.torodb.mongowp.exceptions.MongoException;
+import com.torodb.mongowp.exceptions.NotMasterException;
 
 import java.util.Set;
 import java.util.function.Predicate;

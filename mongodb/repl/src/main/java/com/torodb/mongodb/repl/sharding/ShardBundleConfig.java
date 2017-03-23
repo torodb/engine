@@ -18,13 +18,13 @@
 
 package com.torodb.mongodb.repl.sharding;
 
-import com.eightkdata.mongowp.client.wrapper.MongoClientConfiguration;
 import com.google.inject.Injector;
 import com.torodb.core.bundle.BundleConfigImpl;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.ConsistencyHandler;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
 import com.torodb.torod.TorodBundle;
 
 public class ShardBundleConfig extends BundleConfigImpl {

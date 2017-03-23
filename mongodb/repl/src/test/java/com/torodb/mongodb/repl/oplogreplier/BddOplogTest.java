@@ -21,7 +21,6 @@ package com.torodb.mongodb.repl.oplogreplier;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
 import com.google.common.truth.Truth;
 import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvValue;
@@ -29,9 +28,7 @@ import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.core.ReadOnlyMongodTransaction;
 import com.torodb.mongodb.core.WriteMongodTransaction;
-import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
-import com.torodb.mongodb.repl.oplogreplier.OplogTest;
-import com.torodb.mongodb.repl.oplogreplier.OplogTestContext;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 import com.torodb.torod.TorodTransaction;
 import org.junit.Assert;
 

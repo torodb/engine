@@ -19,20 +19,20 @@
 package com.torodb.mongodb.repl;
 
 
-import com.eightkdata.mongowp.client.wrapper.MongoClientConfiguration;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.core.bundle.BundleConfigImpl;
+import com.torodb.core.guice.EssentialModule;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.core.supervision.SupervisorDecision;
-import com.torodb.core.guice.EssentialModule;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.core.MongoDbCoreConfig;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
 import com.torodb.mongodb.repl.impl.AlwaysConsistentConsistencyHandler;
+import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
 import com.torodb.torod.MemoryTorodBundle;
 import org.junit.After;
 import org.junit.Before;

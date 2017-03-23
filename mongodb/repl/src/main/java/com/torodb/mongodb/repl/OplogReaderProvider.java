@@ -18,10 +18,10 @@
 
 package com.torodb.mongodb.repl;
 
-import com.eightkdata.mongowp.client.core.MongoConnection;
-import com.eightkdata.mongowp.client.core.UnreachableMongoServerException;
 import com.google.common.net.HostAndPort;
 import com.torodb.mongodb.repl.exceptions.NoSyncSourceFoundException;
+import com.torodb.mongowp.client.core.MongoConnection;
+import com.torodb.mongowp.client.core.UnreachableMongoServerException;
 
 import javax.annotation.Nonnull;
 

@@ -18,9 +18,6 @@
 
 package com.torodb.mongodb.commands.impl;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandExecutor;
-import com.eightkdata.mongowp.server.api.impl.MapBasedCommandExecutor;
 import com.google.common.collect.ImmutableMap;
 import com.torodb.mongodb.commands.CommandClassifier;
 import com.torodb.mongodb.commands.RequiredTransaction;
@@ -28,6 +25,9 @@ import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
 import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.ReadOnlyMongodTransaction;
 import com.torodb.mongodb.core.WriteMongodTransaction;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandExecutor;
+import com.torodb.mongowp.commands.impl.MapBasedCommandExecutor;
 
 import java.util.stream.Stream;
 

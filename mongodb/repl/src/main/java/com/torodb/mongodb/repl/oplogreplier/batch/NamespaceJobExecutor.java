@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.repl.oplogreplier.batch;
 
-import com.eightkdata.mongowp.Status;
 import com.torodb.core.cursors.Cursor;
 import com.torodb.core.cursors.IteratorCursor;
 import com.torodb.core.document.ToroDocument;
@@ -33,7 +32,7 @@ import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.analyzed.AnalyzedOp;
 import com.torodb.mongodb.repl.oplogreplier.analyzed.AnalyzedOpType;
 import com.torodb.mongodb.utils.DefaultIdUtils;
-
+import com.torodb.mongowp.Status;
 import org.jooq.lambda.tuple.Tuple2;
 
 import java.util.List;

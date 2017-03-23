@@ -18,7 +18,7 @@
 
 package com.torodb.mongodb.commands.pojos;
 
-import com.eightkdata.mongowp.exceptions.BadValueException;
+import com.torodb.mongowp.exceptions.BadValueException;
 
 public enum ValidationLevel {
   OFF,

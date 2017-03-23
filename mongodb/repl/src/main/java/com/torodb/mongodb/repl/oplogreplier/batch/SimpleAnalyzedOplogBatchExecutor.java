@@ -19,9 +19,8 @@
 package com.torodb.mongodb.repl.oplogreplier.batch;
 
 import com.codahale.metrics.Timer.Context;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.google.common.util.concurrent.AbstractService;
+import com.torodb.common.util.Empty;
 import com.torodb.core.exceptions.user.UniqueIndexViolationException;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.retrier.Retrier;
@@ -37,6 +36,7 @@ import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.OplogOperationApplier;
 import com.torodb.mongodb.repl.oplogreplier.OplogOperationApplier.OplogApplyingException;
 import com.torodb.mongodb.repl.oplogreplier.batch.AnalyzedOplogBatchExecutor.AnalyzedOplogBatchExecutorMetrics;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 
 import java.util.Iterator;
 import java.util.List;

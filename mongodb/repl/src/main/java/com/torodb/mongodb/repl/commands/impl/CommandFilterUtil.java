@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.repl.commands.impl;
 
-import com.eightkdata.mongowp.server.api.Command;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongodb.filters.DatabaseFilter;
 import com.torodb.mongodb.filters.FilterResult;
 import com.torodb.mongodb.filters.NamespaceFilter;
 import com.torodb.mongodb.language.Namespace;
+import com.torodb.mongowp.commands.Command;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.concurrent.ThreadSafe;

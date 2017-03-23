@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.core;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandExecutor;
-import com.eightkdata.mongowp.server.api.Request;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.transaction.RollbackException;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandExecutor;
+import com.torodb.mongowp.commands.Request;
 import com.torodb.torod.ExclusiveWriteTorodTransaction;
 
 class ExclusiveWriteMongodTransactionImpl extends MongodTransactionImpl implements

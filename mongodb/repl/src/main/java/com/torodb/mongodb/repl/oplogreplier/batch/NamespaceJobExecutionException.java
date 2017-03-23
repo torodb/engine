@@ -18,8 +18,8 @@
 
 package com.torodb.mongodb.repl.oplogreplier.batch;
 
-import com.eightkdata.mongowp.Status;
 import com.torodb.core.annotations.DoNotChange;
+import com.torodb.mongowp.Status;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;

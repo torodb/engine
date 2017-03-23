@@ -18,8 +18,6 @@
 
 package com.torodb.mongodb.commands.impl;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
 import com.google.common.collect.ImmutableMap;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongodb.commands.CmdImplMapSupplier;
@@ -36,6 +34,8 @@ import com.torodb.mongodb.commands.signatures.diagnostic.CollStatsCommand;
 import com.torodb.mongodb.commands.signatures.diagnostic.ListDatabasesCommand;
 import com.torodb.mongodb.commands.signatures.general.FindCommand;
 import com.torodb.mongodb.core.MongodTransaction;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
 
 import java.util.Set;
 

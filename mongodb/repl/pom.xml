@@ -21,7 +21,7 @@
             <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.8kdata.mongowp.client</groupId>
+            <groupId>com.torodb.mongowp.client</groupId>
             <artifactId>driver-wrapper</artifactId>
         </dependency>
         <dependency>

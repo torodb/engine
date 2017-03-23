@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.repl;
 
-import com.eightkdata.mongowp.client.wrapper.MongoClientConfiguration;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Injector;
 import com.torodb.core.bundle.BundleConfig;
@@ -27,6 +26,7 @@ import com.torodb.core.metrics.ToroMetricRegistry;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
 
 import java.util.Optional;
 import java.util.concurrent.ThreadFactory;

@@ -18,8 +18,8 @@
 
 package com.torodb.mongodb.commands.impl;
 
-import com.eightkdata.mongowp.server.api.CommandImplementation;
 import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongowp.commands.CommandImplementation;
 
 public abstract class ConnectionTorodbCommandImpl<A, R> implements
     CommandImplementation<A, R, MongodConnection> {

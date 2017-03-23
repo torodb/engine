@@ -18,11 +18,6 @@
 
 package com.torodb.kvdocument.conversion.mongowp;
 
-import com.eightkdata.mongowp.bson.BsonArray;
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.bson.BsonDocument.Entry;
-import com.eightkdata.mongowp.bson.BsonType;
-import com.eightkdata.mongowp.bson.BsonValue;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -46,12 +41,16 @@ import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvValue;
 import com.torodb.kvdocument.values.heap.ListKvArray;
 import com.torodb.kvdocument.values.heap.MapKvDocument;
+import com.torodb.mongowp.bson.BsonArray;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.BsonDocument.Entry;
+import com.torodb.mongowp.bson.BsonType;
+import com.torodb.mongowp.bson.BsonValue;
 
 import java.util.LinkedHashMap;
 
 import javax.annotation.Nonnull;
 
-/** */
 public class MongoWpConverter {
 
   public static final Function<BsonValue<?>, KvValue<?>> FROM_BSON = new FromBsonFunction();

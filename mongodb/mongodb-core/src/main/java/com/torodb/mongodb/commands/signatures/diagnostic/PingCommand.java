@@ -18,16 +18,16 @@
 
 package com.torodb.mongodb.commands.signatures.diagnostic;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.exceptions.BadValueException;
-import com.eightkdata.mongowp.exceptions.FailedToParseException;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.exceptions.NoSuchKeyException;
-import com.eightkdata.mongowp.exceptions.TypesMismatchException;
-import com.eightkdata.mongowp.server.api.MarshalException;
-import com.eightkdata.mongowp.server.api.impl.AbstractNotAliasableCommand;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.torodb.mongodb.commands.tools.EmptyCommandArgumentMarshaller;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.commands.MarshalException;
+import com.torodb.mongowp.commands.impl.AbstractNotAliasableCommand;
+import com.torodb.mongowp.commands.tools.Empty;
+import com.torodb.mongowp.exceptions.BadValueException;
+import com.torodb.mongowp.exceptions.FailedToParseException;
+import com.torodb.mongowp.exceptions.MongoException;
+import com.torodb.mongowp.exceptions.NoSuchKeyException;
+import com.torodb.mongowp.exceptions.TypesMismatchException;
 
 public class PingCommand extends AbstractNotAliasableCommand<Empty, Empty> {
 

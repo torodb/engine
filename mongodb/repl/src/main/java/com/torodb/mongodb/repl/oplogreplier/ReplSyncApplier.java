@@ -18,8 +18,6 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
 import com.torodb.core.annotations.TorodbRunnableService;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.logging.LoggerFactory;
@@ -33,6 +31,8 @@ import com.torodb.mongodb.repl.OplogManager;
 import com.torodb.mongodb.repl.OplogManager.OplogManagerPersistException;
 import com.torodb.mongodb.repl.OplogManager.WriteOplogTransaction;
 import com.torodb.mongodb.repl.oplogreplier.OplogOperationApplier.OplogApplyingException;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;

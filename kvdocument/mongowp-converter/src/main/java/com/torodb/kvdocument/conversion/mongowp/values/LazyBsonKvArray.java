@@ -18,14 +18,13 @@
 
 package com.torodb.kvdocument.conversion.mongowp.values;
 
-import com.eightkdata.mongowp.bson.BsonArray;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
 import com.torodb.kvdocument.conversion.mongowp.MongoWpConverter;
 import com.torodb.kvdocument.values.KvArray;
 import com.torodb.kvdocument.values.KvValue;
+import com.torodb.mongowp.bson.BsonArray;
 
-/** */
 public class LazyBsonKvArray extends KvArray {
 
   private static final long serialVersionUID = 7698461215106087731L;

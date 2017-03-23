@@ -18,7 +18,7 @@
 
 package com.torodb.mongodb.commands.pojos.index.type;
 
-import com.eightkdata.mongowp.bson.BsonValue;
+import com.torodb.mongowp.bson.BsonValue;
 
 public interface IndexType {
 

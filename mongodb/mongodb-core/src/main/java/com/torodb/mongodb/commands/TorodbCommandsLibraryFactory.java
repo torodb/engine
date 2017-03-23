@@ -18,9 +18,9 @@
 
 package com.torodb.mongodb.commands;
 
-import com.eightkdata.mongowp.server.api.CommandLibrary;
-import com.eightkdata.mongowp.server.api.impl.NameBasedCommandLibrary;
 import com.torodb.core.BuildProperties;
+import com.torodb.mongowp.commands.CommandLibrary;
+import com.torodb.mongowp.commands.impl.NameBasedCommandLibrary;
 
 /**
  * A factory that creates the default library used by ToroDB.

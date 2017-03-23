@@ -18,25 +18,8 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import static com.eightkdata.mongowp.bson.utils.DefaultBsonValues.newDocument;
+import static com.torodb.mongowp.bson.utils.DefaultBsonValues.newDocument;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.WriteConcern;
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.exceptions.CommandNotFoundException;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandLibrary.LibraryEntry;
-import com.eightkdata.mongowp.server.api.Request;
-import com.eightkdata.mongowp.server.api.oplog.DbCmdOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.DbOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.DeleteOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.InsertOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.NoopOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperationVisitor;
-import com.eightkdata.mongowp.server.api.oplog.UpdateOplogOperation;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions;
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand;
@@ -55,6 +38,23 @@ import com.torodb.mongodb.repl.commands.ReplCommandExecutor;
 import com.torodb.mongodb.repl.commands.ReplCommandLibrary;
 import com.torodb.mongodb.utils.DefaultIdUtils;
 import com.torodb.mongodb.utils.NamespaceUtil;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.WriteConcern;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandLibrary.LibraryEntry;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.commands.oplog.DbCmdOplogOperation;
+import com.torodb.mongowp.commands.oplog.DbOplogOperation;
+import com.torodb.mongowp.commands.oplog.DeleteOplogOperation;
+import com.torodb.mongowp.commands.oplog.InsertOplogOperation;
+import com.torodb.mongowp.commands.oplog.NoopOplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogOperationVisitor;
+import com.torodb.mongowp.commands.oplog.UpdateOplogOperation;
+import com.torodb.mongowp.exceptions.CommandNotFoundException;
+import com.torodb.mongowp.exceptions.MongoException;
 import com.torodb.torod.ExclusiveWriteTorodTransaction;
 import org.apache.logging.log4j.Logger;
 

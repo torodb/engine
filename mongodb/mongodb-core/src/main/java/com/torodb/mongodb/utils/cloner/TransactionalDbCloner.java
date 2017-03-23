@@ -18,18 +18,6 @@
 
 package com.torodb.mongodb.utils.cloner;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.WriteConcern;
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.client.core.MongoClient;
-import com.eightkdata.mongowp.client.core.MongoConnection;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.exceptions.NotMasterException;
-import com.eightkdata.mongowp.messages.request.QueryMessage.QueryOption;
-import com.eightkdata.mongowp.messages.request.QueryMessage.QueryOptions;
-import com.eightkdata.mongowp.server.api.Request;
-import com.eightkdata.mongowp.server.api.impl.CollectionCommandArgument;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.net.HostAndPort;
@@ -54,6 +42,18 @@ import com.torodb.mongodb.utils.DbCloner;
 import com.torodb.mongodb.utils.ListCollectionsRequester;
 import com.torodb.mongodb.utils.ListIndexesRequester;
 import com.torodb.mongodb.utils.NamespaceUtil;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.WriteConcern;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.client.core.MongoClient;
+import com.torodb.mongowp.client.core.MongoConnection;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.commands.impl.CollectionCommandArgument;
+import com.torodb.mongowp.commands.pojos.MongoCursor;
+import com.torodb.mongowp.exceptions.MongoException;
+import com.torodb.mongowp.exceptions.NotMasterException;
+import com.torodb.mongowp.messages.request.QueryMessage.QueryOption;
+import com.torodb.mongowp.messages.request.QueryMessage.QueryOptions;
 import org.apache.logging.log4j.Logger;
 
 import java.util.EnumSet;

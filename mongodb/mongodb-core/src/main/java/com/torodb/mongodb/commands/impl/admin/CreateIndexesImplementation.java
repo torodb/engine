@@ -18,11 +18,6 @@
 
 package com.torodb.mongodb.commands.impl.admin;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.exceptions.CommandFailed;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
 import com.google.common.collect.ImmutableList;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.language.AttributeReference;
@@ -40,6 +35,11 @@ import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand.CreateI
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand.CreateIndexesResult;
 import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongodb.utils.DefaultIdUtils;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.exceptions.CommandFailed;
 import com.torodb.torod.IndexFieldInfo;
 
 import java.util.ArrayList;

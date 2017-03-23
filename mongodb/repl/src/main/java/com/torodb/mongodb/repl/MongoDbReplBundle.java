@@ -18,8 +18,6 @@
 
 package com.torodb.mongodb.repl;
 
-import com.eightkdata.mongowp.client.core.MongoClientFactory;
-import com.eightkdata.mongowp.client.wrapper.MongoClientConfiguration;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.Service;
@@ -50,6 +48,8 @@ import com.torodb.mongodb.repl.topology.RemoteSeed;
 import com.torodb.mongodb.repl.topology.TopologyBundle;
 import com.torodb.mongodb.repl.topology.TopologyBundleConfig;
 import com.torodb.mongodb.utils.DbCloner;
+import com.torodb.mongowp.client.core.MongoClientFactory;
+import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;

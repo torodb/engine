@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.commands.impl.aggregation;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
 import com.torodb.mongodb.commands.impl.ReadTorodbCommandImpl;
 import com.torodb.mongodb.commands.signatures.aggregation.CountCommand.CountArgument;
 import com.torodb.mongodb.core.MongodTransaction;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
 
 import javax.inject.Singleton;
 

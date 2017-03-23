@@ -18,30 +18,30 @@
 
 package com.torodb.mongodb.repl.impl;
 
-import static com.eightkdata.mongowp.bson.utils.DefaultBsonValues.newInt;
+import static com.torodb.mongowp.bson.utils.DefaultBsonValues.newInt;
 
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.bson.utils.DefaultBsonValues;
-import com.eightkdata.mongowp.client.core.MongoConnection;
-import com.eightkdata.mongowp.exceptions.BadValueException;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.exceptions.NoSuchKeyException;
-import com.eightkdata.mongowp.exceptions.OplogOperationUnsupported;
-import com.eightkdata.mongowp.exceptions.OplogStartMissingException;
-import com.eightkdata.mongowp.exceptions.TypesMismatchException;
-import com.eightkdata.mongowp.messages.request.QueryMessage.QueryOption;
-import com.eightkdata.mongowp.messages.request.QueryMessage.QueryOptions;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor.Batch;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor.DeadCursorException;
-import com.eightkdata.mongowp.server.api.pojos.TransformationMongoCursor;
-import com.eightkdata.mongowp.utils.BsonArrayBuilder;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import com.torodb.mongodb.commands.pojos.OplogOperationParser;
 import com.torodb.mongodb.repl.OplogReader;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
+import com.torodb.mongowp.client.core.MongoConnection;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.commands.pojos.MongoCursor;
+import com.torodb.mongowp.commands.pojos.MongoCursor.Batch;
+import com.torodb.mongowp.commands.pojos.MongoCursor.DeadCursorException;
+import com.torodb.mongowp.commands.pojos.TransformationMongoCursor;
+import com.torodb.mongowp.exceptions.BadValueException;
+import com.torodb.mongowp.exceptions.MongoException;
+import com.torodb.mongowp.exceptions.NoSuchKeyException;
+import com.torodb.mongowp.exceptions.OplogOperationUnsupported;
+import com.torodb.mongowp.exceptions.OplogStartMissingException;
+import com.torodb.mongowp.exceptions.TypesMismatchException;
+import com.torodb.mongowp.messages.request.QueryMessage.QueryOption;
+import com.torodb.mongowp.messages.request.QueryMessage.QueryOptions;
+import com.torodb.mongowp.utils.BsonArrayBuilder;
 
 import java.util.EnumSet;
 import java.util.function.Consumer;

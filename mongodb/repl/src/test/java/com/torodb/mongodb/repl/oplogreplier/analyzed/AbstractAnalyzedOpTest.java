@@ -18,12 +18,9 @@
 
 package com.torodb.mongodb.repl.oplogreplier.analyzed;
 
-import static com.eightkdata.mongowp.bson.utils.DefaultBsonValues.*;
+import static com.torodb.mongowp.bson.utils.DefaultBsonValues.*;
 import static org.junit.Assert.*;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.server.api.oplog.*;
 import com.torodb.kvdocument.conversion.mongowp.MongoWpConverter;
 import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvInteger;
@@ -31,7 +28,13 @@ import com.torodb.kvdocument.values.KvValue;
 import com.torodb.kvdocument.values.heap.StringKvString;
 import com.torodb.mongodb.repl.oplogreplier.OpTimeFactory;
 import com.torodb.mongodb.utils.DefaultIdUtils;
-
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.commands.oplog.CollectionOplogOperation;
+import com.torodb.mongowp.commands.oplog.DeleteOplogOperation;
+import com.torodb.mongowp.commands.oplog.InsertOplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogVersion;
+import com.torodb.mongowp.commands.oplog.UpdateOplogOperation;
 import org.apache.logging.log4j.Logger;
 import org.jooq.lambda.function.Consumer3;
 import org.junit.Test;

@@ -18,10 +18,6 @@
 
 package com.torodb.mongodb.commands.impl;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandExecutor;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
-import com.eightkdata.mongowp.server.api.impl.MapBasedCommandExecutor;
 import com.google.common.collect.ImmutableMap;
 import com.torodb.core.BuildProperties;
 import com.torodb.core.logging.LoggerFactory;
@@ -34,6 +30,10 @@ import com.torodb.mongodb.core.MongodServerConfig;
 import com.torodb.mongodb.core.MongodTransaction;
 import com.torodb.mongodb.core.ReadOnlyMongodTransaction;
 import com.torodb.mongodb.core.WriteMongodTransaction;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandExecutor;
+import com.torodb.mongowp.commands.CommandImplementation;
+import com.torodb.mongowp.commands.impl.MapBasedCommandExecutor;
 import org.apache.logging.log4j.Logger;
 
 import java.time.Clock;

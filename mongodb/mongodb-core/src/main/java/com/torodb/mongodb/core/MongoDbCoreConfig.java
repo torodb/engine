@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.core;
 
-import com.eightkdata.mongowp.server.api.CommandLibrary;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Injector;
 import com.torodb.core.BuildProperties;
@@ -30,6 +29,7 @@ import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.commands.CommandClassifier;
 import com.torodb.mongodb.commands.TorodbCommandsLibraryFactory;
 import com.torodb.mongodb.commands.impl.CommandClassifierImpl;
+import com.torodb.mongowp.commands.CommandLibrary;
 import com.torodb.torod.TorodBundle;
 
 import java.time.Clock;

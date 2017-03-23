@@ -18,9 +18,6 @@
 
 package com.torodb.mongodb.commands.impl.diagnostic;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.torodb.core.logging.LoggerFactory;
@@ -45,6 +42,9 @@ import com.torodb.mongodb.commands.signatures.diagnostic.ServerStatusCommand.Sto
 import com.torodb.mongodb.core.MongoLayerConstants;
 import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.MongodServerConfig;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.management.ManagementFactory;

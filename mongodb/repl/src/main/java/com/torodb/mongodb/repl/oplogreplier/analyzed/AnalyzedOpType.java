@@ -18,8 +18,11 @@
 
 package com.torodb.mongodb.repl.oplogreplier.analyzed;
 
-import com.eightkdata.mongowp.server.api.oplog.CollectionOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.UpdateOplogOperation;
+import static com.torodb.mongowp.commands.oplog.OplogOperationType.INSERT;
+import static com.torodb.mongowp.commands.oplog.OplogOperationType.UPDATE;
+
+import com.torodb.mongowp.commands.oplog.CollectionOplogOperation;
+import com.torodb.mongowp.commands.oplog.UpdateOplogOperation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public enum AnalyzedOpType {

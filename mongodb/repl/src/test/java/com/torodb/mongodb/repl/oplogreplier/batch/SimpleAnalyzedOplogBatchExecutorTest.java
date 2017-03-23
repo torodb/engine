@@ -37,9 +37,6 @@ import static org.mockito.Mockito.times;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
 import com.google.common.collect.Lists;
 import com.torodb.core.exceptions.user.DatabaseNotFoundException;
 import com.torodb.core.retrier.AlwaysRetryRetrier;
@@ -55,6 +52,9 @@ import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.OplogOperationApplier;
 import com.torodb.mongodb.repl.oplogreplier.OplogOperationApplier.OplogApplyingException;
 import com.torodb.mongodb.repl.oplogreplier.batch.AnalyzedOplogBatchExecutor.AnalyzedOplogBatchExecutorMetrics;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.exceptions.MongoException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -276,7 +276,7 @@ public class SimpleAnalyzedOplogBatchExecutorTest {
    * Test the behaviour of the method
    * {@link SimpleAnalyzedOplogBatchExecutor#visit(com.torodb.mongodb.repl.oplogreplier.batch.SingleOpAnalyzedOplogBatch, com.torodb.mongodb.repl.oplogreplier.ApplierContext) that visits a single op}
    * when
-   * {@link SimpleAnalyzedOplogBatchExecutor#execute(com.eightkdata.mongowp.server.api.oplog.OplogOperation, com.torodb.mongodb.repl.oplogreplier.ApplierContext) the execution}
+   * {@link SimpleAnalyzedOplogBatchExecutor#execute(com.torodb.mongowp.server.api.oplog.OplogOperation, com.torodb.mongodb.repl.oplogreplier.ApplierContext) the execution}
    * fails until the given attempt.
    *
    *

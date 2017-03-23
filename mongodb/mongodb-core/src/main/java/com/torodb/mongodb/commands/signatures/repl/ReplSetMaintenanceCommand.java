@@ -18,13 +18,13 @@
 
 package com.torodb.mongodb.commands.signatures.repl;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.bson.utils.DefaultBsonValues;
-import com.eightkdata.mongowp.exceptions.NoSuchKeyException;
-import com.eightkdata.mongowp.exceptions.TypesMismatchException;
-import com.eightkdata.mongowp.server.api.impl.AbstractNotAliasableCommand;
-import com.eightkdata.mongowp.server.api.tools.Empty;
-import com.eightkdata.mongowp.utils.BsonReaderTool;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
+import com.torodb.mongowp.commands.impl.AbstractNotAliasableCommand;
+import com.torodb.mongowp.commands.tools.Empty;
+import com.torodb.mongowp.exceptions.NoSuchKeyException;
+import com.torodb.mongowp.exceptions.TypesMismatchException;
+import com.torodb.mongowp.utils.BsonReaderTool;
 
 /**
  *

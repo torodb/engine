@@ -18,7 +18,7 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import com.eightkdata.mongowp.server.api.oplog.UpdateOplogOperation;
+import com.torodb.mongowp.commands.oplog.UpdateOplogOperation;
 
 import java.util.Optional;
 

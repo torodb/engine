@@ -18,11 +18,11 @@
 
 package com.torodb.mongodb.repl.topology;
 
-import com.eightkdata.mongowp.client.core.MongoClientFactory;
 import com.google.common.net.HostAndPort;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.mongodb.repl.guice.ReplEssentialOverrideModule;
 import com.torodb.mongodb.repl.impl.FollowerSyncSourceProviderConfig;
+import com.torodb.mongowp.client.core.MongoClientFactory;
 
 public class TopologyBundleConfig extends FollowerSyncSourceProviderConfig {
 

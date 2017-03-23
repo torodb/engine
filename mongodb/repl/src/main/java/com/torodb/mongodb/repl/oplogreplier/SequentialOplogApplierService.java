@@ -18,10 +18,6 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.assistedinject.Assisted;
 import com.torodb.core.annotations.TorodbIdleService;
@@ -33,6 +29,10 @@ import com.torodb.mongodb.repl.OplogApplierService;
 import com.torodb.mongodb.repl.OplogManager;
 import com.torodb.mongodb.repl.OplogManager.OplogManagerPersistException;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.ContinuousOplogFetcher.ContinuousOplogFetcherFactory;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.exceptions.MongoException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.Logger;
 

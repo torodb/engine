@@ -18,15 +18,6 @@
 
 package com.torodb.mongodb.repl.oplogreplier.fetcher;
 
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.exceptions.OplogOperationUnsupported;
-import com.eightkdata.mongowp.exceptions.OplogStartMissingException;
-import com.eightkdata.mongowp.server.api.MongoRuntimeException;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor.Batch;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor.DeadCursorException;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import com.google.inject.assistedinject.Assisted;
@@ -47,6 +38,15 @@ import com.torodb.mongodb.repl.oplogreplier.NotReadyForMoreOplogBatch;
 import com.torodb.mongodb.repl.oplogreplier.RollbackReplicationException;
 import com.torodb.mongodb.repl.oplogreplier.StopReplicationException;
 import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatch;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.commands.MongoRuntimeException;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.commands.pojos.MongoCursor;
+import com.torodb.mongowp.commands.pojos.MongoCursor.Batch;
+import com.torodb.mongowp.commands.pojos.MongoCursor.DeadCursorException;
+import com.torodb.mongowp.exceptions.MongoException;
+import com.torodb.mongowp.exceptions.OplogOperationUnsupported;
+import com.torodb.mongowp.exceptions.OplogStartMissingException;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;

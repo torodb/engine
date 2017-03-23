@@ -18,16 +18,16 @@
 
 package com.torodb.mongodb.commands.impl.diagnostic;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.torodb.mongodb.commands.impl.ReadTorodbCommandImpl;
 import com.torodb.mongodb.commands.signatures.diagnostic.ListDatabasesCommand.ListDatabasesReply;
 import com.torodb.mongodb.commands.signatures.diagnostic.ListDatabasesCommand.ListDatabasesReply.DatabaseEntry;
 import com.torodb.mongodb.core.MongodTransaction;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.commands.tools.Empty;
 
 import java.util.List;
 

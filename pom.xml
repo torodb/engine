@@ -42,47 +42,41 @@
     <properties>
         <mongowp.version>0.50.1-SNAPSHOT</mongowp.version>
         <jackson.version>2.6.3</jackson.version>
+        
+        <license.header.license>agpl</license.header.license>
+        <license.header.project.name>ToroDB</license.header.project.name>
+        <license.header.project.inceptionYear>2014</license.header.project.inceptionYear>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.8kdata.mongowp</groupId>
+                <groupId>com.torodb.mongowp</groupId>
                 <artifactId>mongowp-core</artifactId>
                 <version>${mongowp.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.8kdata.mongowp.bson</groupId>
+                <groupId>com.torodb.mongowp.bson</groupId>
                 <artifactId>bson-core</artifactId>
                 <version>${mongowp.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.8kdata.mongowp.server</groupId>
-                <artifactId>mongo-server-core</artifactId>
+                <groupId>com.torodb.mongowp</groupId>
+                <artifactId>server</artifactId>
                 <version>${mongowp.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.8kdata.mongowp.server</groupId>
-                <artifactId>mongo-server-api</artifactId>
-                <version>${mongowp.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.8kdata.mongowp.server</groupId>
-                <artifactId>wp-layer</artifactId>
-                <version>${mongowp.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.8kdata.mongowp.client</groupId>
+                <groupId>com.torodb.mongowp.client</groupId>
                 <artifactId>core</artifactId>
                 <version>${mongowp.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.8kdata.mongowp.client</groupId>
+                <groupId>com.torodb.mongowp.client</groupId>
                 <artifactId>driver-wrapper</artifactId>
                 <version>${mongowp.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.8kdata.mongowp.bson</groupId>
+                <groupId>com.torodb.mongowp.bson</groupId>
                 <artifactId>org-bson-utils</artifactId>
                 <version>${mongowp.version}</version>
             </dependency>
@@ -101,18 +95,6 @@
                 <groupId>org.glassfish</groupId>
                 <artifactId>javax.json</artifactId>
                 <version>1.0.4</version>
-            </dependency>
-            
-            <!--MongoDB driver dependencies-->
-            <dependency>
-                <groupId>org.mongodb</groupId>
-                <artifactId>mongodb-driver</artifactId>
-                <version>3.4.2</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mongodb</groupId>
-                <artifactId>bson</artifactId>
-                <version>3.4.2</version>
             </dependency>
             
             <!--SQL dependencies-->
@@ -219,4 +201,13 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

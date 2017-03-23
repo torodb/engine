@@ -18,9 +18,6 @@
 
 package com.torodb.mongodb.commands.signatures.repl;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
@@ -34,6 +31,9 @@ import com.torodb.mongodb.commands.signatures.repl.ReplSetGetStatusCommand.ReplS
 import com.torodb.mongodb.commands.signatures.repl.ReplSetReconfigCommand.ReplSetReconfigArgument;
 import com.torodb.mongodb.commands.signatures.repl.ReplSetStepDownCommand.ReplSetStepDownArgument;
 import com.torodb.mongodb.commands.signatures.repl.ReplSetSyncFromCommand.ReplSetSyncFromReply;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
+import com.torodb.mongowp.commands.tools.Empty;
 
 import java.util.Iterator;
 import java.util.Map;

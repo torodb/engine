@@ -18,8 +18,8 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
 import com.torodb.mongodb.core.MongodServer;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 
 import java.util.stream.Stream;
 

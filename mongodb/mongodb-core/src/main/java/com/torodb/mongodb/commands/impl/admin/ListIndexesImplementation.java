@@ -18,9 +18,6 @@
 
 package com.torodb.mongodb.commands.impl.admin;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
 import com.torodb.mongodb.commands.impl.ReadTorodbCommandImpl;
 import com.torodb.mongodb.commands.pojos.CursorResult;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions;
@@ -30,6 +27,9 @@ import com.torodb.mongodb.commands.pojos.index.type.IndexType;
 import com.torodb.mongodb.commands.signatures.admin.ListIndexesCommand.ListIndexesArgument;
 import com.torodb.mongodb.commands.signatures.admin.ListIndexesCommand.ListIndexesResult;
 import com.torodb.mongodb.core.MongodTransaction;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
 import com.torodb.torod.IndexFieldInfo;
 
 import java.util.LinkedHashMap;

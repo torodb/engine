@@ -18,7 +18,7 @@
 
 package com.torodb.mongodb.core;
 
-import com.eightkdata.mongowp.server.api.CommandLibrary;
+import com.torodb.mongowp.commands.CommandLibrary;
 
 /**
  * The external interface provided by a {@link MongoDbCoreBundle}.

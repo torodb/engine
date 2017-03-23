@@ -18,11 +18,11 @@
 
 package com.torodb.mongodb.core;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
 import com.google.common.base.Preconditions;
 import com.torodb.core.transaction.RollbackException;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
 import org.apache.logging.log4j.Logger;
 
 abstract class MongodTransactionImpl implements MongodTransaction {

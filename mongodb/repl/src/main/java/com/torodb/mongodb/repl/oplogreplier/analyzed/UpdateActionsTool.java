@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.repl.oplogreplier.analyzed;
 
-import com.eightkdata.mongowp.server.api.oplog.UpdateOplogOperation;
 import com.torodb.core.exceptions.ToroRuntimeException;
 import com.torodb.core.exceptions.user.UpdateException;
 import com.torodb.kvdocument.conversion.mongowp.MongoWpConverter;
@@ -39,6 +38,7 @@ import com.torodb.mongodb.language.update.UpdateAction;
 import com.torodb.mongodb.language.update.UpdateActionVisitor;
 import com.torodb.mongodb.language.update.UpdatedToroDocumentBuilder;
 import com.torodb.mongodb.utils.DefaultIdUtils;
+import com.torodb.mongowp.commands.oplog.UpdateOplogOperation;
 
 import javax.inject.Singleton;
 

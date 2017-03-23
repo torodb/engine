@@ -18,15 +18,20 @@
 
 package com.torodb.mongodb.repl.oplogreplier.batch;
 
-import com.eightkdata.mongowp.server.api.oplog.CollectionOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.DbCmdOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
+import static com.torodb.mongowp.commands.oplog.OplogOperationType.DB;
+import static com.torodb.mongowp.commands.oplog.OplogOperationType.DB_CMD;
+import static com.torodb.mongowp.commands.oplog.OplogOperationType.INSERT;
+import static com.torodb.mongowp.commands.oplog.OplogOperationType.UPDATE;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.assistedinject.Assisted;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.analyzed.AnalyzedOpReducer;
 import com.torodb.mongodb.utils.NamespaceUtil;
+import com.torodb.mongowp.commands.oplog.CollectionOplogOperation;
+import com.torodb.mongowp.commands.oplog.DbCmdOplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;

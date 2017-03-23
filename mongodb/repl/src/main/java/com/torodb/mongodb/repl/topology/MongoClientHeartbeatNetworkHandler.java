@@ -18,18 +18,18 @@
 
 package com.torodb.mongodb.repl.topology;
 
-import com.eightkdata.mongowp.client.core.MongoClient;
-import com.eightkdata.mongowp.client.core.MongoClientFactory;
-import com.eightkdata.mongowp.client.core.MongoConnection;
-import com.eightkdata.mongowp.client.core.MongoConnection.RemoteCommandResponse;
-import com.eightkdata.mongowp.client.core.UnreachableMongoServerException;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.torodb.core.concurrent.ConcurrentToolsFactory;
 import com.torodb.mongodb.commands.pojos.ReplicaSetConfig;
 import com.torodb.mongodb.commands.signatures.internal.ReplSetHeartbeatCommand;
 import com.torodb.mongodb.commands.signatures.internal.ReplSetHeartbeatCommand.ReplSetHeartbeatArgument;
 import com.torodb.mongodb.commands.signatures.internal.ReplSetHeartbeatReply;
 import com.torodb.mongodb.commands.signatures.repl.ReplSetGetConfigCommand;
+import com.torodb.mongowp.client.core.MongoClient;
+import com.torodb.mongowp.client.core.MongoClientFactory;
+import com.torodb.mongowp.client.core.MongoConnection;
+import com.torodb.mongowp.client.core.MongoConnection.RemoteCommandResponse;
+import com.torodb.mongowp.client.core.UnreachableMongoServerException;
+import com.torodb.mongowp.commands.tools.Empty;
 import org.jooq.lambda.UncheckedException;
 
 import java.util.concurrent.CompletableFuture;

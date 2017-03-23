@@ -18,19 +18,19 @@
 
 package com.torodb.mongodb.core;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.MongoConstants;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.fields.DoubleField;
-import com.eightkdata.mongowp.fields.IntField;
-import com.eightkdata.mongowp.fields.StringField;
-import com.eightkdata.mongowp.messages.request.EmptyBsonContext;
-import com.eightkdata.mongowp.messages.response.ReplyMessage;
-import com.eightkdata.mongowp.messages.utils.IterableDocumentProvider;
-import com.eightkdata.mongowp.server.api.Connection;
-import com.eightkdata.mongowp.server.api.ErrorHandler;
-import com.eightkdata.mongowp.utils.BsonDocumentBuilder;
 import com.torodb.core.logging.LoggerFactory;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.MongoConstants;
+import com.torodb.mongowp.commands.Connection;
+import com.torodb.mongowp.commands.ErrorHandler;
+import com.torodb.mongowp.exceptions.MongoException;
+import com.torodb.mongowp.fields.DoubleField;
+import com.torodb.mongowp.fields.IntField;
+import com.torodb.mongowp.fields.StringField;
+import com.torodb.mongowp.messages.request.EmptyBsonContext;
+import com.torodb.mongowp.messages.response.ReplyMessage;
+import com.torodb.mongowp.messages.utils.IterableDocumentProvider;
+import com.torodb.mongowp.utils.BsonDocumentBuilder;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;

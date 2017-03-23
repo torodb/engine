@@ -18,8 +18,8 @@
 
 package com.torodb.mongodb.repl.commands.impl;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
 import com.torodb.torod.ExclusiveWriteTorodTransaction;
 import org.apache.logging.log4j.Logger;
 

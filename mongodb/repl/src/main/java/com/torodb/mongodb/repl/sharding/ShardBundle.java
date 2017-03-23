@@ -18,7 +18,7 @@
 
 package com.torodb.mongodb.repl.sharding;
 
-import com.eightkdata.mongowp.server.api.tools.Empty;
+import com.torodb.common.util.Empty;
 import com.torodb.core.bundle.AbstractBundle;
 
 public abstract class ShardBundle extends AbstractBundle<Empty> {

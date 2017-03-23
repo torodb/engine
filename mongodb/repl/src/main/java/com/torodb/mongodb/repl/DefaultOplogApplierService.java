@@ -18,12 +18,10 @@
 
 package com.torodb.mongodb.repl;
 
-import com.eightkdata.mongowp.OpTime;
 import com.google.inject.assistedinject.Assisted;
 import com.torodb.core.concurrent.ConcurrentToolsFactory;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.services.IdleTorodbService;
-import com.torodb.mongodb.repl.OplogManager;
 import com.torodb.mongodb.repl.OplogManager.ReadOplogTransaction;
 import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.OplogApplier;
@@ -32,6 +30,7 @@ import com.torodb.mongodb.repl.oplogreplier.RollbackReplicationException;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.ContinuousOplogFetcher;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.ContinuousOplogFetcher.ContinuousOplogFetcherFactory;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.OplogFetcher;
+import com.torodb.mongowp.OpTime;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;

@@ -18,8 +18,8 @@
 
 package com.torodb.mongodb.utils;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.bson.BsonValue;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.BsonValue;
 
 public class DefaultIdUtils {
 

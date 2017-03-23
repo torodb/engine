@@ -18,9 +18,6 @@
 
 package com.torodb.mongodb.language;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.bson.BsonDocument.Entry;
-import com.eightkdata.mongowp.bson.BsonValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -38,6 +35,9 @@ import com.torodb.mongodb.language.update.SetDocumentUpdateAction;
 import com.torodb.mongodb.language.update.SetFieldUpdateAction;
 import com.torodb.mongodb.language.update.UnsetFieldUpdateAction;
 import com.torodb.mongodb.language.update.UpdateAction;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.BsonDocument.Entry;
+import com.torodb.mongowp.bson.BsonValue;
 
 import java.util.Collection;
 import java.util.List;

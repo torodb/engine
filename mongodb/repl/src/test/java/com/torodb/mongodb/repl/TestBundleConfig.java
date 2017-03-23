@@ -22,10 +22,10 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Stage;
 import com.torodb.core.bundle.BundleConfig;
+import com.torodb.core.guice.EssentialModule;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.core.supervision.SupervisorDecision;
-import com.torodb.core.guice.EssentialModule;
 
 import java.time.Clock;
 

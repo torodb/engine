@@ -18,8 +18,8 @@
 
 package com.torodb.mongodb.repl.impl;
 
-import com.eightkdata.mongowp.client.core.MongoConnection;
 import com.google.common.net.HostAndPort;
+import com.torodb.mongowp.client.core.MongoConnection;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;

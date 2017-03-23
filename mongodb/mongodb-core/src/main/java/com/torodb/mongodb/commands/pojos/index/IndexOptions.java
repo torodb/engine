@@ -18,20 +18,6 @@
 
 package com.torodb.mongodb.commands.pojos.index;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.bson.BsonDocument.Entry;
-import com.eightkdata.mongowp.bson.BsonValue;
-import com.eightkdata.mongowp.bson.utils.DefaultBsonValues;
-import com.eightkdata.mongowp.exceptions.BadValueException;
-import com.eightkdata.mongowp.exceptions.NoSuchKeyException;
-import com.eightkdata.mongowp.exceptions.TypesMismatchException;
-import com.eightkdata.mongowp.fields.BooleanField;
-import com.eightkdata.mongowp.fields.DocField;
-import com.eightkdata.mongowp.fields.IntField;
-import com.eightkdata.mongowp.fields.NumberField;
-import com.eightkdata.mongowp.fields.StringField;
-import com.eightkdata.mongowp.utils.BsonDocumentBuilder;
-import com.eightkdata.mongowp.utils.BsonReaderTool;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.torodb.mongodb.commands.pojos.index.type.AscIndexType;
@@ -42,6 +28,20 @@ import com.torodb.mongodb.commands.pojos.index.type.IndexType;
 import com.torodb.mongodb.commands.pojos.index.type.TextIndexType;
 import com.torodb.mongodb.commands.pojos.index.type.TwoDIndexType;
 import com.torodb.mongodb.commands.pojos.index.type.UnknownIndexType;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.BsonDocument.Entry;
+import com.torodb.mongowp.bson.BsonValue;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
+import com.torodb.mongowp.exceptions.BadValueException;
+import com.torodb.mongowp.exceptions.NoSuchKeyException;
+import com.torodb.mongowp.exceptions.TypesMismatchException;
+import com.torodb.mongowp.fields.BooleanField;
+import com.torodb.mongowp.fields.DocField;
+import com.torodb.mongowp.fields.IntField;
+import com.torodb.mongowp.fields.NumberField;
+import com.torodb.mongowp.fields.StringField;
+import com.torodb.mongowp.utils.BsonDocumentBuilder;
+import com.torodb.mongowp.utils.BsonReaderTool;
 
 import java.util.ArrayList;
 import java.util.Collections;

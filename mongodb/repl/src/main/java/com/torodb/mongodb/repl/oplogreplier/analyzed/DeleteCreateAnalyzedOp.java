@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.repl.oplogreplier.analyzed;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.server.api.oplog.DeleteOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.UpdateOplogOperation;
 import com.torodb.kvdocument.conversion.mongowp.MongoWpConverter;
 import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvValue;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.commands.oplog.DeleteOplogOperation;
+import com.torodb.mongowp.commands.oplog.UpdateOplogOperation;
 
 import java.util.function.Function;
 

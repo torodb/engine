@@ -18,20 +18,20 @@
 
 package com.torodb.mongodb.repl;
 
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.client.core.UnreachableMongoServerException;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.exceptions.OplogOperationUnsupported;
-import com.eightkdata.mongowp.exceptions.OplogStartMissingException;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor.Batch;
 import com.google.common.net.HostAndPort;
 import com.torodb.core.annotations.TorodbRunnableService;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.services.RunnableTorodbService;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.exceptions.NoSyncSourceFoundException;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.client.core.UnreachableMongoServerException;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.commands.pojos.MongoCursor;
+import com.torodb.mongowp.commands.pojos.MongoCursor.Batch;
+import com.torodb.mongowp.exceptions.MongoException;
+import com.torodb.mongowp.exceptions.OplogOperationUnsupported;
+import com.torodb.mongowp.exceptions.OplogStartMissingException;
 import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.ThreadFactory;

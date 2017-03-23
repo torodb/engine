@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.repl;
 
-import com.eightkdata.mongowp.client.core.CachedMongoClientFactory;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Injector;
@@ -26,6 +25,7 @@ import com.torodb.core.bundle.AbstractBundle;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongodb.repl.filters.ToroDbReplicationFilters;
 import com.torodb.mongodb.repl.guice.ReplCoreModule;
+import com.torodb.mongowp.client.core.CachedMongoClientFactory;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;

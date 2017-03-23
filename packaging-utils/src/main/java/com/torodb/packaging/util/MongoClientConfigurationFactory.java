@@ -18,13 +18,13 @@
 
 package com.torodb.packaging.util;
 
-import com.eightkdata.mongowp.client.wrapper.MongoAuthenticationConfiguration;
-import com.eightkdata.mongowp.client.wrapper.MongoAuthenticationMechanism;
-import com.eightkdata.mongowp.client.wrapper.MongoClientConfiguration;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.net.HostAndPort;
 import com.torodb.core.exceptions.SystemException;
+import com.torodb.mongowp.client.wrapper.MongoAuthenticationConfiguration;
+import com.torodb.mongowp.client.wrapper.MongoAuthenticationMechanism;
+import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
 import com.torodb.packaging.config.model.protocol.mongo.AbstractShardReplication;
 import com.torodb.packaging.config.model.protocol.mongo.Auth;
 import com.torodb.packaging.config.model.protocol.mongo.AuthMode;

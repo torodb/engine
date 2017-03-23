@@ -18,25 +18,52 @@
 
 package com.torodb.mongodb.core;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.bson.*;
-import com.eightkdata.mongowp.bson.impl.*;
-import com.eightkdata.mongowp.server.api.Request;
-import com.eightkdata.mongowp.server.api.impl.NameBasedCommandLibrary;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.core.bundle.BundleConfigImpl;
+import com.torodb.core.guice.EssentialModule;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.core.metrics.DisabledMetricRegistry;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.core.supervision.SupervisorDecision;
-import com.torodb.core.guice.EssentialModule;
 import com.torodb.mongodb.commands.impl.CommandClassifierImpl;
 import com.torodb.mongodb.commands.signatures.general.FindCommand;
 import com.torodb.mongodb.commands.signatures.general.InsertCommand;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.bson.BinarySubtype;
+import com.torodb.mongowp.bson.BsonArray;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.BsonType;
+import com.torodb.mongowp.bson.BsonValue;
+import com.torodb.mongowp.bson.impl.ByteArrayBsonBinary;
+import com.torodb.mongowp.bson.impl.DefaultBsonDbPointer;
+import com.torodb.mongowp.bson.impl.DefaultBsonJavaScript;
+import com.torodb.mongowp.bson.impl.DefaultBsonRegex;
+import com.torodb.mongowp.bson.impl.DefaultBsonTimestamp;
+import com.torodb.mongowp.bson.impl.InstantBsonDateTime;
+import com.torodb.mongowp.bson.impl.IntBasedBsonObjectId;
+import com.torodb.mongowp.bson.impl.LongBsonDateTime;
+import com.torodb.mongowp.bson.impl.LongsBsonDecimal128;
+import com.torodb.mongowp.bson.impl.PrimitiveBsonDouble;
+import com.torodb.mongowp.bson.impl.PrimitiveBsonInt32;
+import com.torodb.mongowp.bson.impl.PrimitiveBsonInt64;
+import com.torodb.mongowp.bson.impl.SimpleBsonMax;
+import com.torodb.mongowp.bson.impl.SimpleBsonMin;
+import com.torodb.mongowp.bson.impl.SimpleBsonNull;
+import com.torodb.mongowp.bson.impl.SimpleBsonUndefined;
+import com.torodb.mongowp.bson.impl.SingleEntryBsonDocument;
+import com.torodb.mongowp.bson.impl.SingleValueBsonArray;
+import com.torodb.mongowp.bson.impl.StringBsonDeprecated;
+import com.torodb.mongowp.bson.impl.StringBsonString;
+import com.torodb.mongowp.bson.impl.TrueBsonBoolean;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.commands.impl.NameBasedCommandLibrary;
 import com.torodb.torod.MemoryTorodBundle;
 import com.torodb.torod.TorodBundle;
 import org.junit.After;
@@ -48,9 +75,6 @@ import org.junit.runners.Parameterized;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.*;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
 public class MongoDbBsonTypesTest {

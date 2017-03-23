@@ -18,10 +18,10 @@
 
 package com.torodb.mongodb.repl.oplogreplier.batch;
 
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongodb.filters.FilterResult;
 import com.torodb.mongodb.filters.OplogOperationFilter;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.Logger;
 

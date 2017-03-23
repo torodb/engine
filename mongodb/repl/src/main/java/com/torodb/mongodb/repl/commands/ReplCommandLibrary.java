@@ -18,10 +18,6 @@
 
 package com.torodb.mongodb.repl.commands;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandLibrary;
-import com.eightkdata.mongowp.server.api.impl.NameBasedCommandLibrary;
 import com.torodb.mongodb.commands.signatures.admin.CollModCommand;
 import com.torodb.mongodb.commands.signatures.admin.CreateCollectionCommand;
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand;
@@ -30,6 +26,11 @@ import com.torodb.mongodb.commands.signatures.admin.DropDatabaseCommand;
 import com.torodb.mongodb.commands.signatures.admin.DropIndexesCommand;
 import com.torodb.mongodb.commands.signatures.admin.RenameCollectionCommand;
 import com.torodb.mongodb.commands.signatures.repl.ApplyOpsCommand;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandLibrary;
+import com.torodb.mongowp.commands.CommandLibrary.LibraryEntry;
+import com.torodb.mongowp.commands.impl.NameBasedCommandLibrary;
 
 import java.util.Map;
 import java.util.Optional;

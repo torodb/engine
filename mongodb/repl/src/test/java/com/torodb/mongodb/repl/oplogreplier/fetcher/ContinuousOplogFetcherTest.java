@@ -20,13 +20,6 @@ package com.torodb.mongodb.repl.oplogreplier.fetcher;
 
 import static org.junit.Assert.assertEquals;
 
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.bson.utils.DefaultBsonValues;
-import com.eightkdata.mongowp.client.core.MongoConnection;
-import com.eightkdata.mongowp.client.core.UnreachableMongoServerException;
-import com.eightkdata.mongowp.server.api.oplog.InsertOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.OplogVersion;
 import com.google.common.net.HostAndPort;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.core.metrics.DisabledMetricRegistry;
@@ -43,6 +36,13 @@ import com.torodb.mongodb.repl.oplogreplier.StopReplicationException;
 import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatch;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.ContinuousOplogFetcher.ContinuousOplogFetcherFactory;
 import com.torodb.mongodb.utils.DefaultIdUtils;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
+import com.torodb.mongowp.client.core.MongoConnection;
+import com.torodb.mongowp.client.core.UnreachableMongoServerException;
+import com.torodb.mongowp.commands.oplog.InsertOplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogVersion;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;

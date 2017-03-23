@@ -18,8 +18,6 @@
 
 package com.torodb.mongodb.commands.signatures.general;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.torodb.mongodb.commands.signatures.general.DeleteCommand.DeleteArgument;
@@ -31,6 +29,8 @@ import com.torodb.mongodb.commands.signatures.general.InsertCommand.InsertArgume
 import com.torodb.mongodb.commands.signatures.general.InsertCommand.InsertResult;
 import com.torodb.mongodb.commands.signatures.general.UpdateCommand.UpdateArgument;
 import com.torodb.mongodb.commands.signatures.general.UpdateCommand.UpdateResult;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
 
 import java.util.Iterator;
 import java.util.Map;

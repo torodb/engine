@@ -18,10 +18,6 @@
 
 package com.torodb.mongodb.repl.commands.impl;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
 import com.google.common.collect.ImmutableList;
 import com.torodb.core.exceptions.user.UnsupportedCompoundIndexException;
 import com.torodb.core.exceptions.user.UnsupportedUniqueIndexException;
@@ -41,6 +37,10 @@ import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand.CreateI
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand.CreateIndexesResult;
 import com.torodb.mongodb.filters.IndexFilter;
 import com.torodb.mongodb.utils.DefaultIdUtils;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
 import com.torodb.torod.IndexFieldInfo;
 import com.torodb.torod.SharedWriteTorodTransaction;
 import org.apache.logging.log4j.Logger;

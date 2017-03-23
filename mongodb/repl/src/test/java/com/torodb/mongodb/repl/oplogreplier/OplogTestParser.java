@@ -19,24 +19,21 @@
 package com.torodb.mongodb.repl.oplogreplier;
 
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.bson.BsonInt32;
-import com.eightkdata.mongowp.bson.BsonString;
-import com.eightkdata.mongowp.bson.BsonValue;
-import com.eightkdata.mongowp.bson.org.bson.utils.MongoBsonTranslator;
-import com.eightkdata.mongowp.bson.utils.DefaultBsonValues;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.utils.BsonDocumentBuilder;
 import com.google.common.base.Charsets;
 import com.torodb.kvdocument.conversion.mongowp.MongoWpConverter;
 import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.mongodb.commands.pojos.OplogOperationParser;
-import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
-import com.torodb.mongodb.repl.oplogreplier.BddOplogTest;
 import com.torodb.mongodb.repl.oplogreplier.BddOplogTest.CollectionState;
 import com.torodb.mongodb.repl.oplogreplier.BddOplogTest.DatabaseState;
-import com.torodb.mongodb.repl.oplogreplier.UnexpectedOplogOperationException;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.BsonInt32;
+import com.torodb.mongowp.bson.BsonString;
+import com.torodb.mongowp.bson.BsonValue;
+import com.torodb.mongowp.bson.org.bson.utils.MongoBsonTranslator;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.exceptions.MongoException;
+import com.torodb.mongowp.utils.BsonDocumentBuilder;
 import org.jooq.lambda.Unchecked;
 
 import java.io.*;

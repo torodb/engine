@@ -18,22 +18,22 @@
 
 package com.torodb.mongodb.commands.pojos;
 
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.bson.BsonValue;
-import com.eightkdata.mongowp.exceptions.BadValueException;
-import com.eightkdata.mongowp.exceptions.NoSuchKeyException;
-import com.eightkdata.mongowp.exceptions.TypesMismatchException;
-import com.eightkdata.mongowp.server.api.oplog.DbCmdOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.DbOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.DeleteOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.InsertOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.NoopOplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperationType;
-import com.eightkdata.mongowp.server.api.oplog.OplogVersion;
-import com.eightkdata.mongowp.server.api.oplog.UpdateOplogOperation;
-import com.eightkdata.mongowp.utils.BsonReaderTool;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.BsonValue;
+import com.torodb.mongowp.commands.oplog.DbCmdOplogOperation;
+import com.torodb.mongowp.commands.oplog.DbOplogOperation;
+import com.torodb.mongowp.commands.oplog.DeleteOplogOperation;
+import com.torodb.mongowp.commands.oplog.InsertOplogOperation;
+import com.torodb.mongowp.commands.oplog.NoopOplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogOperationType;
+import com.torodb.mongowp.commands.oplog.OplogVersion;
+import com.torodb.mongowp.commands.oplog.UpdateOplogOperation;
+import com.torodb.mongowp.exceptions.BadValueException;
+import com.torodb.mongowp.exceptions.NoSuchKeyException;
+import com.torodb.mongowp.exceptions.TypesMismatchException;
+import com.torodb.mongowp.utils.BsonReaderTool;
 
 import java.util.Locale;
 import java.util.function.Function;

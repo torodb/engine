@@ -18,17 +18,17 @@
 
 package com.torodb.mongodb.repl.oplogreplier.fetcher;
 
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor.Batch;
-import com.eightkdata.mongowp.server.api.pojos.MongoCursor.DeadCursorException;
 import com.torodb.mongodb.repl.oplogreplier.FinishedOplogBatch;
 import com.torodb.mongodb.repl.oplogreplier.NormalOplogBatch;
 import com.torodb.mongodb.repl.oplogreplier.NotReadyForMoreOplogBatch;
 import com.torodb.mongodb.repl.oplogreplier.RollbackReplicationException;
 import com.torodb.mongodb.repl.oplogreplier.StopReplicationException;
 import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatch;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.commands.pojos.MongoCursor;
+import com.torodb.mongowp.commands.pojos.MongoCursor.Batch;
+import com.torodb.mongowp.commands.pojos.MongoCursor.DeadCursorException;
+import com.torodb.mongowp.exceptions.MongoException;
 
 public class LimitedOplogFetcher implements OplogFetcher {
 

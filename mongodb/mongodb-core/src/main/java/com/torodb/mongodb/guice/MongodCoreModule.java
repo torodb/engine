@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.guice;
 
-import com.eightkdata.mongowp.server.api.CommandLibrary;
 import com.google.inject.PrivateModule;
 import com.google.inject.Singleton;
 import com.torodb.mongodb.commands.CommandClassifier;
@@ -26,6 +25,7 @@ import com.torodb.mongodb.core.MongoDbCoreConfig;
 import com.torodb.mongodb.core.MongodMetrics;
 import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.language.ObjectIdFactory;
+import com.torodb.mongowp.commands.CommandLibrary;
 import com.torodb.torod.TorodServer;
 
 public class MongodCoreModule extends PrivateModule {

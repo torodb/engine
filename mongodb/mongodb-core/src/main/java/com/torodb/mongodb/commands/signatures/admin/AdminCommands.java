@@ -18,10 +18,6 @@
 
 package com.torodb.mongodb.commands.signatures.admin;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
-import com.eightkdata.mongowp.server.api.impl.CollectionCommandArgument;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.torodb.mongodb.commands.signatures.admin.CollModCommand.CollModArgument;
@@ -36,6 +32,10 @@ import com.torodb.mongodb.commands.signatures.admin.ListCollectionsCommand.ListC
 import com.torodb.mongodb.commands.signatures.admin.ListIndexesCommand.ListIndexesArgument;
 import com.torodb.mongodb.commands.signatures.admin.ListIndexesCommand.ListIndexesResult;
 import com.torodb.mongodb.commands.signatures.admin.RenameCollectionCommand.RenameCollectionArgument;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
+import com.torodb.mongowp.commands.impl.CollectionCommandArgument;
+import com.torodb.mongowp.commands.tools.Empty;
 
 import java.util.Iterator;
 import java.util.Map;

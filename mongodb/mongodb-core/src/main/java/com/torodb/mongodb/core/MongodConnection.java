@@ -18,10 +18,10 @@
 
 package com.torodb.mongodb.core;
 
-import com.eightkdata.mongowp.server.api.CommandExecutor;
-import com.eightkdata.mongowp.server.api.Connection;
 import com.google.common.base.Preconditions;
 import com.torodb.core.logging.LoggerFactory;
+import com.torodb.mongowp.commands.CommandExecutor;
+import com.torodb.mongowp.commands.Connection;
 import com.torodb.torod.TorodConnection;
 import org.apache.logging.log4j.Logger;
 

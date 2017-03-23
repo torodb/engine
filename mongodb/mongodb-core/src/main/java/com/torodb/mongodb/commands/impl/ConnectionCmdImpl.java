@@ -18,8 +18,6 @@
 
 package com.torodb.mongodb.commands.impl;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
 import com.google.common.collect.ImmutableMap;
 import com.torodb.core.BuildProperties;
 import com.torodb.core.annotations.DoNotChange;
@@ -39,6 +37,8 @@ import com.torodb.mongodb.commands.signatures.diagnostic.ServerStatusCommand;
 import com.torodb.mongodb.commands.signatures.repl.IsMasterCommand;
 import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.MongodServerConfig;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
 
 import java.time.Clock;
 import java.util.Set;

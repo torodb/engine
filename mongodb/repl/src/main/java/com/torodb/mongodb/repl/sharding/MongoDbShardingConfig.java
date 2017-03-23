@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.repl.sharding;
 
-import com.eightkdata.mongowp.client.wrapper.MongoClientConfiguration;
 import com.google.inject.Injector;
 import com.torodb.core.annotations.DoNotChange;
 import com.torodb.core.bundle.BundleConfig;
@@ -26,6 +25,7 @@ import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.ConsistencyHandler;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
 import com.torodb.torod.TorodBundle;
 
 import java.util.Collections;

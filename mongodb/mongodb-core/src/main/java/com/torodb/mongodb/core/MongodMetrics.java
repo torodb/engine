@@ -20,8 +20,8 @@ package com.torodb.mongodb.core;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
-import com.eightkdata.mongowp.server.api.Command;
 import com.torodb.core.metrics.ToroMetricRegistry;
+import com.torodb.mongowp.commands.Command;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -18,14 +18,14 @@
 
 package com.torodb.mongodb.utils;
 
-import com.eightkdata.mongowp.MongoVersion;
-import com.eightkdata.mongowp.client.core.MongoConnection;
-import com.eightkdata.mongowp.client.core.MongoConnection.RemoteCommandResponse;
-import com.eightkdata.mongowp.exceptions.MongoException;
 import com.torodb.mongodb.commands.pojos.CursorResult;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions;
 import com.torodb.mongodb.commands.signatures.admin.ListIndexesCommand;
 import com.torodb.mongodb.commands.signatures.admin.ListIndexesCommand.ListIndexesResult;
+import com.torodb.mongowp.MongoVersion;
+import com.torodb.mongowp.client.core.MongoConnection;
+import com.torodb.mongowp.client.core.MongoConnection.RemoteCommandResponse;
+import com.torodb.mongowp.exceptions.MongoException;
 
 /**
  * Utility class to get the indexes metadata in a version independient way.

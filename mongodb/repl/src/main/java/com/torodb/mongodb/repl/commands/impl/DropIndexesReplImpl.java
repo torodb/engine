@@ -18,9 +18,6 @@
 
 package com.torodb.mongodb.repl.commands.impl;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
 import com.torodb.core.language.AttributeReference;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions;
@@ -28,6 +25,9 @@ import com.torodb.mongodb.commands.pojos.index.IndexOptions.KnownType;
 import com.torodb.mongodb.commands.signatures.admin.DropIndexesCommand.DropIndexesArgument;
 import com.torodb.mongodb.commands.signatures.admin.DropIndexesCommand.DropIndexesResult;
 import com.torodb.mongodb.utils.DefaultIdUtils;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
 import com.torodb.torod.IndexFieldInfo;
 import com.torodb.torod.IndexInfo;
 import com.torodb.torod.SharedWriteTorodTransaction;

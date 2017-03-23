@@ -18,11 +18,11 @@
 
 package com.torodb.mongodb.commands.signatures.internal;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.exceptions.BadValueException;
-import com.eightkdata.mongowp.exceptions.NoSuchKeyException;
-import com.eightkdata.mongowp.exceptions.TypesMismatchException;
-import com.eightkdata.mongowp.utils.BsonReaderTool;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.exceptions.BadValueException;
+import com.torodb.mongowp.exceptions.NoSuchKeyException;
+import com.torodb.mongowp.exceptions.TypesMismatchException;
+import com.torodb.mongowp.utils.BsonReaderTool;
 
 /**
  *

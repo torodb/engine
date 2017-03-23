@@ -18,13 +18,13 @@
 
 package com.torodb.mongodb.repl;
 
-import com.eightkdata.mongowp.client.wrapper.MongoClientConfiguration;
 import com.google.inject.Injector;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ToroDbReplicationFilters;
 import com.torodb.mongodb.repl.guice.ReplEssentialOverrideModule;
+import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
 
 public class ReplCoreConfig implements BundleConfig {
 

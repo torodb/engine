@@ -18,13 +18,13 @@
 
 package com.torodb.mongodb.repl.commands.impl;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
-import com.eightkdata.mongowp.server.api.tools.Empty;
+import com.torodb.common.util.Empty;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.commands.LogAndStopCommand;
 import com.torodb.mongodb.repl.guice.MongoDbRepl;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
 import com.torodb.torod.SharedWriteTorodTransaction;
 
 import javax.inject.Inject;

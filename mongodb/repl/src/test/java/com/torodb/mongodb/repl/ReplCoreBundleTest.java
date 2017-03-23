@@ -19,7 +19,6 @@
 package com.torodb.mongodb.repl;
 
 
-import com.eightkdata.mongowp.client.wrapper.MongoClientConfiguration;
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.Service;
@@ -27,6 +26,7 @@ import com.torodb.core.bundle.BundleConfig;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ToroDbReplicationFilters;
 import com.torodb.mongodb.repl.guice.ReplEssentialOverrideModule;
+import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
 import org.junit.Before;
 
 import java.util.List;

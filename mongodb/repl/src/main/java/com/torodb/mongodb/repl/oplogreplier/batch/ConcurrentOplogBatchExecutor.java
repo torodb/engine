@@ -20,8 +20,8 @@ package com.torodb.mongodb.repl.oplogreplier.batch;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.google.common.base.Supplier;
+import com.torodb.common.util.Empty;
 import com.torodb.core.concurrent.ConcurrentToolsFactory;
 import com.torodb.core.concurrent.StreamExecutor;
 import com.torodb.core.exceptions.user.UserException;

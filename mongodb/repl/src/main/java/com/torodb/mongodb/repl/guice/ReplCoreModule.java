@@ -18,11 +18,6 @@
 
 package com.torodb.mongodb.repl.guice;
 
-import com.eightkdata.mongowp.client.core.CachedMongoClientFactory;
-import com.eightkdata.mongowp.client.core.GuavaCachedMongoClientFactory;
-import com.eightkdata.mongowp.client.core.MongoClientFactory;
-import com.eightkdata.mongowp.client.wrapper.MongoClientConfiguration;
-import com.eightkdata.mongowp.client.wrapper.MongoClientWrapperFactory;
 import com.google.inject.Exposed;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
@@ -34,6 +29,11 @@ import com.torodb.mongodb.repl.ReplCoreConfig;
 import com.torodb.mongodb.repl.ReplMetrics;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
 import com.torodb.mongodb.repl.impl.MongoOplogReaderProvider;
+import com.torodb.mongowp.client.core.CachedMongoClientFactory;
+import com.torodb.mongowp.client.core.GuavaCachedMongoClientFactory;
+import com.torodb.mongowp.client.core.MongoClientFactory;
+import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongowp.client.wrapper.MongoClientWrapperFactory;
 
 import java.time.Duration;
 

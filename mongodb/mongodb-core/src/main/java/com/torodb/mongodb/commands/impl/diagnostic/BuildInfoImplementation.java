@@ -18,16 +18,16 @@
 
 package com.torodb.mongodb.commands.impl.diagnostic;
 
-import com.eightkdata.mongowp.MongoVersion;
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.torodb.core.BuildProperties;
 import com.torodb.mongodb.commands.impl.ConnectionTorodbCommandImpl;
 import com.torodb.mongodb.commands.signatures.diagnostic.BuildInfoCommand.BuildInfoResult;
 import com.torodb.mongodb.core.MongoLayerConstants;
 import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongowp.MongoVersion;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.commands.tools.Empty;
 
 import javax.inject.Inject;
 

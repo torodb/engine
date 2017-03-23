@@ -18,13 +18,13 @@
 
 package com.torodb.mongodb.commands.impl;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
 import com.torodb.core.annotations.DoNotChange;
 import com.torodb.mongodb.commands.CmdImplMapSupplier;
 import com.torodb.mongodb.commands.impl.admin.RenameCollectionImplementation;
 import com.torodb.mongodb.commands.signatures.admin.RenameCollectionCommand;
 import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
 
 import java.util.Collections;
 import java.util.Map;

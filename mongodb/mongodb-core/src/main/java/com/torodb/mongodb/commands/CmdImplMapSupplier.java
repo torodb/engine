@@ -18,8 +18,8 @@
 
 package com.torodb.mongodb.commands;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
 
 import java.util.Map;
 import java.util.function.Supplier;

@@ -18,7 +18,7 @@
 
 package com.torodb.mongodb.repl.oplogreplier.batch;
 
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 
 /**
  *

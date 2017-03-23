@@ -18,13 +18,13 @@
 
 package com.torodb.mongodb.commands.impl.authentication;
 
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongodb.commands.impl.ConnectionTorodbCommandImpl;
 import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.commands.tools.Empty;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Random;

@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.commands.impl;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
-import com.eightkdata.mongowp.server.api.Request;
 import com.torodb.core.logging.LoggerFactory;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
+import com.torodb.mongowp.commands.Request;
 import org.apache.logging.log4j.Logger;
 
 import javax.inject.Inject;

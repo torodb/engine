@@ -18,15 +18,6 @@
 
 package com.torodb.mongodb.repl.topology;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.OpTime;
-import com.eightkdata.mongowp.client.core.MongoConnection.RemoteCommandResponse;
-import com.eightkdata.mongowp.exceptions.HostUnreachableException;
-import com.eightkdata.mongowp.exceptions.InvalidOptionsException;
-import com.eightkdata.mongowp.exceptions.MongoException;
-import com.eightkdata.mongowp.exceptions.NodeNotFoundException;
-import com.eightkdata.mongowp.exceptions.ShutdownInProgressException;
-import com.eightkdata.mongowp.exceptions.UnauthorizedException;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import com.google.common.primitives.UnsignedInteger;
@@ -40,6 +31,15 @@ import com.torodb.mongodb.commands.pojos.ReplicaSetConfig;
 import com.torodb.mongodb.commands.signatures.internal.ReplSetHeartbeatCommand.ReplSetHeartbeatArgument;
 import com.torodb.mongodb.commands.signatures.internal.ReplSetHeartbeatReply;
 import com.torodb.mongodb.commands.signatures.repl.ReplSetSyncFromCommand.ReplSetSyncFromReply;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.client.core.MongoConnection.RemoteCommandResponse;
+import com.torodb.mongowp.exceptions.HostUnreachableException;
+import com.torodb.mongowp.exceptions.InvalidOptionsException;
+import com.torodb.mongowp.exceptions.MongoException;
+import com.torodb.mongowp.exceptions.NodeNotFoundException;
+import com.torodb.mongowp.exceptions.ShutdownInProgressException;
+import com.torodb.mongowp.exceptions.UnauthorizedException;
 import org.apache.logging.log4j.Logger;
 
 import java.time.Duration;
@@ -616,8 +616,8 @@ class TopologyCoordinator {
    * the caller should verify the configuration in hbResponse is acceptable, perform any other
    * reconfiguration actions it must, and call
    * {@link #updateConfig(
-   * com.eightkdata.mongowp.mongoserver.api.safe.library.v3m0.pojos.ReplicaSetConfig,
-   * java.time.Instant, com.eightkdata.mongowp.OpTime) updateConfig}
+   * com.torodb.mongowp.mongoserver.api.safe.library.v3m0.pojos.ReplicaSetConfig,
+   * java.time.Instant, com.torodb.mongowp.OpTime) updateConfig}
    * with the appropiate arguments.
    * <p>
    * This call should be paired (with intervening network communication) with a call to
@@ -737,8 +737,8 @@ class TopologyCoordinator {
    * Performs updating {@link #_hbdata} and {@link #_currentPrimaryIndex} for
    * {@link #processHeartbeatResponse(org.threeten.bp.Instant, org.threeten.bp.Duration,
    * com.google.common.net.HostAndPort,
-   * com.eightkdata.mongowp.client.core.MongoConnection.RemoteCommandResponse,
-   * com.eightkdata.mongowp.OpTime) }.
+   * com.torodb.mongowp.client.core.MongoConnection.RemoteCommandResponse,
+   * com.torodb.mongowp.OpTime) }.
    */
   private HeartbeatResponseAction updateHeartbeatDataImpl(int updatedConfigIndex, Instant now) {
     ////////////////////

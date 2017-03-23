@@ -18,9 +18,6 @@
 
 package com.torodb.mongodb.commands.signatures.diagnostic;
 
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.CommandImplementation;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.torodb.mongodb.commands.signatures.diagnostic.BuildInfoCommand.BuildInfoResult;
@@ -31,6 +28,9 @@ import com.torodb.mongodb.commands.signatures.diagnostic.GetLogCommand.GetLogRep
 import com.torodb.mongodb.commands.signatures.diagnostic.ListDatabasesCommand.ListDatabasesReply;
 import com.torodb.mongodb.commands.signatures.diagnostic.ServerStatusCommand.ServerStatusArgument;
 import com.torodb.mongodb.commands.signatures.diagnostic.ServerStatusCommand.ServerStatusReply;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandImplementation;
+import com.torodb.mongowp.commands.tools.Empty;
 
 import java.util.Iterator;
 import java.util.Map;

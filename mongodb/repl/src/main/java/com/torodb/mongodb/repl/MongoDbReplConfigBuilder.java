@@ -18,13 +18,13 @@
 
 package com.torodb.mongodb.repl;
 
-import com.eightkdata.mongowp.client.wrapper.MongoClientConfiguration;
 import com.google.common.base.Preconditions;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.metrics.ToroMetricRegistry;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
 
 import java.util.Optional;
 

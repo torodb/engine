@@ -18,9 +18,9 @@
 
 package com.torodb.mongodb.commands.tools;
 
-import com.eightkdata.mongowp.bson.BsonDocument;
-import com.eightkdata.mongowp.bson.utils.DefaultBsonValues;
-import com.eightkdata.mongowp.server.api.Command;
+import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
+import com.torodb.mongowp.commands.Command;
 
 /**
  *

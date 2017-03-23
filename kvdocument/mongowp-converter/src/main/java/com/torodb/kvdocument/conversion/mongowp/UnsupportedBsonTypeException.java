@@ -18,9 +18,8 @@
 
 package com.torodb.kvdocument.conversion.mongowp;
 
-import com.eightkdata.mongowp.bson.BsonType;
+import com.torodb.mongowp.bson.BsonType;
 
-/** */
 public class UnsupportedBsonTypeException extends RuntimeException {
 
   private static final long serialVersionUID = 1L;

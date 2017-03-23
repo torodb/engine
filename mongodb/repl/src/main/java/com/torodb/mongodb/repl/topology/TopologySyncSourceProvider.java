@@ -18,10 +18,10 @@
 
 package com.torodb.mongodb.repl.topology;
 
-import com.eightkdata.mongowp.OpTime;
 import com.google.common.net.HostAndPort;
 import com.torodb.mongodb.repl.SyncSourceProvider;
 import com.torodb.mongodb.repl.exceptions.NoSyncSourceFoundException;
+import com.torodb.mongowp.OpTime;
 
 import java.util.Optional;
 import java.util.function.Supplier;

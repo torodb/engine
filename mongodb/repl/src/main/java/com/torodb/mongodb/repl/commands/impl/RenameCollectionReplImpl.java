@@ -18,16 +18,16 @@
 
 package com.torodb.mongodb.repl.commands.impl;
 
-import com.eightkdata.mongowp.ErrorCode;
-import com.eightkdata.mongowp.Status;
-import com.eightkdata.mongowp.server.api.Command;
-import com.eightkdata.mongowp.server.api.Request;
-import com.eightkdata.mongowp.server.api.tools.Empty;
 import com.google.inject.Inject;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongodb.commands.signatures.admin.RenameCollectionCommand.RenameCollectionArgument;
 import com.torodb.mongodb.filters.NamespaceFilter;
+import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.commands.tools.Empty;
 import com.torodb.torod.ExclusiveWriteTorodTransaction;
 import org.apache.logging.log4j.Logger;
 

@@ -27,16 +27,12 @@
             <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.8kdata.mongowp.client</groupId>
+            <groupId>com.torodb.mongowp.client</groupId>
             <artifactId>core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.8kdata.mongowp.server</groupId>
-            <artifactId>mongo-server-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.8kdata.mongowp.server</groupId>
-            <artifactId>mongo-server-core</artifactId>
+            <groupId>com.torodb.mongowp</groupId>
+            <artifactId>mongowp-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -46,10 +42,6 @@
             <groupId>com.torodb.engine.kvdocument</groupId>
             <artifactId>mongowp-converter</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.8kdata.mongowp.server</groupId>
-            <artifactId>wp-layer</artifactId>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>

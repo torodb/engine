@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.repl.oplogreplier.analyzed;
 
-import com.eightkdata.mongowp.bson.BsonValue;
-import com.eightkdata.mongowp.server.api.oplog.CollectionOplogOperation;
 import com.google.common.base.Preconditions;
 import com.torodb.kvdocument.conversion.mongowp.MongoWpConverter;
 import com.torodb.kvdocument.values.KvValue;
 import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
+import com.torodb.mongowp.bson.BsonValue;
+import com.torodb.mongowp.commands.oplog.CollectionOplogOperation;
 
 import java.util.HashMap;
 import java.util.Map;

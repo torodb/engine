@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import com.eightkdata.mongowp.server.api.oplog.OplogOperation;
 import com.torodb.core.annotations.TorodbRunnableService;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.services.RunnableTorodbService;
@@ -27,6 +26,7 @@ import com.torodb.core.supervision.SupervisorDecision;
 import com.torodb.core.transaction.RollbackException;
 import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatch;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.OplogFetcher;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.ThreadFactory;

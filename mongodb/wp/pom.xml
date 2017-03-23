@@ -17,5 +17,9 @@
             <artifactId>mongodb-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.torodb.mongowp</groupId>
+            <artifactId>server</artifactId>
+        </dependency>
     </dependencies>
 </project>
