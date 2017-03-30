@@ -39,9 +39,12 @@ public class MongoJavascriptWithScopeValueConverter
 
   private static final long serialVersionUID = 1L;
 
+  public static final MongoJavascriptWithScopeValueConverter CONVERTER =
+      new MongoJavascriptWithScopeValueConverter();
+
   public static final DataTypeForKv<KvMongoJavascriptWithScope> TYPE =
       JsonbBinding.fromKvValue(
-          KvMongoJavascriptWithScope.class, new MongoJavascriptWithScopeValueConverter());
+          KvMongoJavascriptWithScope.class, CONVERTER);
 
   @Override
   public KvType getErasuredType() {

@@ -39,8 +39,11 @@ public class MongoRegexValueConverter implements KvValueConverter<String, String
 
   private static final long serialVersionUID = 1L;
 
+  public static final MongoRegexValueConverter CONVERTER =
+      new MongoRegexValueConverter();
+
   public static final DataTypeForKv<KvMongoRegex> TYPE =
-      JsonbBinding.fromKvValue(KvMongoRegex.class, new MongoRegexValueConverter());
+      JsonbBinding.fromKvValue(KvMongoRegex.class, CONVERTER);
 
   @Override
   public KvType getErasuredType() {

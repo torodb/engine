@@ -41,8 +41,11 @@ public class MongoDbPointerValueConverter
 
   private static final long serialVersionUID = 1L;
 
+  public static final MongoDbPointerValueConverter CONVERTER =
+      new MongoDbPointerValueConverter();
+
   public static final DataTypeForKv<KvMongoDbPointer> TYPE =
-      JsonbBinding.fromKvValue(KvMongoDbPointer.class, new MongoDbPointerValueConverter());
+      JsonbBinding.fromKvValue(KvMongoDbPointer.class, CONVERTER);
 
   @Override
   public KvType getErasuredType() {
