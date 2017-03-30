@@ -175,7 +175,7 @@ public class PostgreSqlValueToCopyConverterTest {
                                     .put("a", KvInteger.of(123))
                                     .put("b", KvLong.of(0))
                                     .build()))),
-                    "{\"js\": \"alert('hello');\", \"scope\": \"{a : 123, b : 0}\"}"
+                    "{\"js\":\"alert('hello');\",\"scope\":\"{a : 123, b : 0}\"}"
                   },
                   //{"ZeroDecimal128", KvDecimal128.of(0, 0), "0." + String.format("%6176s", "").replace(' ', '0')},
                   //{"NaNDecimal128", KvDecimal128.of(0x7c00000000000000L, 0), "0." + String.format("%6176s", "").replace(' ', '0')},
@@ -191,7 +191,8 @@ public class PostgreSqlValueToCopyConverterTest {
                     "(-1000000000000000000,false,false,false)"
                   },
                   //{"TinyDecimal128", KvDecimal128.of(new BigDecimal("0.0000000000000000001")), "0.0000000000000000001"},
-                  {"MongoRegex", KvMongoRegex.of("pattern", "esd"), "{\"options\": \"esd\", \"pattern\": \"pattern\"}"},
+                  {"MongoRegex", KvMongoRegex.of("pattern", "esd"), "{\"pattern\":\"pattern\",\"options\":\"esd\"}"},
+                  {"StrangeMongoRegex", KvMongoRegex.of("pa'tt\"e/rn", "esd"), "{\"pattern\":\"pa'tt\\\\\"e/rn\",\"options\":\"esd\"}"},
                   {"Timestamp", new DefaultKvMongoTimestamp(27, 3), "(27,3)"},
                   {
                     "DbPointer",
@@ -199,7 +200,7 @@ public class PostgreSqlValueToCopyConverterTest {
                         "namespace",
                         new ByteArrayKvMongoObjectId(
                             new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 0xa, 0xb, 0xc})),
-                    "{\"namespace\": \"namespace\", \"objectId\": \"\\\\x0102030405060708090A0B0C\"}"
+                    "{\"namespace\":\"namespace\",\"objectId\":\"\\\\u0001\\\\u0002\\\\u0003\\\\u0004\\\\u0005\\\\u0006\\\\u0007\\\\b\\\\t\\\\n\\\\u000b\\\\f\"}"
                   },
                 })
             .collect(Collectors.toList());

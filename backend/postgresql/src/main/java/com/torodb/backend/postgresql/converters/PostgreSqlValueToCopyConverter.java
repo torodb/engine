@@ -18,6 +18,9 @@
 
 package com.torodb.backend.postgresql.converters;
 
+import com.torodb.backend.postgresql.converters.jooq.MongoDbPointerValueConverter;
+import com.torodb.backend.postgresql.converters.jooq.MongoJavascriptWithScopeValueConverter;
+import com.torodb.backend.postgresql.converters.jooq.MongoRegexValueConverter;
 import com.torodb.backend.postgresql.converters.util.CopyEscaper;
 import com.torodb.common.util.HexUtils;
 import com.torodb.common.util.TextEscaper;
@@ -183,11 +186,7 @@ public class PostgreSqlValueToCopyConverter implements KvValueVisitor<Void, Stri
 
   @Override
   public Void visit(KvMongoJavascriptWithScope value, StringBuilder arg) {
-    arg.append("{\"js\": \"");
-    appendJsonString(arg, value.getJs());
-    arg.append("\", \"scope\": \"");
-    appendJsonString(arg, value.getScopeAsString());
-    arg.append("\"}");
+    ESCAPER.appendEscaped(arg, MongoJavascriptWithScopeValueConverter.CONVERTER.to(value));
 
     return null;
   }
@@ -212,35 +211,22 @@ public class PostgreSqlValueToCopyConverter implements KvValueVisitor<Void, Stri
 
   @Override
   public Void visit(KvMongoRegex value, StringBuilder arg) {
-    arg.append("{\"options\": \"");
-    appendJsonString(arg, value.getOptionsAsText());
-    arg.append("\", \"pattern\": \"");
-    appendJsonString(arg, value.getPattern());
-    arg.append("\"}");
+    ESCAPER.appendEscaped(arg, MongoRegexValueConverter.CONVERTER.to(value));
+
     return null;
   }
 
   @Override
   public Void visit(KvMongoDbPointer value, StringBuilder arg) {
-    arg.append("{\"namespace\": \"");
-    appendJsonString(arg, value.getNamespace());
-    arg.append("\", \"objectId\": \"");
-    visit(value.getId(), arg);
-    arg.append("\"}");
+    ESCAPER.appendEscaped(arg, MongoDbPointerValueConverter.CONVERTER.to(value));
 
     return null;
   }
 
   @Override
   public Void visit(KvDeprecated value, StringBuilder arg) {
-    arg.append(value.toString());
+    ESCAPER.appendEscaped(arg, value.toString());
     return null;
-  }
-
-  private StringBuilder appendJsonString(StringBuilder arg, String in) {
-    final String jsonb = in.replaceAll("\\\"", "\\\\\"");
-    ESCAPER.appendEscaped(arg, jsonb);
-    return arg;
   }
 
 }
