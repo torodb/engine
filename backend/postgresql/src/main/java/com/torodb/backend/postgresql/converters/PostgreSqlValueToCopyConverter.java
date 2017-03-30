@@ -163,7 +163,15 @@ public class PostgreSqlValueToCopyConverter implements KvValueVisitor<Void, Stri
 
   @Override
   public Void visit(KvDecimal128 value, StringBuilder arg) {
-    arg.append(value.getValue().toString());
+    arg.append('(')
+            .append(value.getBigDecimal())
+            .append(',')
+            .append(value.isInfinite() && !value.isNaN())
+            .append(',')
+            .append(value.isNaN())
+            .append(',')
+            .append(value.isNegativeZero())
+            .append(')');
     return null;
   }
 
@@ -175,8 +183,12 @@ public class PostgreSqlValueToCopyConverter implements KvValueVisitor<Void, Stri
 
   @Override
   public Void visit(KvMongoJavascriptWithScope value, StringBuilder arg) {
-    ESCAPER.appendEscaped(arg, value.getJs());
-    arg.append(value.getScopeAsString());
+    arg.append("{\"js\": \"");
+    appendJsonString(arg, value.getJs());
+    arg.append("\", \"scope\": \"");
+    appendJsonString(arg, value.getScopeAsString());
+    arg.append("\"}");
+
     return null;
   }
 
@@ -200,19 +212,22 @@ public class PostgreSqlValueToCopyConverter implements KvValueVisitor<Void, Stri
 
   @Override
   public Void visit(KvMongoRegex value, StringBuilder arg) {
-    ESCAPER.appendEscaped(arg, value.getPattern());
-    ESCAPER.appendEscaped(arg, ",");
-    ESCAPER.appendEscaped(arg, value.getOptionsAsText());
+    arg.append("{\"options\": \"");
+    appendJsonString(arg, value.getOptionsAsText());
+    arg.append("\", \"pattern\": \"");
+    appendJsonString(arg, value.getPattern());
+    arg.append("\"}");
     return null;
   }
 
   @Override
   public Void visit(KvMongoDbPointer value, StringBuilder arg) {
-    arg.append('(');
-    ESCAPER.appendEscaped(arg, value.getNamespace());
-    arg.append(',');
+    arg.append("{\"namespace\": \"");
+    appendJsonString(arg, value.getNamespace());
+    arg.append("\", \"objectId\": \"");
     visit(value.getId(), arg);
-    arg.append(')');
+    arg.append("\"}");
+
     return null;
   }
 
@@ -221,4 +236,11 @@ public class PostgreSqlValueToCopyConverter implements KvValueVisitor<Void, Stri
     arg.append(value.toString());
     return null;
   }
+
+  private StringBuilder appendJsonString(StringBuilder arg, String in) {
+    final String jsonb = in.replaceAll("\\\"", "\\\\\"");
+    ESCAPER.appendEscaped(arg, jsonb);
+    return arg;
+  }
+
 }
