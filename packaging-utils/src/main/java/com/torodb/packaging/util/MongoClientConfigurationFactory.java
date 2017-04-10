@@ -113,7 +113,7 @@ public class MongoClientConfigurationFactory {
       FileNotFoundException,
       CertificateException, KeyStoreException, IOException {
     TrustManager[] tms = null;
-    if (ssl.getCaFile() != null) {
+    if (ssl.getCaFile().hasValue()) {
       TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory
           .getDefaultAlgorithm());
       try (InputStream is = new FileInputStream(ssl.getCaFile().value())) {
@@ -128,7 +128,7 @@ public class MongoClientConfigurationFactory {
 
         tms = tmf.getTrustManagers();
       }
-    } else if (ssl.getTrustStoreFile() != null) {
+    } else if (ssl.getTrustStoreFile().hasValue()) {
       TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory
           .getDefaultAlgorithm());
       try (InputStream is = new FileInputStream(ssl.getTrustStoreFile().value())) {
@@ -153,14 +153,14 @@ public class MongoClientConfigurationFactory {
       FileNotFoundException,
       KeyStoreException, IOException, CertificateException, UnrecoverableKeyException {
     KeyManager[] kms = null;
-    if (ssl.getKeyStoreFile() != null) {
+    if (ssl.getKeyStoreFile().hasValue()) {
       KeyManagerFactory kmf = KeyManagerFactory.getInstance(
           KeyManagerFactory.getDefaultAlgorithm());
       KeyStore ks = getKeyStore(ssl);
 
       char[] keyPassword = null;
 
-      if (ssl.getKeyPassword() != null) {
+      if (ssl.getKeyPassword().hasValue()) {
         keyPassword = ssl.getKeyPassword().value().toCharArray();
       }
 
@@ -177,7 +177,7 @@ public class MongoClientConfigurationFactory {
     try (InputStream is = new FileInputStream(ssl.getKeyStoreFile().value())) {
       char[] storePassword = null;
 
-      if (ssl.getKeyStorePassword() != null) {
+      if (ssl.getKeyStorePassword().hasValue()) {
         storePassword = ssl.getKeyStorePassword().value().toCharArray();
       }
 
@@ -198,7 +198,7 @@ public class MongoClientConfigurationFactory {
     mongoAuthenticationConfigurationBuilder.setSource(auth.getSource().value());
     mongoAuthenticationConfigurationBuilder.setPassword(auth.getPassword());
 
-    if (authMode == AuthMode.x509 && auth.getUser() == null) {
+    if (authMode == AuthMode.x509 && !auth.getUser().hasValue()) {
       try {
         KeyStore ks = getKeyStore(ssl);
         X509Certificate certificate = (X509Certificate) ks
