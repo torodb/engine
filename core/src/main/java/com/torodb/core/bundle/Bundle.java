@@ -25,7 +25,7 @@ import com.torodb.core.supervision.SupervisedService;
 import java.util.Collection;
 import java.util.function.Function;
 
-public interface Bundle<ExtIntT> extends TorodbService, SupervisedService {
+public interface Bundle<ExtIntT> extends TorodbService, SupervisedService, AutoCloseable {
 
   public abstract Collection<Service> getDependencies();
   
@@ -33,6 +33,14 @@ public interface Bundle<ExtIntT> extends TorodbService, SupervisedService {
 
   public default <O> Bundle<O> map(Function<ExtIntT, O> transformationFunction) {
     return new TransformationBundle<>(this, transformationFunction);
+  }
+
+  @Override
+  public default void close() {
+    if (isRunning()) {
+      this.stopAsync();
+      this.awaitTerminated();
+    }
   }
 
 }
