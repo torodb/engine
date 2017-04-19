@@ -38,7 +38,7 @@ import akka.stream.javadsl.Source;
 import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
 import com.torodb.akka.chronicle.queue.ChronicleQueueStreamFactory;
-import com.torodb.akka.chronicle.queue.Event;
+import com.torodb.akka.chronicle.queue.Excerpt;
 import com.torodb.common.util.Empty;
 import com.torodb.core.Shutdowner;
 import com.torodb.core.concurrent.ConcurrentToolsFactory;
@@ -116,7 +116,7 @@ public class DefaultOplogApplier implements OplogApplier {
     RunnableGraph<Pair<UniqueKillSwitch, CompletionStage<Done>>> graph = createOplogSource(fetcher)
         .async()
         .via(createOffheapBuffer())
-        .map(Event::getElement)
+        .map(Excerpt::getElement)
         .async()
         .map(batchFilter)
         .map(batchChecker)
@@ -169,7 +169,7 @@ public class DefaultOplogApplier implements OplogApplier {
     return new DefaultApplyingJob(killSwitch, whenComplete);
   }
 
-  private static Graph<FlowShape<OplogBatch, Event<OplogBatch>>, NotUsed> createOffheapBuffer() {
+  private static Graph<FlowShape<OplogBatch, Excerpt<OplogBatch>>, NotUsed> createOffheapBuffer() {
     return new ChronicleQueueStreamFactory<>()
         .withTemporalQueue()
         .autoManaged()
