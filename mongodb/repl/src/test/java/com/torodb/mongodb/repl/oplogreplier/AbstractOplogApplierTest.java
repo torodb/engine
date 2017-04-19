@@ -18,7 +18,11 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import com.torodb.mongodb.repl.oplogreplier.OplogTestContextResourceRule.OplogApplierBundleFactory;
+
+import com.torodb.mongodb.repl.oplogreplier.utils.BddOplogTest;
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContextResourceRule;
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestParser;
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContextResourceRule.OplogApplierBundleFactory;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -28,6 +32,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -51,7 +59,7 @@ public abstract class AbstractOplogApplierTest {
         .map(Unchecked.<Tuple2<String, String>, Tuple2<String, OplogTest>>function((
             Tuple2<String, String> tuple) -> {
           try {
-            OplogTest test = OplogTestParser.fromExtendedJsonResource(tuple.v2);
+            OplogTest test = fromExtendedJsonResource(tuple.v2);
             return Tuple.tuple(tuple.v1, test);
           } catch (Throwable ex) {
             throw new AssertionError("Failed to parse '" + tuple.v2 + "'", ex);
@@ -68,6 +76,15 @@ public abstract class AbstractOplogApplierTest {
     Assume.assumeTrue("Test " + this.oplogTest + " marked as ignorable", !oplogTest.shouldIgnore());
 
     oplogTest.execute(testContextResource.getTestContext());
+  }
+
+  public static BddOplogTest fromExtendedJsonResource(String resourceName) throws IOException {
+    String text;
+    try (InputStream resourceAsStream = AbstractOplogApplierTest.class.getResourceAsStream(resourceName);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream))) {
+      text = reader.lines().collect(Collectors.joining("\n"));
+    }
+    return OplogTestParser.fromExtendedJsonString(text);
   }
 
 }

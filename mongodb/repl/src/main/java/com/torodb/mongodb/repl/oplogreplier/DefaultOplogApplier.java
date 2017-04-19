@@ -24,6 +24,8 @@ import akka.actor.ActorSystem;
 import akka.dispatch.ExecutionContexts;
 import akka.japi.Pair;
 import akka.stream.ActorMaterializer;
+import akka.stream.FlowShape;
+import akka.stream.Graph;
 import akka.stream.KillSwitch;
 import akka.stream.KillSwitches;
 import akka.stream.Materializer;
@@ -35,6 +37,8 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
+import com.torodb.akka.chronicle.queue.ChronicleQueueStreamFactory;
+import com.torodb.akka.chronicle.queue.Event;
 import com.torodb.common.util.Empty;
 import com.torodb.core.Shutdowner;
 import com.torodb.core.concurrent.ConcurrentToolsFactory;
@@ -111,6 +115,9 @@ public class DefaultOplogApplier implements OplogApplier {
 
     RunnableGraph<Pair<UniqueKillSwitch, CompletionStage<Done>>> graph = createOplogSource(fetcher)
         .async()
+        .via(createOffheapBuffer())
+        .map(Event::getElement)
+        .async()
         .map(batchFilter)
         .map(batchChecker)
         .via(createBatcherFlow(applierContext))
@@ -160,6 +167,13 @@ public class DefaultOplogApplier implements OplogApplier {
         });
 
     return new DefaultApplyingJob(killSwitch, whenComplete);
+  }
+
+  private static Graph<FlowShape<OplogBatch, Event<OplogBatch>>, NotUsed> createOffheapBuffer() {
+    return new ChronicleQueueStreamFactory<>()
+        .withTemporalQueue()
+        .autoManaged()
+        .createBuffer(new OplogBatchMarshaller());
   }
 
   private static class DefaultApplyingJob extends AbstractApplyingJob {

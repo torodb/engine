@@ -18,6 +18,8 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContext;
+
 import java.util.Optional;
 
 /**

@@ -1,0 +1,25 @@
+{
+    "oplog": [
+        {
+            "op": "c",
+            "ns": "test.$cmd",
+            "o": {
+                "drop": "system.aCol"
+            }
+        },
+        {
+            "op": "c",
+            "ns": "ignoredDb.$cmd",
+            "o": {
+                "drop": "aCol"
+            }
+        },
+        {
+            "op": "c",
+            "ns": "test.$cmd",
+            "o": {
+                "drop": "ignoredCol"
+            }
+        }
+    ]
+}

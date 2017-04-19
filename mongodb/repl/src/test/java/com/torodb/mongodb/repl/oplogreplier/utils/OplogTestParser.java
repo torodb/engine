@@ -16,31 +16,28 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.mongodb.repl.oplogreplier;
+package com.torodb.mongodb.repl.oplogreplier.utils;
 
 
 import com.google.common.base.Charsets;
 import com.torodb.kvdocument.conversion.mongowp.MongoWpConverter;
 import com.torodb.kvdocument.values.KvDocument;
-import com.torodb.mongodb.commands.pojos.OplogOperationParser;
-import com.torodb.mongodb.repl.oplogreplier.BddOplogTest.CollectionState;
-import com.torodb.mongodb.repl.oplogreplier.BddOplogTest.DatabaseState;
+import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
+import com.torodb.mongodb.repl.oplogreplier.utils.BddOplogTest.CollectionState;
+import com.torodb.mongodb.repl.oplogreplier.utils.BddOplogTest.DatabaseState;
+import com.torodb.mongodb.repl.oplogreplier.UnexpectedOplogOperationException;
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogOpsParser;
 import com.torodb.mongowp.bson.BsonDocument;
-import com.torodb.mongowp.bson.BsonInt32;
 import com.torodb.mongowp.bson.BsonString;
 import com.torodb.mongowp.bson.BsonValue;
 import com.torodb.mongowp.bson.org.bson.utils.MongoBsonTranslator;
-import com.torodb.mongowp.bson.utils.DefaultBsonValues;
 import com.torodb.mongowp.commands.oplog.OplogOperation;
-import com.torodb.mongowp.exceptions.MongoException;
-import com.torodb.mongowp.utils.BsonDocumentBuilder;
 import org.jooq.lambda.Unchecked;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -51,15 +48,6 @@ import javax.annotation.Nullable;
  *
  */
 public class OplogTestParser {
-
-  public static BddOplogTest fromExtendedJsonResource(String resourceName) throws IOException {
-    String text;
-    try (InputStream resourceAsStream = OplogTestParser.class.getResourceAsStream(resourceName);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream))) {
-      text = reader.lines().collect(Collectors.joining("\n"));
-    }
-    return fromExtendedJsonString(text);
-  }
 
   public static BddOplogTest fromExtendedJsonFile(File f) throws IOException {
     String text = new String(Files.readAllBytes(Paths.get(f.toURI())), Charsets.UTF_8);
@@ -80,7 +68,7 @@ public class OplogTestParser {
         .setUpdatesAsUpserts(true)
         .build();
     return new ParsedOplogTest(getTestName(doc), getIgnore(doc),
-        getInitialState(doc), getExpectedState(doc), getOps(doc),
+        getInitialState(doc), getExpectedState(doc), OplogOpsParser.parseOps(doc),
         getExpectedException(doc).orElse(null), applierContext);
   }
 
@@ -121,43 +109,6 @@ public class OplogTestParser {
           return (KvDocument) kvValue;
         })
     );
-  }
-
-  private static List<OplogOperation> getOps(BsonDocument doc) {
-    BsonValue<?> oplogValue = doc.get("oplog");
-    if (oplogValue == null) {
-      throw new AssertionError("Does not contain oplog");
-    }
-    AtomicInteger tsFactory = new AtomicInteger();
-    AtomicInteger tFactory = new AtomicInteger();
-    BsonInt32 twoInt32 = DefaultBsonValues.newInt(2);
-
-    return oplogValue.asArray().asList().stream()
-        .map(BsonValue::asDocument)
-        .map(child -> {
-          BsonDocumentBuilder builder = new BsonDocumentBuilder(child);
-          if (child.get("ts") == null) {
-            builder.appendUnsafe("ts", DefaultBsonValues.newTimestamp(
-                tsFactory.incrementAndGet(),
-                tFactory.incrementAndGet())
-            );
-          }
-          if (child.get("h") == null) {
-            builder.appendUnsafe("h", DefaultBsonValues.INT32_ONE);
-          }
-          if (child.get("v") == null) {
-            builder.appendUnsafe("v", twoInt32);
-          }
-          return builder.build();
-        })
-        .map(child -> {
-          try {
-            return OplogOperationParser.fromBson(child);
-          } catch (MongoException ex) {
-            throw new AssertionError("Invalid oplog operation", ex);
-          }
-        })
-        .collect(Collectors.toList());
   }
 
   private static Optional<Class<? extends Exception>> getExpectedException(BsonDocument doc) {

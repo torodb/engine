@@ -73,6 +73,19 @@
             <groupId>com.google.truth</groupId>
             <artifactId>truth</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.torodb</groupId>
+            <artifactId>akka-chronicle-queue</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.torodb.mongowp.bson</groupId>
+            <artifactId>org-bson-utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <profiles>

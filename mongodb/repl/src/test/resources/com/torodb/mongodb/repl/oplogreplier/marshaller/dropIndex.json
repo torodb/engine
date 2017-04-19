@@ -1,0 +1,23 @@
+{
+    "oplog": [
+        {
+            "op": "i",
+            "ns": "test.system.indexes",
+            "o": {
+                "ns": "test.test2",
+                "key": {
+                    "a": 1
+                },
+                "name": "a_1"
+            }
+        },
+        {
+            "op": "c",
+            "ns": "test.$cmd",
+            "o": {
+                "deleteIndexes": "test2",
+                "index": "a_1"
+            }
+        }
+    ]
+}
