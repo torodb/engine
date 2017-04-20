@@ -37,6 +37,7 @@
         <module>common</module>
         <module>backend</module>
         <module>packaging-utils</module>
+        <module>reporting</module>
     </modules>
     
     <properties>
@@ -151,7 +152,7 @@
                 <artifactId>derby</artifactId>
                 <version>10.13.1.1</version>
             </dependency>
-<!--            
+            <!--            
             <dependency>
                 <groupId>org.reactivestreams</groupId>
                 <artifactId>reactive-streams</artifactId>
