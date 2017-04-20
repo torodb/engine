@@ -30,6 +30,7 @@ import com.torodb.backend.StructureInterface;
 import com.torodb.backend.WriteInterface;
 import com.torodb.backend.guice.BackendModule;
 import com.torodb.backend.meta.SchemaUpdater;
+import com.torodb.backend.meta.SnapshotUpdaterImpl;
 import com.torodb.backend.postgresql.PostgreSqlDataTypeProvider;
 import com.torodb.backend.postgresql.PostgreSqlDbBackend;
 import com.torodb.backend.postgresql.PostgreSqlErrorHandler;
@@ -49,6 +50,7 @@ import com.torodb.core.backend.SnapshotUpdater;
 import com.torodb.core.d2r.DefaultIdentifierFactory;
 import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.d2r.ReservedIdGenerator;
+import com.torodb.core.d2r.UniqueIdentifierGenerator;
 import com.torodb.core.dsl.backend.BackendTransactionJobFactory;
 import com.torodb.core.guice.EssentialToDefaultModule;
 
@@ -85,6 +87,11 @@ public class PostgreSqlBackendModule extends PrivateModule {
     bind(DbBackendService.class)
         .to(PostgreSqlDbBackend.class);
     expose(DbBackendService.class);
+
+    bind(SnapshotUpdaterImpl.class);
+    bind(SnapshotUpdater.class)
+        .to(SnapshotUpdaterImpl.class);
+    expose(SnapshotUpdater.class);
 
     bind(PostgreSqlSchemaUpdater.class)
         .in(Singleton.class);
@@ -143,6 +150,8 @@ public class PostgreSqlBackendModule extends PrivateModule {
     bind(PostgreSqlMetrics.class)
         .in(Singleton.class);
 
+    bind(UniqueIdentifierGenerator.class)
+        .in(Singleton.class);
     bind(DefaultIdentifierFactory.class)
         .in(Singleton.class);
 

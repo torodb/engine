@@ -43,12 +43,14 @@ import com.torodb.backend.derby.driver.OfficialDerbyDriver;
 import com.torodb.backend.derby.schema.DerbySchemaUpdater;
 import com.torodb.backend.guice.BackendModule;
 import com.torodb.backend.meta.SchemaUpdater;
+import com.torodb.backend.meta.SnapshotUpdaterImpl;
 import com.torodb.core.backend.BackendService;
 import com.torodb.core.backend.IdentifierConstraints;
 import com.torodb.core.backend.SnapshotUpdater;
 import com.torodb.core.d2r.DefaultIdentifierFactory;
 import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.d2r.ReservedIdGenerator;
+import com.torodb.core.d2r.UniqueIdentifierGenerator;
 import com.torodb.core.dsl.backend.BackendTransactionJobFactory;
 import com.torodb.core.guice.EssentialToDefaultModule;
 
@@ -88,6 +90,11 @@ public class DerbyBackendModule extends PrivateModule {
     bind(DbBackendService.class)
         .to(DerbyDbBackend.class);
     expose(DbBackendService.class);
+
+    bind(SnapshotUpdaterImpl.class);
+    bind(SnapshotUpdater.class)
+        .to(SnapshotUpdaterImpl.class);
+    expose(SnapshotUpdater.class);
 
     bind(DerbySchemaUpdater.class)
         .in(Singleton.class);
@@ -143,6 +150,8 @@ public class DerbyBackendModule extends PrivateModule {
         .to(DerbyIdentifierConstraints.class);
     expose(IdentifierConstraints.class);
 
+    bind(UniqueIdentifierGenerator.class)
+        .in(Singleton.class);
     bind(DefaultIdentifierFactory.class)
         .in(Singleton.class);
 

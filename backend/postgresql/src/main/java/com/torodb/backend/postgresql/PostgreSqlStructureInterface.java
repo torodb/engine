@@ -26,11 +26,12 @@ import com.torodb.backend.SqlBuilder;
 import com.torodb.backend.SqlHelper;
 import com.torodb.backend.converters.jooq.DataTypeForKv;
 import com.torodb.core.backend.IdentifierConstraints;
+import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
 import org.jooq.DSLContext;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import java.util.Collection;
 import java.util.List;
@@ -99,7 +100,7 @@ public class PostgreSqlStructureInterface extends AbstractStructureInterface {
 
   @Override
   protected String getCreateIndexStatement(String indexName, String schemaName, String tableName,
-      List<Tuple2<String, Boolean>> columnList, boolean unique) {
+      List<Tuple3<String, Boolean, FieldType>> columnList, boolean unique) {
     StringBuilder sb = new StringBuilder()
         .append(unique ? "CREATE UNIQUE INDEX " : "CREATE INDEX ")
         .append("\"").append(indexName).append("\"")
@@ -108,7 +109,7 @@ public class PostgreSqlStructureInterface extends AbstractStructureInterface {
         .append(".")
         .append("\"").append(tableName).append("\"")
         .append(" (");
-    for (Tuple2<String, Boolean> columnEntry : columnList) {
+    for (Tuple3<String, Boolean, FieldType> columnEntry : columnList) {
       sb.append("\"").append(columnEntry.v1()).append("\" ")
           .append(columnEntry.v2() ? "ASC," : "DESC,");
     }
@@ -193,11 +194,11 @@ public class PostgreSqlStructureInterface extends AbstractStructureInterface {
   }
 
   @Override
-  protected String getCreateDocPartTableIndexStatement(String schemaName, String tableName,
-      Collection<InternalField<?>> indexFields) {
+  protected String getCreateDocPartTableIndexStatement(String schemaName,
+      String tableName, Collection<InternalField<?>> indexFields) {
     Preconditions.checkArgument(!indexFields.isEmpty());
-    SqlBuilder sb = new SqlBuilder("CREATE INDEX ON ");
-    sb.table(schemaName, tableName)
+    SqlBuilder sb = new SqlBuilder("CREATE INDEX ON ")
+        .table(schemaName, tableName)
         .append(" (");
     for (InternalField<?> field : indexFields) {
       sb.quote(field.getName()).append(',');

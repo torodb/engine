@@ -24,6 +24,7 @@ import static junit.framework.TestCase.assertTrue;
 import com.google.common.io.ByteSource;
 import com.torodb.core.TableRefFactory;
 import com.torodb.core.d2r.*;
+import com.torodb.core.d2r.MockIdentifierInterface;
 import com.torodb.core.impl.TableRefFactoryImpl;
 import com.torodb.core.transaction.metainf.*;
 import com.torodb.core.transaction.metainf.MetainfoRepository.SnapshotStage;
@@ -87,8 +88,8 @@ public class DocumentsAndRelationsTypesTest {
     }
 
     MemoryRidGenerator ridGenerator = new MemoryRidGenerator();
-    IdentifierFactory identifierFactory =
-            new DefaultIdentifierFactory(new MockIdentifierInterface());
+    IdentifierFactory identifierFactory = new DefaultIdentifierFactory(
+            new UniqueIdentifierGenerator(new MockIdentifierInterface()));
     MutableMetaDatabase db = mutableSnapshot.getMetaDatabaseByName(DB1);
     d2RTranslator = new D2RTranslatorStack(tableRefFactory, identifierFactory,
             ridGenerator, db, db.getMetaCollectionByName(COLLA));

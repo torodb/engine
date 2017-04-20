@@ -21,7 +21,6 @@ package com.torodb.backend.meta;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.torodb.backend.exceptions.InvalidDatabaseSchemaException;
-import com.torodb.backend.meta.SchemaValidator.Table.ResultSetIterator;
 import com.torodb.backend.tables.records.MetaFieldRecord;
 import com.torodb.backend.tables.records.MetaScalarRecord;
 import com.torodb.core.TableRef;
@@ -37,15 +36,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 public class SchemaValidator {
 
-  private static final Splitter COLUMN_TYPE_NAME_SPLITTER = Splitter.on('.');
+  protected static final Splitter COLUMN_TYPE_NAME_SPLITTER = Splitter.on('.');
 
-  private final String database;
-  private final String schemaName;
-  private final Iterable<? extends Table> existingTables;
-  private final Iterable<? extends Index> existingIndexes;
+  protected final String database;
+  protected final String schemaName;
+  protected final Iterable<? extends Table> existingTables;
+  protected final Iterable<? extends Index> existingIndexes;
 
   public SchemaValidator(DSLContext dsl, String schemaName, String database) throws
       InvalidDatabaseSchemaException {
@@ -72,7 +72,7 @@ public class SchemaValidator {
     return tables;
   }
 
-  protected ResultSetIterator getTableIterator(String schemaName, Connection connection) {
+  protected Table.ResultSetIterator getTableIterator(String schemaName, Connection connection) {
     return new Table.ResultSetIterator(schemaName, connection);
   }
 
@@ -90,13 +90,13 @@ public class SchemaValidator {
     return indexes;
   }
 
-  protected com.torodb.backend.meta.SchemaValidator.Index.ResultSetIterator getIndexIterator(
+  protected SchemaValidator.Index.ResultSetIterator getIndexIterator(
       String schemaName,
       Connection connection, Table table) {
     return new Index.ResultSetIterator(schemaName, table.getName(), connection);
   }
 
-  private void checkDatabaseSchema(Connection connection) throws InvalidDatabaseSchemaException {
+  protected void checkDatabaseSchema(Connection connection) throws InvalidDatabaseSchemaException {
     try {
       DatabaseMetaData metaData = connection.getMetaData();
       ResultSet resultSet = metaData.getSchemas();
@@ -141,10 +141,9 @@ public class SchemaValidator {
       if (table.getName().equals(tableName)) {
         for (TableField field : table.fields()) {
           if (field.getName().equals(columnName)) {
-            if (field.getSqlType() == columnType.getSQLType() && field.getTypeName().equals(
-                COLUMN_TYPE_NAME_SPLITTER
-                    .splitToList(columnType.getTypeName()).stream()
-                    .reduce((e1, e2) -> e2).get())) {
+            String typeName = columnType.getTypeName();
+            if (field.getSqlType() == columnType.getSQLType() 
+                && field.getTypeName().replace("\"", "").equals(typeName)) {
               return true;
             } else {
               return false;
@@ -154,6 +153,16 @@ public class SchemaValidator {
       }
     }
     return false;
+  }
+
+  public Table getTable(String tableName) {
+    for (Table table : existingTables) {
+      if (table.getName().equals(tableName)) {
+        return table;
+      }
+    }
+    throw new IllegalArgumentException("Table " + schemaName + "."
+        + tableName + " not found");
   }
 
   public TableField getColumn(String tableName, String columnName) {
@@ -283,6 +292,7 @@ public class SchemaValidator {
 
     public static class ResultSetIterator implements Iterator<Index> {
 
+      private final String schemaColumn;
       private final ResultSet resultSet;
 
       private String schema = null;
@@ -293,13 +303,24 @@ public class SchemaValidator {
       private boolean hasNext;
 
       public ResultSetIterator(String schemaName, String tableName, Connection connection) {
+        this("TABLE_SCHEM", schemaName, tableName, connection);
+      }
+
+      protected ResultSetIterator(String schemaColumn, String schemaName, 
+          String tableName, Connection connection) {
+        this.schemaColumn = schemaColumn;
         try {
           DatabaseMetaData metaData = connection.getMetaData();
-          this.resultSet = metaData.getIndexInfo(null, schemaName, tableName, false, true);
+          this.resultSet = getIndexInfo(metaData, schemaName, tableName);
           this.hasNext = resultSet.next();
         } catch (SQLException sqlException) {
           throw new SystemException(sqlException);
         }
+      }
+
+      protected ResultSet getIndexInfo(DatabaseMetaData metaData, String schemaName,
+          String tableName) throws SQLException {
+        return metaData.getIndexInfo(null, schemaName, tableName, false, true);
       }
 
       @Override
@@ -313,7 +334,7 @@ public class SchemaValidator {
 
         try {
           do {
-            String schema = resultSet.getString("TABLE_SCHEM");
+            String schema = resultSet.getString(schemaColumn);
             String name = resultSet.getString("INDEX_NAME");
             boolean unique = !resultSet.getBoolean("NON_UNIQUE");
 
@@ -427,9 +448,9 @@ public class SchemaValidator {
      * a generated column - empty string --- if it cannot be determined whether this is a generated
      * column
      */
-    private final String schema;
-    private final String name;
-    private final ImmutableList<TableField> fields;
+    protected final String schema;
+    protected final String name;
+    protected final ImmutableList<TableField> fields;
 
     public Table(String schema, String name, ImmutableList<TableField> fields) {
       super();
@@ -452,19 +473,24 @@ public class SchemaValidator {
 
     public static class ResultSetIterator implements Iterator<Table> {
 
-      private final ResultSet tableResultSet;
-      private final DatabaseMetaData metaData;
+      protected final ResultSet tableResultSet;
+      protected final DatabaseMetaData metaData;
 
       private boolean hasNext;
 
       public ResultSetIterator(String schemaName, Connection connection) {
         try {
           this.metaData = connection.getMetaData();
-          this.tableResultSet = metaData.getTables(null, schemaName, null, new String[]{"TABLE"});
+          this.tableResultSet = getTables(metaData, schemaName);
           this.hasNext = tableResultSet.next();
         } catch (SQLException sqlException) {
           throw new SystemException(sqlException);
         }
+      }
+
+      protected ResultSet getTables(DatabaseMetaData metaData, String schemaName) 
+          throws SQLException {
+        return metaData.getTables(null, schemaName, null, new String[]{"TABLE"});
       }
 
       @Override
@@ -480,7 +506,7 @@ public class SchemaValidator {
           String catalog = tableResultSet.getString("TABLE_CAT");
           String schema = tableResultSet.getString("TABLE_SCHEM");
           String name = tableResultSet.getString("TABLE_NAME");
-          ResultSet columnResultSet = metaData.getColumns(catalog, schema, name, null);
+          ResultSet columnResultSet = getColumns(catalog, schema, name);
           while (columnResultSet.next()) {
             fields.add(new TableField(
                 columnResultSet.getString("COLUMN_NAME"),
@@ -499,6 +525,11 @@ public class SchemaValidator {
         } catch (SQLException sqlException) {
           throw new SystemException(sqlException);
         }
+      }
+
+      protected ResultSet getColumns(String catalog, String schema, String name)
+          throws SQLException {
+        return metaData.getColumns(catalog, schema, name, null);
       }
     }
 

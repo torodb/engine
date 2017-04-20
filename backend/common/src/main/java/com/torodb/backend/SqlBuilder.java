@@ -27,6 +27,10 @@ public class SqlBuilder {
     this.sb.append(init);
   }
 
+  protected char getQuoteCharacter() {
+    return '"';
+  }
+
   public SqlBuilder(StringBuilder sb) {
     this.sb = sb;
   }
@@ -42,17 +46,19 @@ public class SqlBuilder {
   }
 
   public SqlBuilder quote(String str) {
-    sb.append('"').append(str).append('"');
+    sb.append(getQuoteCharacter()).append(str).append(getQuoteCharacter());
     return this;
   }
 
   public SqlBuilder quote(Enum<?> enumValue) {
-    sb.append('"').append(enumValue.toString()).append('"');
+    sb.append(getQuoteCharacter()).append(enumValue.toString()).append(getQuoteCharacter());
     return this;
   }
 
   public SqlBuilder table(String schema, String table) {
-    sb.append('"').append(schema).append("\".\"").append(table).append('"');
+    sb.append(getQuoteCharacter()).append(schema).append(getQuoteCharacter())
+      .append('.')
+      .append(getQuoteCharacter()).append(table).append(getQuoteCharacter());
     return this;
   }
 

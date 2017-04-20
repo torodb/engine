@@ -35,7 +35,8 @@ public class IdentifierFactoryImplTest {
 
   @Before
   public void setUp() throws Exception {
-    this.identifierFactory = new DefaultIdentifierFactory(new MockIdentifierInterface());
+    this.identifierFactory = new DefaultIdentifierFactory(
+        new UniqueIdentifierGenerator(new MockIdentifierInterface()));
   }
 
   @Test

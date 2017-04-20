@@ -34,7 +34,7 @@ public class NullValueConverter implements KvValueConverter<Boolean, Boolean, Kv
   private static final long serialVersionUID = 1L;
 
   public static final DataTypeForKv<KvNull> TYPE = DataTypeForKv.from(
-      BooleanValueConverter.BOOLEAN_TYPE, new NullValueConverter());
+      BooleanValueConverter.BOOLEAN, new NullValueConverter());
 
   @Override
   public KvType getErasuredType() {

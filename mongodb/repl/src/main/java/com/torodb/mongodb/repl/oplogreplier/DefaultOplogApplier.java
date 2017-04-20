@@ -95,7 +95,9 @@ public class DefaultOplogApplier implements OplogApplier {
     this.actorSystem = ActorSystem.create("oplog-applier", null, null,
         ExecutionContexts.fromExecutor(
             concurrentToolsFactory.createExecutorServiceWithMaxThreads(
-                "oplog-applier", 3)
+                //TODO: restore 3 
+                //  when non-transactional DDL are supported
+                "oplog-applier", 1)
         )
     );
     this.metrics = metrics;

@@ -23,12 +23,13 @@ import com.torodb.backend.meta.TorodbSchema;
 import com.torodb.core.TableRef;
 import com.torodb.core.exceptions.InvalidDatabaseException;
 import com.torodb.core.exceptions.user.UserException;
+import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import org.jooq.DSLContext;
 import org.jooq.Meta;
 import org.jooq.Schema;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import java.util.List;
 import java.util.Optional;
@@ -85,8 +86,8 @@ public interface StructureInterface {
    * @return
    * @see DbBackend#includeInternalIndexes()
    */
-  Stream<Function<DSLContext, String>> streamDocPartTableIndexesCreation(String schemaName,
-      String tableName, TableRef tableRef, String foreignTableName);
+  Stream<Function<DSLContext, String>> streamDocPartTableIndexesCreation(
+      String schemaName, String tableName, TableRef tableRef, String foreignTableName);
 
   void addColumnToDocPartTable(@Nonnull DSLContext dsl, @Nonnull String schemaName,
       @Nonnull String tableName, @Nonnull String columnName, @Nonnull DataTypeForKv<?> dataType);
@@ -102,8 +103,8 @@ public interface StructureInterface {
   public Stream<Function<DSLContext, String>> streamDataInsertFinishTasks(MetaDatabase db);
 
   void createIndex(@Nonnull DSLContext dsl, @Nonnull String indexName, @Nonnull String tableSchema,
-      @Nonnull String tableName, @Nonnull List<Tuple2<String, Boolean>> columnList, boolean unique)
-      throws UserException;
+      @Nonnull String tableName, @Nonnull List<Tuple3<String, Boolean, FieldType>> columnList, 
+      boolean unique) throws UserException;
 
   void dropIndex(@Nonnull DSLContext dsl, @Nonnull String schemaName, @Nonnull String indexName);
 

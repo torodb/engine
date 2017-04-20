@@ -43,7 +43,7 @@ public class UndefinedValueConverter implements KvValueConverter<Boolean, Boolea
 
 
   public static final DataTypeForKv<KvUndefined> TYPE = DataTypeForKv.from(BOOLEAN_TYPE,
-      new UndefinedValueConverter(), Types.BIT);
+      new UndefinedValueConverter());
 
   @Override
   public KvType getErasuredType() {

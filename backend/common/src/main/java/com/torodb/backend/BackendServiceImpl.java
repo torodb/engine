@@ -37,6 +37,7 @@ import com.torodb.core.retrier.Retrier.Hint;
 import com.torodb.core.retrier.RetrierGiveUpException;
 import com.torodb.core.services.IdleTorodbService;
 import com.torodb.core.transaction.RollbackException;
+import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
@@ -44,7 +45,7 @@ import com.torodb.core.transaction.metainf.MetaDocPartIndexColumn;
 import com.torodb.core.transaction.metainf.MetaIdentifiedDocPartIndex;
 import org.apache.logging.log4j.Logger;
 import org.jooq.DSLContext;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -206,12 +207,13 @@ public class BackendServiceImpl extends IdleTorodbService implements BackendServ
   private Consumer<DSLContext> createIndexJob(MetaDatabase db, MetaDocPart docPart,
       MetaIdentifiedDocPartIndex docPartIndex) {
     return dsl -> {
-      List<Tuple2<String, Boolean>> columnList = new ArrayList<>(docPartIndex.size());
+      List<Tuple3<String, Boolean, FieldType>> columnList = new ArrayList<>(docPartIndex.size());
       for (Iterator<? extends MetaDocPartIndexColumn> indexColumnIterator = docPartIndex
           .iteratorColumns(); indexColumnIterator.hasNext();) {
         MetaDocPartIndexColumn indexColumn = indexColumnIterator.next();
-        columnList.add(new Tuple2<>(indexColumn.getIdentifier(), indexColumn.getOrdering()
-            .isAscending()));
+        columnList.add(new Tuple3<>(indexColumn.getIdentifier(), indexColumn.getOrdering()
+            .isAscending(), docPart.getMetaFieldByIdentifier(
+                indexColumn.getIdentifier()).getType()));
       }
 
       try {

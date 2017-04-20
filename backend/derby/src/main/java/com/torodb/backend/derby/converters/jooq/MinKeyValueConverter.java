@@ -43,7 +43,7 @@ public class MinKeyValueConverter implements KvValueConverter<Boolean, Boolean, 
           new DefaultDataType<Boolean>(SQLDialect.DERBY, SQLDataType.BOOLEAN, "BOOLEAN");
 
   public static final DataTypeForKv<KvMinKey> TYPE = DataTypeForKv.from(BOOLEAN_TYPE,
-      new MinKeyValueConverter(), Types.BIT);
+      new MinKeyValueConverter());
 
   @Override
   public KvType getErasuredType() {

@@ -74,11 +74,11 @@ import javax.inject.Inject;
 
 public class SnapshotUpdaterImpl implements SnapshotUpdater {
 
-  private static final Logger LOGGER = BackendLoggerFactory.get(SnapshotUpdaterImpl.class);
+  protected static final Logger LOGGER = BackendLoggerFactory.get(SnapshotUpdaterImpl.class);
 
-  private final SqlInterface sqlInterface;
-  private final SqlHelper sqlHelper;
-  private final TableRefFactory tableRefFactory;
+  protected final SqlInterface sqlInterface;
+  protected final SqlHelper sqlHelper;
+  protected final TableRefFactory tableRefFactory;
 
   @Inject
   public SnapshotUpdaterImpl(SqlInterface sqlInterface, SqlHelper sqlHelper,
@@ -104,7 +104,7 @@ public class SnapshotUpdaterImpl implements SnapshotUpdater {
     try (Connection connection = sqlInterface.getDbBackend().createSystemConnection()) {
       DSLContext dsl = sqlInterface.getDslContextFactory().createDslContext(connection);
 
-      Updater updater = new Updater(dsl, tableRefFactory, sqlInterface);
+      Updater updater = createUpdater(dsl);
       updater.loadMetaSnapshot(mutableSnapshot);
 
       connection.commit();
@@ -117,20 +117,24 @@ public class SnapshotUpdaterImpl implements SnapshotUpdater {
     }
   }
 
-  private static class Updater {
+  protected Updater createUpdater(DSLContext dsl) {
+    return new Updater(dsl, tableRefFactory, sqlInterface);
+  }
 
-    private final DSLContext dsl;
-    private final TableRefFactory tableRefFactory;
-    private final SqlInterface sqlInterface;
-    private final MetaCollectionTable<MetaCollectionRecord> collectionTable;
-    private final MetaDocPartTable<Object, MetaDocPartRecord<Object>> docPartTable;
-    private final MetaFieldTable<Object, MetaFieldRecord<Object>> fieldTable;
-    private final MetaScalarTable<Object, MetaScalarRecord<Object>> scalarTable;
-    private final MetaIndexTable<MetaIndexRecord> indexTable;
-    private final MetaIndexFieldTable<Object, MetaIndexFieldRecord<Object>> indexFieldTable;
-    private final MetaDocPartIndexTable<Object, MetaDocPartIndexRecord<Object>> docPartIndexTable;
+  protected static class Updater {
+
+    protected final DSLContext dsl;
+    protected final TableRefFactory tableRefFactory;
+    protected final SqlInterface sqlInterface;
+    protected final MetaCollectionTable<MetaCollectionRecord> collectionTable;
+    protected final MetaDocPartTable<Object, MetaDocPartRecord<Object>> docPartTable;
+    protected final MetaFieldTable<Object, MetaFieldRecord<Object>> fieldTable;
+    protected final MetaScalarTable<Object, MetaScalarRecord<Object>> scalarTable;
+    protected final MetaIndexTable<MetaIndexRecord> indexTable;
+    protected final MetaIndexFieldTable<Object, MetaIndexFieldRecord<Object>> indexFieldTable;
+    protected final MetaDocPartIndexTable<Object, MetaDocPartIndexRecord<Object>> docPartIndexTable;
     @SuppressWarnings("checkstyle:lineLength")
-    private final MetaDocPartIndexColumnTable<Object, MetaDocPartIndexColumnRecord<Object>> fieldIndexTable;
+    protected final MetaDocPartIndexColumnTable<Object, MetaDocPartIndexColumnRecord<Object>> fieldIndexTable;
 
     public Updater(DSLContext dsl, TableRefFactory tableRefFactory, SqlInterface sqlInterface) {
       this.dsl = dsl;
@@ -171,8 +175,7 @@ public class SnapshotUpdaterImpl implements SnapshotUpdater {
       MutableMetaDatabase metaDatabase = snapshot.addMetaDatabase(databaseRecord.getName(),
           databaseRecord.getIdentifier());
 
-      SchemaValidator schemaValidator = new SchemaValidator(dsl, databaseRecord.getIdentifier(),
-          databaseRecord.getName());
+      SchemaValidator schemaValidator = createSchemaValidator(databaseRecord);
 
       dsl.selectFrom(collectionTable)
           .where(collectionTable.DATABASE.eq(databaseRecord.getName()))
@@ -181,6 +184,11 @@ public class SnapshotUpdaterImpl implements SnapshotUpdater {
               (col) -> analyzeCollection(metaDatabase, col, schemaValidator));
 
       checkCompleteness(databaseRecord, schemaValidator);
+    }
+
+    protected SchemaValidator createSchemaValidator(MetaDatabaseRecord databaseRecord) {
+      return new SchemaValidator(dsl, databaseRecord.getIdentifier(),
+          databaseRecord.getName());
     }
 
     private void checkCompleteness(MetaDatabaseRecord database, SchemaValidator schemaValidator) {
@@ -303,13 +311,14 @@ public class SnapshotUpdaterImpl implements SnapshotUpdater {
       //TODO: some types can not be recognized using meta data
       if (!schemaValidator.existsColumnWithType(docPart.getIdentifier(), field.getIdentifier(),
           sqlInterface.getDataTypeProvider().getDataType(field.getType()))) {
-        String existingType = schemaValidator.getColumn(
-            docPart.getIdentifier(), field.getIdentifier())
-            .getTypeName();
+        Table existingTable = schemaValidator.getTable(docPart.getIdentifier());
+        TableField existingColumn = schemaValidator.getColumn(
+            docPart.getIdentifier(), field.getIdentifier());
         throw new InvalidDatabaseSchemaException(database.getIdentifier(),
             "Field " + getFieldRef(database, collection, docPart, field)
             + " is associated with column " + getColumnRef(database, docPart, field)
-            + " but existing column has a different type " + existingType);
+            + " but existing column has a different type " + getColumnRef(
+                database.getIdentifier(), existingTable, existingColumn));
       }
     }
 
@@ -474,14 +483,22 @@ public class SnapshotUpdaterImpl implements SnapshotUpdater {
     private String getTableRef(MetaDatabase database, MetaDocPart docPart) {
       return database.getIdentifier() + "." + docPart.getIdentifier();
     }
-
+    
     private String getTableRef(MetaDatabaseRecord database, Table table) {
-      return database.getIdentifier() + "." + table.getName();
+      return getTableRef(database.getIdentifier(), table);
+    }
+    
+    private String getTableRef(String database, Table table) {
+      return database + "." + table.getName();
     }
 
     private String getColumnRef(MetaDatabaseRecord database, Table table, TableField field) {
-      return getTableRef(database, table) + "." + field.getName() + " (type:" + field.getTypeName()
-          + ")";
+      return getColumnRef(database.getIdentifier(), table, field);
+    }
+    
+    private String getColumnRef(String database, Table table, TableField field) {
+      return getTableRef(database, table) + "." + field.getName() + "." + field.getName() 
+        + " (type:" + field.getTypeName() + ", sqlType:" + field.getSqlType() + ")";
     }
 
     private String getColumnRef(MetaDatabase database, MetaDocPart docPart,

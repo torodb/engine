@@ -20,7 +20,12 @@ package com.torodb.backend.tests.common;
 
 import static org.junit.Assert.assertEquals;
 
+import com.torodb.backend.DataTypeProvider;
+import com.torodb.backend.ErrorHandler;
+import com.torodb.backend.SqlHelper;
 import com.torodb.backend.SqlInterface;
+import com.torodb.backend.meta.SchemaUpdater;
+import com.torodb.backend.meta.SnapshotUpdaterImpl;
 import com.torodb.backend.tables.MetaCollectionTable;
 import com.torodb.backend.tables.MetaDatabaseTable;
 import com.torodb.backend.tables.MetaDocPartTable;
@@ -29,6 +34,7 @@ import com.torodb.backend.tables.records.MetaDatabaseRecord;
 import com.torodb.backend.tables.records.MetaDocPartRecord;
 import com.torodb.core.TableRef;
 import com.torodb.core.TableRefFactory;
+import com.torodb.core.backend.SnapshotUpdater;
 import com.torodb.core.impl.TableRefFactoryImpl;
 import com.torodb.core.transaction.metainf.ImmutableMetaCollection;
 import com.torodb.core.transaction.metainf.ImmutableMetaDatabase;
@@ -45,18 +51,20 @@ import org.junit.Test;
 public abstract class AbstractMetaDataIntegrationSuite {
 
   private SqlInterface sqlInterface;
+  private TableRefFactory tableRefFactory;
 
   private DatabaseTestContext dbTestContext;
 
   @Before
   public void setUp() throws Exception {
     dbTestContext = getDatabaseTestContext();
+    tableRefFactory = new TableRefFactoryImpl();
     sqlInterface = dbTestContext.getSqlInterface();
     dbTestContext.setupDatabase();
   }
 
   protected abstract DatabaseTestContext getDatabaseTestContext();
-
+  
   @After
   public void tearDown() throws Exception {
     dbTestContext.tearDownDatabase();
@@ -107,7 +115,6 @@ public abstract class AbstractMetaDataIntegrationSuite {
   @Test
   public void metadataDocPartTableCanBeWritten() throws Exception {
     dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
-      TableRefFactory tableRefFactory = new TableRefFactoryImpl();
       TableRef rootTableRef = tableRefFactory.createRoot();
       TableRef childTableRef = tableRefFactory.createChild(rootTableRef, "child");
 

@@ -42,7 +42,7 @@ public class MaxKeyValueConverter implements KvValueConverter<Boolean, Boolean, 
           new DefaultDataType<Boolean>(SQLDialect.DERBY, SQLDataType.BOOLEAN, "BOOLEAN");
 
   public static final DataTypeForKv<KvMaxKey> TYPE = DataTypeForKv.from(BOOLEAN_TYPE,
-      new MaxKeyValueConverter(), Types.BIT);
+      new MaxKeyValueConverter());
 
   @Override
   public KvType getErasuredType() {
