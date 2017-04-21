@@ -31,14 +31,14 @@ script: mvn -Psafer -Pintegration -B -e -T 1C -Dcheckstyle.consoleOutput=false v
 
 after_success:
   - |
-    if [ "$TRAVIS_EVENT_TYPE" != cron ] && [ "$TRAVIS_REPO_SLUG" == torodb/testing-tools ]
+    if [ "$TRAVIS_EVENT_TYPE" != cron ] && [ "$TRAVIS_REPO_SLUG" == torodb/engine ]
     then
         # Upload reports to Codecov
         bash <(curl -s https://codecov.io/bash) || echo 'Codecov did not collect coverage reports';
         # Upload reports to Codacy
         java -cp ~/codacy-coverage-reporter-assembly-latest.jar com.codacy.CodacyCoverageReporter -l Java -r reporting/target/site/jacoco-aggregate/jacoco.xml || echo 'Codacy report fail'
     else
-        echo 'Skipping a metrics reports because this branch is not permitted'
+        echo 'Skipping a metrics reports because this repo/build is not permitted'
     fi
 
 before_deploy:
