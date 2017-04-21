@@ -7,7 +7,7 @@
         <version>0.50.1-SNAPSHOT</version>
     </parent>
     <artifactId>reporting</artifactId>
-    <name>ToroDB: Reporting</name>
+    <name>ToroDB: Engine reporting</name>
     <packaging>pom</packaging>
     
     <properties>
