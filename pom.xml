@@ -8,7 +8,7 @@
     </parent>
     <groupId>com.torodb.engine</groupId>
     <artifactId>engine-pom</artifactId>
-    <version>0.50.1-SNAPSHOT</version>
+    <version>0.50.2-SNAPSHOT</version>
     
     <name>ToroDB: Engine</name>
     <packaging>pom</packaging>
@@ -41,7 +41,7 @@
     </modules>
     
     <properties>
-        <mongowp.version>0.50.1-SNAPSHOT</mongowp.version>
+        <mongowp.version>0.50.2-SNAPSHOT</mongowp.version>
         <jackson.version>2.6.3</jackson.version>
         
         <license.header.license>agpl</license.header.license>
