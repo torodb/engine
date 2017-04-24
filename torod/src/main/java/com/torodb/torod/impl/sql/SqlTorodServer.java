@@ -30,7 +30,6 @@ import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.d2r.R2DTranslator;
 import com.torodb.core.services.IdleTorodbService;
 import com.torodb.core.transaction.InternalTransactionManager;
-import com.torodb.core.transaction.metainf.ImmutableMetaDatabase;
 import com.torodb.core.transaction.metainf.ImmutableMetaSnapshot;
 import com.torodb.torod.TorodServer;
 import com.torodb.torod.pipeline.InsertPipelineFactory;
