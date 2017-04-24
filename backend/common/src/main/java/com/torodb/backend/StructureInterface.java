@@ -63,14 +63,15 @@ public interface StructureInterface {
    *
    * The returned stream is empty if the backend is not including the internal indexes
    *
+   * @param dbName
    * @param schemaName
    * @param tableName
    * @param tableRef
    * @return
    * @see DbBackend#includeInternalIndexes()
    */
-  Stream<Function<DSLContext, String>> streamRootDocPartTableIndexesCreation(String schemaName,
-      String tableName, TableRef tableRef);
+  Stream<Function<DSLContext, String>> streamRootDocPartTableIndexesCreation(String dbName,
+      String schemaName, String tableName, TableRef tableRef);
 
   /**
    * Returns a stream of functions that, when executed, creates the required indexes on a doc part
@@ -78,6 +79,7 @@ public interface StructureInterface {
    *
    * The returned stream is empty if the backend is not including the internal indexes
    *
+   * @param dbName
    * @param schemaName
    * @param tableName
    * @param tableRef
@@ -85,7 +87,8 @@ public interface StructureInterface {
    * @return
    * @see DbBackend#includeInternalIndexes()
    */
-  Stream<Function<DSLContext, String>> streamDocPartTableIndexesCreation(String schemaName,
+  Stream<Function<DSLContext, String>> streamDocPartTableIndexesCreation(
+      String dbName, String schemaName, 
       String tableName, TableRef tableRef, String foreignTableName);
 
   void addColumnToDocPartTable(@Nonnull DSLContext dsl, @Nonnull String schemaName,
@@ -101,7 +104,8 @@ public interface StructureInterface {
    */
   public Stream<Function<DSLContext, String>> streamDataInsertFinishTasks(MetaDatabase db);
 
-  void createIndex(@Nonnull DSLContext dsl, @Nonnull String indexName, @Nonnull String tableSchema,
+  void createIndex(@Nonnull DSLContext dsl, 
+      @Nonnull String dbName, @Nonnull String indexName, @Nonnull String tableSchema,
       @Nonnull String tableName, @Nonnull List<Tuple2<String, Boolean>> columnList, boolean unique)
       throws UserException;
 

@@ -107,22 +107,13 @@ public class SqlTorodServer extends IdleTorodbService implements TorodServer {
 
   @Override
   public CompletableFuture<Empty> enableDataImportMode(String dbName) {
-    ImmutableMetaSnapshot snapshot = internalTransactionManager.takeMetaSnapshot();
-    ImmutableMetaDatabase metaDb = snapshot.getMetaDatabaseByName(dbName);
-    if (metaDb == null) {
-      return CompletableFuture.completedFuture(Empty.getInstance());
-    }
-    return backend.enableDataImportMode(metaDb);
+    return backend.enableDataImportMode(dbName);
   }
 
   @Override
   public CompletableFuture<Empty> disableDataImportMode(String dbName) {
     ImmutableMetaSnapshot snapshot = internalTransactionManager.takeMetaSnapshot();
-    ImmutableMetaDatabase metaDb = snapshot.getMetaDatabaseByName(dbName);
-    if (metaDb == null) {
-      return CompletableFuture.completedFuture(Empty.getInstance());
-    }
-    return backend.disableDataImportMode(metaDb);
+    return backend.disableDataImportMode(snapshot, dbName);
   }
 
   D2RTranslatorFactory getD2RTranslatorFactory() {
