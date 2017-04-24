@@ -16,17 +16,30 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.mongodb.repl.oplogreplier;
+package com.torodb.mongodb.repl.oplogreplier.utils;
 
-import com.torodb.mongodb.core.MongodServer;
-import com.torodb.mongowp.commands.oplog.OplogOperation;
+import com.torodb.mongowp.OpTime;
+import com.torodb.mongowp.bson.BsonTimestamp;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
 
-import java.util.stream.Stream;
+import java.time.Instant;
 
-public interface OplogTestContext {
+/**
+ *
+ */
+public class OpTimeFactory {
 
-  public abstract MongodServer getMongodServer();
+  public OpTime getNextOpTime(OpTime optime) {
+    BsonTimestamp ts = DefaultBsonValues.newTimestamp(optime.getTimestamp().getSecondsSinceEpoch()
+        + 1, 0);
+    return new OpTime(ts, optime.getTerm());
+  }
 
-  public abstract void apply(Stream<OplogOperation> streamOplog,
-      ApplierContext applierContext) throws Exception;
+  public OpTime newOpTime() {
+    return OpTime.fromOldBson(DefaultBsonValues.newDateTime(Instant.now()));
+  }
+
+  public OpTime newOpTime(int secs) {
+    return new OpTime(DefaultBsonValues.newTimestamp(secs, 0));
+  }
 }

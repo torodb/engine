@@ -26,7 +26,7 @@ import com.torodb.mongodb.repl.ReplCoreBundle;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
 import com.torodb.mongodb.repl.filters.SimpleReplicationFilters;
 import com.torodb.mongodb.repl.filters.ToroDbReplicationFilters;
-import com.torodb.mongodb.repl.oplogreplier.OplogTestContextResourceRule.OplogApplierBundleFactory;
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContextResourceRule.OplogApplierBundleFactory;
 
 public abstract class DefaultOplogApplierTest extends AbstractOplogApplierTest {
 

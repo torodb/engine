@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.mongodb.repl.oplogreplier;
+package com.torodb.mongodb.repl.oplogreplier.utils;
 
 import com.torodb.core.bundle.Bundle;
 import com.torodb.core.bundle.BundleConfig;
@@ -27,6 +27,8 @@ import com.torodb.mongodb.repl.MongoDbCoreBundleServiceBundle;
 import com.torodb.mongodb.repl.ReplCoreBundle;
 import com.torodb.mongodb.repl.ReplCoreBundleTest;
 import com.torodb.mongodb.repl.TestBundleConfig;
+import com.torodb.mongodb.repl.oplogreplier.DefaultOplogTestContext;
+import com.torodb.mongodb.repl.oplogreplier.OplogApplier;
 import org.junit.Assert;
 import org.junit.rules.ExternalResource;
 

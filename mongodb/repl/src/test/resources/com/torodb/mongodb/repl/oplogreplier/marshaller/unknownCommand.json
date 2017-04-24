@@ -1,0 +1,11 @@
+{
+    "oplog": [
+        { 
+            "op": "c", 
+            "ns": "test.$cmd", 
+            "o": { 
+                "unknownCommand": "db1.col1"
+            }
+        }
+    ]
+}
