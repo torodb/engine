@@ -43,7 +43,8 @@ public interface BackendService extends Service {
    *
    * <p/> During this state, only metadata operations and inserts are supported (but it is not
    * mandatory to throw an exception if other operations are recived). It is expected that each
-   * call to this method is follow by a call to {@link #enableDataImportMode(String) },
+   * call to this method is follow by a call to 
+   * {@link #disableDataImportMode(MetaSnapshot, String) },
    * which will enable the default mode.
    */
   public CompletableFuture<Empty> enableDataImportMode(String dbName)
