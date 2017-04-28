@@ -95,7 +95,7 @@ public class SharedWriteBackendTransactionImpl extends BackendTransactionImpl im
       getSqlInterface().getStructureInterface().createRootDocPartTable(getDsl(), 
           db.getIdentifier(), newRootDocPart.getIdentifier(), rootTableRef);
       getSqlInterface().getStructureInterface().streamRootDocPartTableIndexesCreation(
-          db.getIdentifier(), newRootDocPart.getIdentifier(), rootTableRef)
+          db.getName(), db.getIdentifier(), newRootDocPart.getIdentifier(), rootTableRef)
         .forEach(statement -> statement.apply(getDsl()));
     }
   }
@@ -137,8 +137,8 @@ public class SharedWriteBackendTransactionImpl extends BackendTransactionImpl im
     if (tableRef.isRoot()) {
       getSqlInterface().getStructureInterface().createRootDocPartTable(getDsl(), db.getIdentifier(),
           newDocPart.getIdentifier(), tableRef);
-      getSqlInterface().getStructureInterface().streamRootDocPartTableIndexesCreation(db
-          .getIdentifier(), newDocPart.getIdentifier(), tableRef)
+      getSqlInterface().getStructureInterface().streamRootDocPartTableIndexesCreation(
+          db.getName(), db.getIdentifier(), newDocPart.getIdentifier(), tableRef)
           .forEach(consumer -> {
             String index = consumer.apply(getDsl());
             LOGGER.info("Created internal index {} for table {}", index,
@@ -149,8 +149,8 @@ public class SharedWriteBackendTransactionImpl extends BackendTransactionImpl im
           newDocPart.getIdentifier(), tableRef,
           col.getMetaDocPartByTableRef(tableRef.getParent().get()).getIdentifier());
       getSqlInterface().getStructureInterface()
-          .streamDocPartTableIndexesCreation(db.getIdentifier(), newDocPart.getIdentifier(),
-              tableRef,
+          .streamDocPartTableIndexesCreation(db.getName(), db.getIdentifier(), 
+              newDocPart.getIdentifier(), tableRef,
               col.getMetaDocPartByTableRef(tableRef.getParent().get()).getIdentifier())
           .forEach(consumer -> {
             String index = consumer.apply(getDsl());
@@ -203,7 +203,8 @@ public class SharedWriteBackendTransactionImpl extends BackendTransactionImpl im
               docPart, identifiedDocPartIndex, docPartIndexColumn);
         }
 
-        getSqlInterface().getStructureInterface().createIndex(getDsl(), identifiedDocPartIndex
+        getSqlInterface().getStructureInterface().createIndex(getDsl(), 
+            db.getName(), identifiedDocPartIndex
             .getIdentifier(), db.getIdentifier(),
             docPart.getIdentifier(), columnList, docPartIndex.isUnique());
         LOGGER.info("Created index {} for table {} associated to logical index {}.{}.{}",
@@ -302,7 +303,8 @@ public class SharedWriteBackendTransactionImpl extends BackendTransactionImpl im
     }
 
     getSqlInterface().getStructureInterface().createIndex(
-        getDsl(), identifiedDocPartIndex.getIdentifier(), db.getIdentifier(), docPart
+        getDsl(), 
+        db.getName(), identifiedDocPartIndex.getIdentifier(), db.getIdentifier(), docPart
         .getIdentifier(),
         columnList, index.isUnique());
     LOGGER.info("Created index {} for table {} associated to logical index {}.{}.{}",

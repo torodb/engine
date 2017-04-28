@@ -30,7 +30,6 @@ import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.d2r.R2DTranslator;
 import com.torodb.core.services.IdleTorodbService;
 import com.torodb.core.transaction.InternalTransactionManager;
-import com.torodb.core.transaction.metainf.ImmutableMetaDatabase;
 import com.torodb.core.transaction.metainf.ImmutableMetaSnapshot;
 import com.torodb.torod.TorodServer;
 import com.torodb.torod.pipeline.InsertPipelineFactory;
@@ -107,22 +106,13 @@ public class SqlTorodServer extends IdleTorodbService implements TorodServer {
 
   @Override
   public CompletableFuture<Empty> enableDataImportMode(String dbName) {
-    ImmutableMetaSnapshot snapshot = internalTransactionManager.takeMetaSnapshot();
-    ImmutableMetaDatabase metaDb = snapshot.getMetaDatabaseByName(dbName);
-    if (metaDb == null) {
-      return CompletableFuture.completedFuture(Empty.getInstance());
-    }
-    return backend.enableDataImportMode(metaDb);
+    return backend.enableDataImportMode(dbName);
   }
 
   @Override
   public CompletableFuture<Empty> disableDataImportMode(String dbName) {
     ImmutableMetaSnapshot snapshot = internalTransactionManager.takeMetaSnapshot();
-    ImmutableMetaDatabase metaDb = snapshot.getMetaDatabaseByName(dbName);
-    if (metaDb == null) {
-      return CompletableFuture.completedFuture(Empty.getInstance());
-    }
-    return backend.disableDataImportMode(metaDb);
+    return backend.disableDataImportMode(snapshot, dbName);
   }
 
   D2RTranslatorFactory getD2RTranslatorFactory() {
