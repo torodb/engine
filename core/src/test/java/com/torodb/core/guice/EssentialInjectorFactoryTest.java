@@ -18,7 +18,6 @@
 
 package com.torodb.core.guice;
 
-import com.torodb.core.guice.EssentialInjectorFactory;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import org.junit.Test;
 

@@ -18,8 +18,8 @@
 
 package com.torodb.mongodb.commands.impl.diagnostic;
 
-import com.torodb.mongodb.commands.impl.ConnectionTorodbCommandImpl;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.commands.impl.ServerCommandImpl;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
@@ -28,11 +28,11 @@ import com.torodb.mongowp.commands.tools.Empty;
 /**
  *
  */
-public class PingImplementation extends ConnectionTorodbCommandImpl<Empty, Empty> {
+public class PingImplementation extends ServerCommandImpl<Empty, Empty> {
 
   @Override
   public Status<Empty> apply(Request req, Command<? super Empty, ? super Empty> command, Empty arg,
-      MongodConnection context) {
+      MongodServer context) {
     return Status.ok(Empty.getInstance());
   }
 

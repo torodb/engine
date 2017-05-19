@@ -29,9 +29,7 @@ import com.torodb.core.concurrent.StreamExecutor;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.core.retrier.Retrier;
 import com.torodb.kvdocument.values.KvInteger;
-import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.MongodServer;
-import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.OplogOperationApplier;
 import com.torodb.mongodb.repl.oplogreplier.analyzed.AnalyzedOp;
@@ -70,10 +68,6 @@ public class ConcurrentOplogBatchExecutorTest {
   private Retrier retrier;
   @Mock
   private NamespaceJobExecutor namespaceJobExecutor;
-  @Mock
-  private MongodConnection conn;
-  @Mock
-  private WriteMongodTransaction writeTrans;
   private ConcurrentOplogBatchExecutor executor;
   private int idFactory;
 

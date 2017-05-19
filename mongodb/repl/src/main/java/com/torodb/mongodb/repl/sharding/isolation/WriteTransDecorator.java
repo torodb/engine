@@ -25,21 +25,18 @@ import com.torodb.core.language.AttributeReference;
 import com.torodb.core.transaction.RollbackException;
 import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvValue;
-import com.torodb.torod.IndexFieldInfo;
-import com.torodb.torod.SharedWriteTorodTransaction;
-import com.torodb.torod.TorodConnection;
+import com.torodb.torod.WriteDocTransaction;
 import com.torodb.torod.cursors.TorodCursor;
 
 import java.util.List;
 import java.util.stream.Stream;
 
 @SuppressWarnings("checkstyle:LineLength")
-public abstract class WriteTransDecorator<D extends SharedWriteTorodTransaction, C extends TorodConnection>
-    extends TransDecorator<D, C>
-    implements SharedWriteTorodTransaction {
+public abstract class WriteTransDecorator extends TransDecorator<WriteDocTransaction>
+    implements WriteDocTransaction {
 
-  public WriteTransDecorator(C connection, D decorated) {
-    super(connection, decorated);
+  public WriteTransDecorator(WriteDocTransaction decorated) {
+    super(decorated);
   }
 
   @Override
@@ -72,32 +69,6 @@ public abstract class WriteTransDecorator<D extends SharedWriteTorodTransaction,
   public long deleteByAttRef(String dbName, String colName, AttributeReference attRef,
       KvValue<?> value) {
     return getDecorated().deleteByAttRef(dbName, colName, attRef, value);
-  }
-
-  @Override
-  public void dropCollection(String db, String collection) throws RollbackException, UserException {
-    getDecorated().dropCollection(db, collection);
-  }
-
-  @Override
-  public void createCollection(String db, String collection) throws RollbackException, UserException {
-    getDecorated().createCollection(db, collection);
-  }
-
-  @Override
-  public void dropDatabase(String db) throws RollbackException, UserException {
-    getDecorated().dropDatabase(db);
-  }
-
-  @Override
-  public boolean createIndex(String dbName, String colName, String indexName,
-      List<IndexFieldInfo> fields, boolean unique) throws UserException {
-    return getDecorated().createIndex(dbName, colName, indexName, fields, unique);
-  }
-
-  @Override
-  public boolean dropIndex(String dbName, String colName, String indexName) {
-    return getDecorated().dropIndex(dbName, colName, indexName);
   }
 
   @Override

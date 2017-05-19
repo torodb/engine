@@ -20,16 +20,21 @@ package com.torodb.core.d2r;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import com.google.common.util.concurrent.AbstractService;
 import com.torodb.core.TableRef;
+import com.torodb.core.transaction.metainf.MetaSnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MemoryRidGenerator extends AbstractService implements ReservedIdGenerator {
+public class MemoryRidGenerator implements ReservedIdGenerator {
 
   private Table<String, String, DocPartRidGenerator> generators = HashBasedTable.create();
+
+  @Override
+  public void load(MetaSnapshot snapshot) {
+    generators = HashBasedTable.create();
+  }
 
   @Override
   public int nextRid(String dbName, String collectionName, TableRef tableRef) {
@@ -50,16 +55,6 @@ public class MemoryRidGenerator extends AbstractService implements ReservedIdGen
       generators.put(dbName, collectionName, map);
     }
     return map;
-  }
-
-  @Override
-  protected void doStart() {
-    notifyStarted();
-  }
-
-  @Override
-  protected void doStop() {
-    notifyStopped();
   }
 
   public static class CollectionRidGeneratorMemory implements DocPartRidGenerator {

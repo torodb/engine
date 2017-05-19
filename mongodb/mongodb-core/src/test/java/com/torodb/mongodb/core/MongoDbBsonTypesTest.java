@@ -62,9 +62,11 @@ import com.torodb.mongowp.bson.impl.SingleValueBsonArray;
 import com.torodb.mongowp.bson.impl.StringBsonDeprecated;
 import com.torodb.mongowp.bson.impl.StringBsonString;
 import com.torodb.mongowp.bson.impl.TrueBsonBoolean;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.impl.NameBasedCommandLibrary;
-import com.torodb.torod.MemoryTorodBundle;
+import com.torodb.mongowp.utils.BsonDocumentBuilder;
+import com.torodb.torod.impl.memory.MemoryTorodBundle;
 import com.torodb.torod.TorodBundle;
 import org.junit.After;
 import org.junit.Before;
@@ -75,6 +77,8 @@ import org.junit.runners.Parameterized;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @RunWith(Parameterized.class)
 public class MongoDbBsonTypesTest {
@@ -84,7 +88,6 @@ public class MongoDbBsonTypesTest {
   private MongoDbCoreBundle bundle;
   private Request request;
   private final String dbName="test";
-  private WriteMongodTransaction writeTransaction;
 
   @Parameterized.Parameter(0)
   public String collName;
@@ -115,10 +118,20 @@ public class MongoDbBsonTypesTest {
     torodBundle.startAsync();
     torodBundle.awaitRunning();
 
-    MongoDbCoreConfig config = new MongoDbCoreConfig(torodBundle,
+    MongoDbCoreConfig config = new MongoDbCoreConfig(
+        torodBundle,
         new NameBasedCommandLibrary("test", ImmutableMap.of()),
-        CommandClassifierImpl.createDefault(DefaultLoggerFactory.getInstance(), Clock.systemUTC(), new DefaultBuildProperties(), new
-                MongodServerConfig(HostAndPort.fromParts("localhost",8095))), Optional.of(new DisabledMetricRegistry()), DefaultLoggerFactory.getInstance(), essentialInjector, supervisor);
+        CommandClassifierImpl.createDefault(
+            DefaultLoggerFactory.getInstance(),
+            Clock.systemUTC(),
+            new DefaultBuildProperties(),
+            new MongodServerConfig(HostAndPort.fromParts("localhost", 8095))
+        ),
+        Optional.of(new DisabledMetricRegistry()),
+        DefaultLoggerFactory.getInstance(),
+        essentialInjector,
+        supervisor
+    );
 
     bundle = new MongoDbCoreBundle(config);
 
@@ -129,7 +142,9 @@ public class MongoDbBsonTypesTest {
 
   @After
   public void tearDown() {
-    bundle.stop();
+    if (bundle != null) {
+      bundle.stop();
+    }
 
     if (torodBundle != null && torodBundle.isRunning()) {
       torodBundle.stopAsync();
@@ -167,70 +182,81 @@ public class MongoDbBsonTypesTest {
             {"MAX", SimpleBsonMax.getInstance()}
     });
 
-    Arrays.asList(BsonType.values()).forEach(
-            type -> {
-              if (type != BsonType.JAVA_SCRIPT_WITH_SCOPE) {
-                assertTrue(type + " type is never tested", allTests.stream().anyMatch(
-                        toTest -> type.getValueClass().isAssignableFrom(toTest[1].getClass())
-                        )
-                );
-              }
-            }
-    );
+    Arrays.asList(BsonType.values()).forEach(type -> {
+      if (type != BsonType.JAVA_SCRIPT_WITH_SCOPE) {
+        assertTrue(type + " type is never tested", allTests.stream().anyMatch(
+            toTest -> type.getValueClass().isAssignableFrom(toTest[1].getClass())
+        ));
+      }
+    });
 
     return allTests;
   }
 
   @Test
-  public void test() {
+  public void test() throws InterruptedException, TimeoutException {
     List<BsonDocument> docs = new ArrayList<>();
-    docs.add(new SingleEntryBsonDocument("number", value));
+    docs.add(new BsonDocumentBuilder()
+        .appendUnsafe("number", value)
+        .appendUnsafe("_id", DefaultBsonValues.INT32_ONE)
+        .build()
+    );
 
     baseWriteTest(docs, collName);
   }
 
-  private void baseWriteTest(List<BsonDocument> docs, String collName) {
+  private void baseWriteTest(List<BsonDocument> docs, String collName)
+      throws InterruptedException, TimeoutException {
 
-    writeTransaction = bundle.getExternalInterface().getMongodServer().openConnection().openWriteTransaction();
+    try (WriteMongodTransaction writeTransaction = bundle.getExternalInterface()
+        .getMongodServer()
+        .openWriteTransaction(1, TimeUnit.MINUTES)) {
 
-    //Prepare and do the insertion
+      //Prepare and do the insertion
+      InsertCommand.InsertArgument insertArgument = new InsertCommand.InsertArgument.Builder(
+          collName)
+          .addDocuments(docs)
+          .build();
+      Status<InsertCommand.InsertResult> insertResultStatus =
+          writeTransaction.execute(request, InsertCommand.INSTANCE, insertArgument);
 
-    InsertCommand.InsertArgument insertArgument = new InsertCommand.InsertArgument.Builder(collName)
-            .addDocuments(docs)
-            .build();
-    Status<InsertCommand.InsertResult> insertResultStatus =
-            writeTransaction.execute(request, InsertCommand.INSTANCE, insertArgument);
+      //Prepare and do the retrieval
+      FindCommand.FindArgument findArgument = new FindCommand.FindArgument.Builder()
+          .setCollection(collName)
+          .build();
+      Status<FindCommand.FindResult> findResultStatus =
+          writeTransaction.execute(request, FindCommand.INSTANCE, findArgument);
 
-    //Prepare and do the retrieval
+      writeTransaction.close();
 
-    FindCommand.FindArgument findArgument = new FindCommand.FindArgument.Builder()
-            .setCollection(collName)
-            .build();
-    Status<FindCommand.FindResult> findResultStatus =
-            writeTransaction.execute(request, FindCommand.INSTANCE, findArgument);
+      //Asserting that the status of both operations are right
+      assertTrue(insertResultStatus.getResult().getWriteErrors().isEmpty());
 
-    writeTransaction.close();
+      if (!insertResultStatus.isOk()) {
+        fail(insertResultStatus.getErrorMsg() + " in collection " + collName);
+      }
 
+      if (!findResultStatus.isOk()) {
+        fail(findResultStatus.getErrorMsg() + " in collection " + collName);
+      }
 
-    //Asserting that the status of both operations are right
+      //We ensure that every element in the inserted list exists in the list retrieved from DB and viceversa
+      //That is, we ensure that (apart from the order) they are the same
+      BsonArray result = findResultStatus.getResult()
+          .getCursor()
+          .marshall(elm -> elm)
+          .get("firstBatch")
+          .asArray();
 
-    assertTrue(insertResultStatus.getResult().getWriteErrors().isEmpty());
+      result.forEach(doc -> assertTrue(
+          "Generated value " + doc + " is not contained on input data " + docs,
+          docs.contains(doc))
+      );
 
-    if (!insertResultStatus.isOk()) {
-      fail(insertResultStatus.getErrorMsg() + " in collection " + collName);
+      docs.forEach(doc -> assertTrue(
+          "Input value " + doc + " is not contained on the generated data " + result,
+          result.contains(doc))
+      );
     }
-
-    if (!findResultStatus.isOk()) {
-      fail(findResultStatus.getErrorMsg() + " in collection " + collName);
-    }
-
-    //We ensure that every element in the inserted list exists in the list retrieved from DB and viceversa
-    //That is, we ensure that (apart from the order) they are the same
-
-    BsonArray result = findResultStatus.getResult().getCursor().marshall(elm -> elm).get("firstBatch").asArray();
-
-    result.forEach(doc -> assertTrue(docs.contains(doc)));
-
-    docs.forEach(doc -> assertTrue(result.contains(doc)));
   }
 }

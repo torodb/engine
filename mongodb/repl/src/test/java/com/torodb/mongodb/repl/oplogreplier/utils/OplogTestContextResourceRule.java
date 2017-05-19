@@ -92,16 +92,16 @@ public class OplogTestContextResourceRule extends ExternalResource {
   protected void after() {
     if (applierBundle != null && applierBundle.isRunning()) {
       applierBundle.stop().join();
-      applierBundle = null;
     }
+    applierBundle = null;
     if (replCoreBundle != null && replCoreBundle.isRunning()) {
       replCoreBundle.stop().join();
-      replCoreBundle = null;
     }
+    replCoreBundle = null;
     if (mongoDbCoreBundleServiceBundle != null && mongoDbCoreBundleServiceBundle.isRunning()) {
       mongoDbCoreBundleServiceBundle.stop().join();
-      mongoDbCoreBundleServiceBundle = null;
     }
+    mongoDbCoreBundleServiceBundle = null;
   }
 
   /**

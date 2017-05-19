@@ -24,14 +24,13 @@ import static org.junit.Assert.assertTrue;
 import com.google.common.truth.Truth;
 import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvValue;
-import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.MongodServer;
-import com.torodb.mongodb.core.ReadOnlyMongodTransaction;
+import com.torodb.mongodb.core.MongodTransaction;
 import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.OplogTest;
 import com.torodb.mongowp.commands.oplog.OplogOperation;
-import com.torodb.torod.TorodTransaction;
+import com.torodb.torod.DocTransaction;
 import org.junit.Assert;
 
 import java.util.Collection;
@@ -58,11 +57,9 @@ public abstract class BddOplogTest implements OplogTest {
   public void execute(OplogTestContext context) throws Exception {
     MongodServer server = context.getMongodServer();
 
-    try (MongodConnection conn = server.openConnection()) {
-      try (WriteMongodTransaction trans = conn.openWriteTransaction(true)) {
-        given(trans);
-        trans.commit();
-      }
+    try (WriteMongodTransaction trans = server.openWriteTransaction()) {
+      given(trans);
+      trans.commit();
     }
 
     Exception error = null;
@@ -72,10 +69,8 @@ public abstract class BddOplogTest implements OplogTest {
       error = t;
     }
 
-    try (MongodConnection conn = server.openConnection()) {
-      try (ReadOnlyMongodTransaction trans = conn.openReadOnlyTransaction()) {
-        then(trans, error);
-      }
+    try (MongodTransaction trans = server.openReadTransaction()) {
+      then(trans, error);
     }
   }
 
@@ -101,76 +96,77 @@ public abstract class BddOplogTest implements OplogTest {
       String dbName = db.getName();
       for (CollectionState col : db.getCollections()) {
         String colName = col.getName();
-        trans.getTorodTransaction().insert(dbName, colName,
+        trans.getDocTransaction().insert(dbName, colName,
             col.getDocs().stream());
       }
     }
   }
 
-  protected void then(ReadOnlyMongodTransaction trans, Exception error) throws Exception {
+  protected void then(MongodTransaction trans, Exception error) throws Exception {
     checkError(error);
 
     Collection<DatabaseState> expectedState = getExpectedState();
 
-    TorodTransaction torodTrans = trans.getTorodTransaction();
-    for (DatabaseState db : expectedState) {
-      String dbName = db.getName();
-      for (CollectionState col : db.getCollections()) {
-        String colName = col.getName();
+    try (DocTransaction torodTrans = trans.getDocTransaction()) {
+      for (DatabaseState db : expectedState) {
+        String dbName = db.getName();
+        for (CollectionState col : db.getCollections()) {
+          String colName = col.getName();
 
-        Map<KvValue<?>, KvDocument> storedDocs = torodTrans
-            .findAll(dbName, colName)
-            .asDocCursor()
-            .transform(toroDoc -> toroDoc.getRoot())
-            .getRemaining()
-            .stream()
-            .collect(Collectors.toMap(
-                doc -> doc.get("_id"),
-                doc -> doc)
-            );
+          Map<KvValue<?>, KvDocument> storedDocs = torodTrans
+              .findAll(dbName, colName)
+              .asDocCursor()
+              .transform(toroDoc -> toroDoc.getRoot())
+              .getRemaining()
+              .stream()
+              .collect(Collectors.toMap(
+                  doc -> doc.get("_id"),
+                  doc -> doc)
+              );
 
-        for (KvDocument expectedDoc : col.getDocs()) {
-          KvValue<?> id = expectedDoc.get("_id");
-          assert id != null : "The test is incorrect, as " + expectedDoc + " does not have _id";
+          for (KvDocument expectedDoc : col.getDocs()) {
+            KvValue<?> id = expectedDoc.get("_id");
+            assert id != null : "The test is incorrect, as " + expectedDoc + " does not have _id";
 
-          KvDocument storedDoc = storedDocs.get(id);
-          assertTrue("It was expected that " + db.getName() + "." + col.getName() + " contains a "
-              + "document with _id " + id, storedDoc != null);
-          assertEquals("The document on "+ db.getName() + "." + col.getName() + " whose id is " + id
-              + " is different than expected", expectedDoc, storedDoc);
+            KvDocument storedDoc = storedDocs.get(id);
+            assertTrue("It was expected that " + db.getName() + "." + col.getName() + " contains a "
+                + "document with _id " + id, storedDoc != null);
+            assertEquals("The document on " + db.getName() + "." + col.getName() + " whose id is "
+                + id + " is different than expected", expectedDoc, storedDoc);
+          }
+
+          assertEquals("Unexpected size on " + dbName + "." + colName,
+              col.getDocs().size(),
+              storedDocs.size());
         }
-
-        assertEquals("Unexpected size on " + dbName + "." + colName,
-            col.getDocs().size(),
-            storedDocs.size());
       }
+
+      Set<String> foundNs = torodTrans.getDatabases().stream()
+          .filter(dbName -> !dbName.equals("torodb"))
+          .flatMap(dbName -> torodTrans.getCollectionsInfo(dbName)
+              .map(colInfo -> dbName + '.' + colInfo.getName())
+          ).collect(Collectors.toSet());
+      Set<String> expectedNs = expectedState.stream()
+          .flatMap(db -> db.getCollections().stream()
+              .map(col -> db.getName() + '.' + col.getName())
+          ).collect(Collectors.toSet());
+
+      Truth.assertWithMessage("Unexpected namespaces")
+          .that(foundNs)
+          .containsExactlyElementsIn(expectedNs);
+
+      Set<String> expectedDbNames = expectedState.stream()
+          .map(DatabaseState::getName)
+          .collect(Collectors.toSet());
+      Set<String> foundDbNames = trans.getDocTransaction()
+          .getDatabases()
+          .stream()
+          .filter(dbName -> !dbName.equals("torodb"))
+          .collect(Collectors.toSet());
+      Truth.assertWithMessage("Unexpected databases")
+          .that(foundDbNames)
+          .containsExactlyElementsIn(expectedDbNames);
     }
-
-    Set<String> foundNs = torodTrans.getDatabases().stream()
-        .filter(dbName -> !dbName.equals("torodb"))
-        .flatMap(dbName -> torodTrans.getCollectionsInfo(dbName)
-            .map(colInfo -> dbName + '.' + colInfo.getName())
-        ).collect(Collectors.toSet());
-    Set<String> expectedNs = expectedState.stream()
-        .flatMap(db -> db.getCollections().stream()
-            .map(col -> db.getName() + '.' + col.getName())
-        ).collect(Collectors.toSet());
-
-    Truth.assertWithMessage("Unexpected namespaces")
-        .that(foundNs)
-        .containsExactlyElementsIn(expectedNs);
-
-    Set<String> expectedDbNames = expectedState.stream()
-        .map(DatabaseState::getName)
-        .collect(Collectors.toSet());
-    Set<String> foundDbNames = trans.getTorodTransaction()
-        .getDatabases()
-        .stream()
-        .filter(dbName -> !dbName.equals("torodb"))
-        .collect(Collectors.toSet());
-    Truth.assertWithMessage("Unexpected databases")
-        .that(foundDbNames)
-        .containsExactlyElementsIn(expectedDbNames);
   }
 
   private void checkError(Exception error) throws Exception {

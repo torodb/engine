@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.commands.impl.diagnostic;
 
-import com.torodb.mongodb.commands.impl.ConnectionTorodbCommandImpl;
+import com.torodb.mongodb.commands.impl.ServerCommandImpl;
 import com.torodb.mongodb.commands.signatures.diagnostic.GetLogCommand.AsteriskGetLogReply;
 import com.torodb.mongodb.commands.signatures.diagnostic.GetLogCommand.GetLogArgument;
 import com.torodb.mongodb.commands.signatures.diagnostic.GetLogCommand.GetLogReply;
 import com.torodb.mongodb.commands.signatures.diagnostic.GetLogCommand.LogGetLogReply;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongowp.ErrorCode;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
@@ -34,12 +34,12 @@ import java.util.Collections;
 /**
  *
  */
-public class GetLogImplementation extends ConnectionTorodbCommandImpl<GetLogArgument, GetLogReply> {
+public class GetLogImplementation extends ServerCommandImpl<GetLogArgument, GetLogReply> {
 
   @Override
   public Status<GetLogReply> apply(Request req,
       Command<? super GetLogArgument, ? super GetLogReply> command, GetLogArgument arg,
-      MongodConnection context) {
+      MongodServer context) {
     if (arg.isIsAsterisk()) {
       return Status.ok(new AsteriskGetLogReply(Collections.emptyList()));
     } else {

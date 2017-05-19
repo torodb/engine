@@ -24,9 +24,8 @@ import com.torodb.core.exceptions.user.IndexNotFoundException;
 import com.torodb.core.language.AttributeReference;
 import com.torodb.kvdocument.values.KvValue;
 import com.torodb.torod.CollectionInfo;
+import com.torodb.torod.DocTransaction;
 import com.torodb.torod.IndexInfo;
-import com.torodb.torod.TorodConnection;
-import com.torodb.torod.TorodTransaction;
 import com.torodb.torod.cursors.TorodCursor;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -34,14 +33,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-public abstract class TransDecorator<D extends TorodTransaction, C extends TorodConnection>
-    implements TorodTransaction {
+public abstract class TransDecorator<D extends DocTransaction>
+    implements DocTransaction {
 
-  private final C connection;
   private final D decorated;
 
-  public TransDecorator(C connection, D decorated) {
-    this.connection = connection;
+  public TransDecorator(D decorated) {
     this.decorated = decorated;
   }
 
@@ -52,11 +49,6 @@ public abstract class TransDecorator<D extends TorodTransaction, C extends Torod
   @Override
   public boolean isClosed() {
     return decorated.isClosed();
-  }
-
-  @Override
-  public C getConnection() {
-    return connection;
   }
 
   @Override

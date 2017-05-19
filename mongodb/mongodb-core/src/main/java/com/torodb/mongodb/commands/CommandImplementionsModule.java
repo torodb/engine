@@ -21,8 +21,8 @@ package com.torodb.mongodb.commands;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.torodb.mongodb.commands.impl.ConnectionCmdImpl;
-import com.torodb.mongodb.commands.impl.ExclusiveWriteTransactionCmdsImpl;
 import com.torodb.mongodb.commands.impl.GeneralTransactionCmdImpl;
+import com.torodb.mongodb.commands.impl.SchemaCmdsImpl;
 import com.torodb.mongodb.commands.impl.WriteTransactionCmdImpl;
 
 /**
@@ -41,7 +41,7 @@ public class CommandImplementionsModule extends AbstractModule {
     bind(GeneralTransactionCmdImpl.class)
         .in(Singleton.class);
 
-    bind(ExclusiveWriteTransactionCmdsImpl.class)
+    bind(SchemaCmdsImpl.class)
         .in(Singleton.class);
 
     bind(WriteTransactionCmdImpl.class)

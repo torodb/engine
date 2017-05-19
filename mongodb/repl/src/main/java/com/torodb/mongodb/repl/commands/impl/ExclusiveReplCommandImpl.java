@@ -20,11 +20,11 @@ package com.torodb.mongodb.repl.commands.impl;
 
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.CommandImplementation;
-import com.torodb.torod.ExclusiveWriteTorodTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
 import org.apache.logging.log4j.Logger;
 
 public abstract class ExclusiveReplCommandImpl<A, R> 
-    implements CommandImplementation<A, R, ExclusiveWriteTorodTransaction> {
+    implements CommandImplementation<A, R, SchemaOperationExecutor> {
 
   protected void reportErrorIgnored(Logger logger, Command<?, ?> cmd, Throwable t) {
     logger.warn(cmd.getCommandName() + " command execution failed. "

@@ -24,8 +24,8 @@ import com.torodb.core.bundle.ServiceBundle;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.core.MongoDbCoreConfig;
-import com.torodb.torod.MemoryTorodBundle;
 import com.torodb.torod.TorodBundle;
+import com.torodb.torod.impl.memory.MemoryTorodBundle;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -48,7 +48,8 @@ public class MongoDbCoreBundleServiceBundle extends ServiceBundle<MongoDbCoreBun
 
     torodBundle = new MemoryTorodBundle(generalConfig);
 
-    MongoDbCoreConfig mongoDbCoreConfig = MongoDbCoreConfig.simpleNonServerConfig(torodBundle,
+    MongoDbCoreConfig mongoDbCoreConfig = MongoDbCoreConfig.simpleNonServerConfig(
+        torodBundle,
         DefaultLoggerFactory.getInstance(),
         Optional.empty(),
         generalConfig);

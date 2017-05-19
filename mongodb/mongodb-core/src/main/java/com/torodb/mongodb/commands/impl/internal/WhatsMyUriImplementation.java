@@ -18,20 +18,20 @@
 
 package com.torodb.mongodb.commands.impl.internal;
 
-import com.torodb.mongodb.commands.impl.ConnectionTorodbCommandImpl;
+import com.torodb.mongodb.commands.impl.ServerCommandImpl;
 import com.torodb.mongodb.commands.signatures.internal.WhatsMyUriCommand.WhatsMyUriReply;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.tools.Empty;
 
-public class WhatsMyUriImplementation extends ConnectionTorodbCommandImpl<Empty, WhatsMyUriReply> {
+public class WhatsMyUriImplementation extends ServerCommandImpl<Empty, WhatsMyUriReply> {
 
   @Override
   public Status<WhatsMyUriReply> apply(Request req,
       Command<? super Empty, ? super WhatsMyUriReply> command,
-      Empty arg, MongodConnection context) {
+      Empty arg, MongodServer context) {
     return Status.ok(new WhatsMyUriReply(
         req.getExternalClientInfo().getClientAddress().getCanonicalHostName(),
         req.getExternalClientInfo().getClientPort()));

@@ -32,8 +32,8 @@ import com.torodb.packaging.config.model.backend.AbstractBackend;
 import com.torodb.packaging.config.model.backend.ConnectionPoolConfig;
 import com.torodb.packaging.config.model.backend.derby.AbstractDerby;
 import com.torodb.packaging.config.model.backend.postgres.AbstractPostgres;
-import com.torodb.torod.SqlTorodBundle;
-import com.torodb.torod.SqlTorodConfig;
+import com.torodb.torod.impl.sql.SqlTorodBundle;
+import com.torodb.torod.impl.sql.SqlTorodConfig;
 import com.torodb.torod.TorodBundle;
 
 public class BundleFactory {

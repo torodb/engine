@@ -37,14 +37,14 @@ import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.CommandExecutor;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.impl.MapBasedCommandExecutor;
-import com.torodb.torod.ExclusiveWriteTorodTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
 
 import javax.inject.Inject;
 
 public final class ReplCommandExecutor
-    implements CommandExecutor<ExclusiveWriteTorodTransaction> {
+    implements CommandExecutor<SchemaOperationExecutor> {
 
-  private final MapBasedCommandExecutor<ExclusiveWriteTorodTransaction> delegate;
+  private final MapBasedCommandExecutor<SchemaOperationExecutor> delegate;
 
   @Inject
   public ReplCommandExecutor(ReplCommandLibrary library,
@@ -57,7 +57,7 @@ public final class ReplCommandExecutor
       DropIndexesReplImpl dropIndexesReplImpl,
       RenameCollectionReplImpl renameCollectionReplImpl) {
     delegate = MapBasedCommandExecutor
-        .<ExclusiveWriteTorodTransaction>fromLibraryBuilder(library)
+        .<SchemaOperationExecutor>fromLibraryBuilder(library)
         .addImplementation(LogAndStopCommand.INSTANCE, logAndStopReplImpl)
         .addImplementation(LogAndIgnoreCommand.INSTANCE, logAndIgnoreReplImpl)
         //                .addImplementation(ApplyOpsCommand.INSTANCE, whatever)
@@ -76,7 +76,7 @@ public final class ReplCommandExecutor
 
   @Override
   public <A, R> Status<R> execute(Request request, Command<? super A, ? super R> command, A arg,
-      ExclusiveWriteTorodTransaction context) {
+      SchemaOperationExecutor context) {
     return delegate.execute(request, command, arg, context);
   }
 }

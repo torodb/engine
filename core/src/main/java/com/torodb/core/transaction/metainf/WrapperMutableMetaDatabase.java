@@ -146,8 +146,6 @@ public class WrapperMutableMetaDatabase implements MutableMetaDatabase {
 
   @Override
   public WrapperMutableMetaCollection getMetaCollectionByIdentifier(String collectionIdentifier) {
-    LOGGER.debug("Looking for a meta collection by the unindexed attribute 'id'. "
-        + "Performance lost is expected");
     return aliveCollectionsMap.values().stream()
         .map(tuple -> (WrapperMutableMetaCollection) tuple.v1())
         .filter((collection) -> collection.getIdentifier().equals(collectionIdentifier))

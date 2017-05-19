@@ -67,7 +67,7 @@ public class CollStatsImplementation
       logger.warn("Requested stats on the system collection "
           + collection + ". ToroDB does not support stats for system "
           + "collections yet");
-      Stream<CollectionInfo> collectionsInfo = context.getTorodTransaction().getCollectionsInfo(
+      Stream<CollectionInfo> collectionsInfo = context.getDocTransaction().getCollectionsInfo(
           req.getDatabase());
       replyBuilder.setCount(collectionsInfo.count())
           .setSize(0)
@@ -79,7 +79,7 @@ public class CollStatsImplementation
           .setCapped(false);
     } else {
       try {
-        CollectionInfo collectionInfo = context.getTorodTransaction().getCollectionInfo(
+        CollectionInfo collectionInfo = context.getDocTransaction().getCollectionInfo(
             req.getDatabase(), arg.getCollection());
         if (collectionInfo.isCapped()) {
           replyBuilder.setCapped(true)
@@ -103,17 +103,17 @@ public class CollStatsImplementation
       replyBuilder.setSizeByIndex(sizeByMap);
 
       replyBuilder.setCount(
-          context.getTorodTransaction().countAll(
+          context.getDocTransaction().countAll(
               req.getDatabase(), collection
           )
       );
       replyBuilder.setSize(
-          context.getTorodTransaction().getDocumentsSize(
+          context.getDocTransaction().getDocumentsSize(
               req.getDatabase(), collection
           ) / scale
       );
       replyBuilder.setStorageSize(
-          context.getTorodTransaction().getCollectionSize(
+          context.getDocTransaction().getCollectionSize(
               req.getDatabase(), collection
           ) / scale
       );

@@ -26,10 +26,8 @@ import com.torodb.backend.postgresql.guice.PostgreSqlBackendModule;
 import com.torodb.core.backend.BackendBundle;
 import com.torodb.core.backend.BackendExtInt;
 import com.torodb.core.backend.BackendService;
-import com.torodb.core.backend.SnapshotUpdater;
 import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.d2r.ReservedIdGenerator;
-import com.torodb.core.dsl.backend.BackendTransactionJobFactory;
 
 /**
  * A {@link BackendBundle} that uses PostgresSql.
@@ -39,9 +37,7 @@ public class PostgreSqlBackendBundle extends AbstractBackendBundle {
   private final DbBackendService lowLevelService;
   private final BackendService backendService;
   private final ReservedIdGenerator reservedIdGenerator;
-  private final SnapshotUpdater snapshotUpdater;
   private final IdentifierFactory identifierFactory;
-  private final BackendTransactionJobFactory backendTransactionJobFactory;
 
   @SuppressWarnings("checkstyle:JavadocMethod")
   public PostgreSqlBackendBundle(BackendConfig config) {
@@ -51,9 +47,7 @@ public class PostgreSqlBackendBundle extends AbstractBackendBundle {
     this.lowLevelService = injector.getInstance(DbBackendService.class);
     this.backendService = injector.getInstance(BackendService.class);
     this.reservedIdGenerator = injector.getInstance(ReservedIdGenerator.class);
-    this.snapshotUpdater = injector.getInstance(SnapshotUpdater.class);
     this.identifierFactory = injector.getInstance(IdentifierFactory.class);
-    this.backendTransactionJobFactory = injector.getInstance(BackendTransactionJobFactory.class);
   }
 
   @Override
@@ -75,11 +69,6 @@ public class PostgreSqlBackendBundle extends AbstractBackendBundle {
       }
 
       @Override
-      public SnapshotUpdater getSnapshotUpdater() {
-        return snapshotUpdater;
-      }
-
-      @Override
       public ReservedIdGenerator getReservedIdGenerator() {
         return reservedIdGenerator;
       }
@@ -87,11 +76,6 @@ public class PostgreSqlBackendBundle extends AbstractBackendBundle {
       @Override
       public IdentifierFactory getIdentifierFactory() {
         return identifierFactory;
-      }
-
-      @Override
-      public BackendTransactionJobFactory getBackendTransactionJobFactory() {
-        return backendTransactionJobFactory;
       }
     };
   }

@@ -14,7 +14,7 @@
     "expectedException": "UnexpectedOplogApplierException",
     "oplog": [
         {
-            "op": "i",
+            "op": "d",
             "ns": "db1.col1",
             "o": {
                 "_id": [1]

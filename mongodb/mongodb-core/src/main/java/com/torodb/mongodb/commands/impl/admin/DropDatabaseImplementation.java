@@ -18,41 +18,38 @@
 
 package com.torodb.mongodb.commands.impl.admin;
 
-import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.logging.LoggerFactory;
-import com.torodb.mongodb.commands.impl.WriteTorodbCommandImpl;
-import com.torodb.mongodb.core.WriteMongodTransaction;
-import com.torodb.mongowp.ErrorCode;
+import com.torodb.core.retrier.RetrierGiveUpException;
+import com.torodb.core.transaction.RollbackException;
+import com.torodb.mongodb.commands.impl.RetrierSchemaCommandImpl;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.tools.Empty;
-import org.apache.logging.log4j.Logger;
+import com.torodb.torod.SchemaOperationExecutor;
 
-import javax.inject.Inject;
 
-public class DropDatabaseImplementation implements WriteTorodbCommandImpl<Empty, Empty> {
+public class DropDatabaseImplementation extends RetrierSchemaCommandImpl<Empty, Empty> {
 
-  private final Logger logger;
-
-  @Inject
   public DropDatabaseImplementation(LoggerFactory loggerFactory) {
-    this.logger = loggerFactory.apply(this.getClass());
+    super(loggerFactory);
   }
 
   @Override
-  public Status<Empty> apply(Request req, Command<? super Empty, ? super Empty> command,
-      Empty arg, WriteMongodTransaction context) {
-    try {
-      logger.info("Drop database {}", req.getDatabase());
+  protected Status<Empty> tryApply(Request req,
+      Command<? super Empty, ? super Empty> command, Empty arg, SchemaOperationExecutor context)
+      throws RetrierGiveUpException, RollbackException {
+    getLogger().info("Drop database {}", req.getDatabase());
 
-      context.getTorodTransaction().dropDatabase(req.getDatabase());
-    } catch (UserException ex) {
-      //TODO: Improve error reporting
-      return Status.from(ErrorCode.COMMAND_FAILED, ex.getLocalizedMessage());
-    }
+    context.dropDatabase(req.getDatabase());
 
     return Status.ok();
+  }
+
+  @Override
+  protected String getErrorMessage(Request req, Command<? super Empty, ? super Empty> command,
+      Empty arg) {
+    return "Catching an exception while droping the database " + req.getDatabase();
   }
 
 }

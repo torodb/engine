@@ -68,7 +68,9 @@ public class DerbyDbBackendBundleTest {
 
   @After
   public void tearDown() {
-    bundle.stopAsync();
+    if (bundle != null && bundle.isRunning()) {
+      bundle.stopAsync();
+    }
   }
 
   @Test

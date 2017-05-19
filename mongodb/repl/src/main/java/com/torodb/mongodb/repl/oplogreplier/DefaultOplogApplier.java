@@ -67,6 +67,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
@@ -82,6 +83,7 @@ public class DefaultOplogApplier implements OplogApplier {
   private final OplogManager oplogManager;
   private final BatchAnalyzerFactory batchAnalyzerFactory;
   private final ActorSystem actorSystem;
+  private final ExecutorService executorService;
   private final OplogApplierMetrics metrics;
   private final OplogBatchFilter batchFilter;
   private final OplogBatchChecker batchChecker;
@@ -96,11 +98,10 @@ public class DefaultOplogApplier implements OplogApplier {
     this.batchLimits = batchLimits;
     this.oplogManager = oplogManager;
     this.batchAnalyzerFactory = batchAnalyzerFactory;
+    this.executorService = concurrentToolsFactory.createExecutorServiceWithMaxThreads(
+        "oplog-applier", 3);
     this.actorSystem = ActorSystem.create("oplog-applier", null, null,
-        ExecutionContexts.fromExecutor(
-            concurrentToolsFactory.createExecutorServiceWithMaxThreads(
-                "oplog-applier", 3)
-        )
+        ExecutionContexts.fromExecutor(executorService)
     );
     this.metrics = metrics;
     this.batchFilter = batchFilter;
@@ -197,6 +198,7 @@ public class DefaultOplogApplier implements OplogApplier {
     logger.trace("Waiting until actor system terminates");
     Await.result(actorSystem.terminate(), Duration.Inf());
     logger.trace("Actor system terminated");
+    executorService.shutdown();
   }
 
   private Source<OplogBatch, NotUsed> createOplogSource(OplogFetcher fetcher) {

@@ -21,8 +21,8 @@ package com.torodb.mongodb.repl.oplogreplier;
 
 import com.torodb.mongodb.repl.oplogreplier.utils.BddOplogTest;
 import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContextResourceRule;
-import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestParser;
 import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContextResourceRule.OplogApplierBundleFactory;
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestParser;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;

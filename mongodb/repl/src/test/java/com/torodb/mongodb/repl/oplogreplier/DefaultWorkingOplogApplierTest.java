@@ -44,8 +44,8 @@ public class DefaultWorkingOplogApplierTest extends DefaultOplogApplierTest {
         "update_array",
         "update_no_upsert",
         "update_upsert",
-        "renameIndex_noDropTarget",
-        "renameIndex_dropTarget"
+        "renamecollection_noDropTarget",
+        "renamecollection_dropTarget"
     ));
   }
 

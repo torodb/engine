@@ -18,14 +18,14 @@
 
 package com.torodb.mongodb.repl.commands.impl;
 
-import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.impl.CollectionCommandArgument;
 import com.torodb.mongowp.commands.tools.Empty;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.exception.UnexistentDatabaseException;
 import org.apache.logging.log4j.Logger;
 
 import javax.inject.Inject;
@@ -47,7 +47,7 @@ public class DropCollectionReplImpl extends ReplCommandImpl<CollectionCommandArg
       Request req,
       Command<? super CollectionCommandArgument, ? super Empty> command,
       CollectionCommandArgument arg,
-      SharedWriteTorodTransaction trans) {
+      SchemaOperationExecutor schemaEx) {
 
     if (!filterUtil.testNamespaceFilter(req.getDatabase(), arg.getCollection(), command)) {
       return Status.ok();
@@ -56,15 +56,11 @@ public class DropCollectionReplImpl extends ReplCommandImpl<CollectionCommandArg
     try {
       logger.info("Dropping collection {}.{}", req.getDatabase(), arg.getCollection());
 
-      if (trans.existsCollection(req.getDatabase(), arg.getCollection())) {
-        trans.dropCollection(req.getDatabase(), arg.getCollection());
-      } else {
-        logger.info("Trying to drop collection {}.{} but it has not been found. "
+      schemaEx.dropCollection(req.getDatabase(), arg.getCollection());
+    } catch (UnexistentDatabaseException ex) {
+      logger.info("Trying to drop collection {}.{} but it has not been found. "
             + "This is normal when reapplying oplog during a recovery. Ignoring operation",
             req.getDatabase(), arg.getCollection());
-      }
-    } catch (UserException ex) {
-      reportErrorIgnored(logger, command, ex);
     }
 
     return Status.ok();

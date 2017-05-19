@@ -20,30 +20,52 @@ package com.torodb.mongodb.core;
 
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.transaction.RollbackException;
+import com.torodb.mongodb.commands.CommandClassifier;
+import com.torodb.mongodb.language.ObjectIdFactory;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.CommandExecutor;
 import com.torodb.mongowp.commands.Request;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.torod.WriteDocTransaction;
+import org.apache.logging.log4j.Logger;
+
+import java.util.function.Function;
 
 /**
  *
  */
 class WriteMongodTransactionImpl extends MongodTransactionImpl implements WriteMongodTransaction {
 
-  private final SharedWriteTorodTransaction torodTransaction;
+  private final WriteDocTransaction torodTransaction;
   private final CommandExecutor<? super WriteMongodTransactionImpl> commandsExecutor;
+  private final ObjectIdFactory objectIdFactory;
+  private final MongodMetrics metrics;
 
-  public WriteMongodTransactionImpl(MongodConnection connection, boolean concurrent) {
-    super(connection);
-    this.torodTransaction = connection.getTorodConnection().openWriteTransaction(concurrent);
-    this.commandsExecutor = connection.getServer().getCommandsExecutorClassifier()
-        .getWriteCommandsExecutor();
+  public WriteMongodTransactionImpl(Function<Class<?>, Logger> loggerFactory,
+      WriteDocTransaction torodTransaction,
+      CommandClassifier commandClassifier, 
+      ObjectIdFactory objectIdFactory,
+      MongodMetrics metrics) {
+    super(loggerFactory);
+    this.torodTransaction = torodTransaction;
+    this.commandsExecutor = commandClassifier.getWriteCommandsExecutor();
+    this.objectIdFactory = objectIdFactory;
+    this.metrics = metrics;
   }
 
   @Override
-  public SharedWriteTorodTransaction getTorodTransaction() {
+  public WriteDocTransaction getDocTransaction() {
     return torodTransaction;
+  }
+
+  @Override
+  public ObjectIdFactory getObjectIdFactory() {
+    return objectIdFactory;
+  }
+
+  @Override
+  public MongodMetrics getMetrics() {
+    return metrics;
   }
 
   @Override

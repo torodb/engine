@@ -26,21 +26,17 @@ import com.torodb.core.exceptions.user.UpdateException;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.language.AttributeReference;
 import com.torodb.core.language.AttributeReference.Builder;
-import com.torodb.core.language.AttributeReference.Key;
-import com.torodb.core.language.AttributeReference.ObjectKey;
-import com.torodb.core.transaction.metainf.FieldIndexOrdering;
 import com.torodb.kvdocument.conversion.mongowp.MongoWpConverter;
 import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvDocument.DocEntry;
 import com.torodb.kvdocument.values.KvValue;
-import com.torodb.mongodb.commands.impl.WriteTorodbCommandImpl;
+import com.torodb.mongodb.commands.impl.WriteTransactionCommandImpl;
 import com.torodb.mongodb.commands.signatures.general.UpdateCommand.UpdateArgument;
 import com.torodb.mongodb.commands.signatures.general.UpdateCommand.UpdateResult;
 import com.torodb.mongodb.commands.signatures.general.UpdateCommand.UpdateStatement;
 import com.torodb.mongodb.commands.signatures.general.UpdateCommand.UpsertResult;
 import com.torodb.mongodb.core.MongodMetrics;
 import com.torodb.mongodb.core.WriteMongodTransaction;
-import com.torodb.mongodb.language.ObjectIdFactory;
 import com.torodb.mongodb.language.UpdateActionTranslator;
 import com.torodb.mongodb.language.update.SetDocumentUpdateAction;
 import com.torodb.mongodb.language.update.UpdateAction;
@@ -52,57 +48,45 @@ import com.torodb.mongowp.bson.BsonDocument;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.exceptions.CommandFailed;
-import com.torodb.torod.IndexFieldInfo;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.torod.WriteDocTransaction;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import javax.inject.Singleton;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  *
  */
-@Singleton
-public class UpdateImplementation implements WriteTorodbCommandImpl<UpdateArgument, UpdateResult> {
+@ThreadSafe
+public class UpdateImplementation
+    implements WriteTransactionCommandImpl<UpdateArgument, UpdateResult> {
 
   @Override
   public Status<UpdateResult> apply(Request req,
       Command<? super UpdateArgument, ? super UpdateResult> command, UpdateArgument arg,
       WriteMongodTransaction context) {
-    MongodMetrics mongodMetrics = context.getConnection().getServer().getMetrics();
-    ObjectIdFactory objectIdFactory = context.getConnection().getServer().getObjectIdFactory();
-
     UpdateStatus updateStatus = new UpdateStatus();
 
     try {
-      if (!context.getTorodTransaction().existsCollection(req.getDatabase(), arg.getCollection())) {
-        context.getTorodTransaction().createIndex(req.getDatabase(), arg.getCollection(),
-            DefaultIdUtils.ID_INDEX,
-            ImmutableList.<IndexFieldInfo>of(new IndexFieldInfo(new AttributeReference(Arrays
-                .asList(new Key[]{new ObjectKey(DefaultIdUtils.ID_KEY)})), FieldIndexOrdering.ASC
-                .isAscending())), true);
-      }
-
       for (UpdateStatement updateStatement : arg.getStatements()) {
         BsonDocument query = updateStatement.getQuery();
         UpdateAction updateAction = UpdateActionTranslator.translate(updateStatement.getUpdate());
         Cursor<ToroDocument> candidatesCursor;
         switch (query.size()) {
           case 0: {
-            candidatesCursor = context.getTorodTransaction()
+            candidatesCursor = context.getDocTransaction()
                 .findAll(req.getDatabase(), arg.getCollection())
                 .asDocCursor();
             break;
           }
           case 1: {
             try {
-              candidatesCursor = findByAttribute(context.getTorodTransaction(), req.getDatabase(),
+              candidatesCursor = findByAttribute(context.getDocTransaction(), req.getDatabase(),
                   arg.getCollection(), query);
             } catch (CommandFailed ex) {
               return Status.from(ex);
@@ -128,7 +112,7 @@ public class UpdateImplementation implements WriteTorodbCommandImpl<UpdateArgume
             Stream<KvDocument> updatedCandidates = candidatesbatchStream
                 .map(candidates -> {
                   updateStatus.increaseCandidates(candidates.size());
-                  context.getTorodTransaction().delete(req.getDatabase(), arg.getCollection(),
+                  context.getDocTransaction().delete(req.getDatabase(), arg.getCollection(),
                       candidates);
                   return candidates;
                 })
@@ -141,7 +125,7 @@ public class UpdateImplementation implements WriteTorodbCommandImpl<UpdateArgume
                     throw new UserWrappedException(userException);
                   }
                 });
-            context.getTorodTransaction().insert(req.getDatabase(), arg.getCollection(),
+            context.getDocTransaction().insert(req.getDatabase(), arg.getCollection(),
                 updatedCandidates);
           } catch (UserWrappedException userWrappedException) {
             throw userWrappedException.getCause();
@@ -160,14 +144,15 @@ public class UpdateImplementation implements WriteTorodbCommandImpl<UpdateArgume
             for (DocEntry<?> entry : toInsertCandidate) {
               builder.putValue(entry.getKey(), entry.getValue());
             }
-            builder.putValue(DefaultIdUtils.ID_KEY, MongoWpConverter.translate(objectIdFactory
-                .consumeObjectId()));
+            builder.putValue(DefaultIdUtils.ID_KEY, MongoWpConverter.translate(
+                context.getObjectIdFactory().consumeObjectId())
+            );
             toInsertCandidate = builder.build();
           }
           updateStatus.increaseCandidates(1);
           updateStatus.increaseCreated(toInsertCandidate.get(DefaultIdUtils.ID_KEY));
           Stream<KvDocument> toInsertCandidates = Stream.of(toInsertCandidate);
-          context.getTorodTransaction().insert(req.getDatabase(), arg.getCollection(),
+          context.getDocTransaction().insert(req.getDatabase(), arg.getCollection(),
               toInsertCandidates);
         }
       }
@@ -175,9 +160,10 @@ public class UpdateImplementation implements WriteTorodbCommandImpl<UpdateArgume
       //TODO: Improve error reporting
       return Status.from(ErrorCode.COMMAND_FAILED, ex.getLocalizedMessage());
     }
-    mongodMetrics.getUpdateModified().mark(updateStatus.updated);
-    mongodMetrics.getUpdateMatched().mark(updateStatus.candidates);
-    mongodMetrics.getUpdateUpserted().mark(updateStatus.upsertResults.size());
+    MongodMetrics metrics = context.getMetrics();
+    metrics.getUpdateModified().mark(updateStatus.updated);
+    metrics.getUpdateMatched().mark(updateStatus.candidates);
+    metrics.getUpdateUpserted().mark(updateStatus.upsertResults.size());
     return Status.ok(new UpdateResult(updateStatus.updated, updateStatus.candidates,
         ImmutableList.copyOf(updateStatus.upsertResults)));
   }
@@ -212,7 +198,7 @@ public class UpdateImplementation implements WriteTorodbCommandImpl<UpdateArgume
     return builder.build();
   }
 
-  private Cursor<ToroDocument> findByAttribute(SharedWriteTorodTransaction transaction, String db,
+  private Cursor<ToroDocument> findByAttribute(WriteDocTransaction transaction, String db,
       String col, BsonDocument query) throws CommandFailed, UserException {
     Builder refBuilder = new AttributeReference.Builder();
     KvValue<?> kvValue = AttrRefHelper.calculateValueAndAttRef(query, refBuilder);

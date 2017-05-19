@@ -19,29 +19,47 @@
 package com.torodb.mongodb.commands.impl.admin;
 
 import com.torodb.core.exceptions.user.UserException;
-import com.torodb.mongodb.commands.impl.ExclusiveWriteTorodbCommandImpl;
+import com.torodb.core.logging.LoggerFactory;
+import com.torodb.mongodb.commands.impl.RetrierSchemaCommandImpl;
 import com.torodb.mongodb.commands.signatures.admin.RenameCollectionCommand.RenameCollectionArgument;
-import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
 import com.torodb.mongowp.ErrorCode;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.tools.Empty;
+import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.exception.AlreadyExistentCollectionException;
+import com.torodb.torod.exception.UnexistentCollectionException;
+import com.torodb.torod.exception.UnexistentDatabaseException;
 
-public class RenameCollectionImplementation implements
-    ExclusiveWriteTorodbCommandImpl<RenameCollectionArgument, Empty> {
+public class RenameCollectionImplementation 
+    extends RetrierSchemaCommandImpl<RenameCollectionArgument, Empty> {
+
+  public RenameCollectionImplementation(LoggerFactory loggerFactory) {
+    super(loggerFactory);
+  }
 
   @Override
-  public Status<Empty> apply(Request req,
+  public Status<Empty> tryApply(Request req,
       Command<? super RenameCollectionArgument, ? super Empty> command,
-      RenameCollectionArgument arg, ExclusiveWriteMongodTransaction context) {
+      RenameCollectionArgument arg, SchemaOperationExecutor context) {
     try {
       if (arg.isDropTarget()) {
-        context.getTorodTransaction().dropCollection(arg.getToDatabase(), arg.getToCollection());
+        context.dropCollection(arg.getToDatabase(), arg.getToCollection());
       }
 
-      context.getTorodTransaction().renameCollection(arg.getFromDatabase(), arg.getFromCollection(),
+      context.renameCollection(arg.getFromDatabase(), arg.getFromCollection(),
           arg.getToDatabase(), arg.getToCollection());
+    } catch (AlreadyExistentCollectionException ex) {
+      return Status.from(ErrorCode.COMMAND_FAILED, "Target collection " + arg.getToDatabase() 
+          + "." + arg.getToCollection() + " already exist. Try to rename the source collection "
+          + "with 'dropTarget' option");
+    } catch (UnexistentCollectionException ex) {
+      return Status.from(ErrorCode.COMMAND_FAILED, "Source collection " + arg.getFromDatabase()
+          + "." + arg.getFromCollection() + " doesn't exist");
+    } catch (UnexistentDatabaseException ex) {
+      return Status.from(ErrorCode.COMMAND_FAILED, "Source database " + arg.getFromDatabase()
+          + " doesn't exist");
     } catch (UserException ex) {
       return Status.from(ErrorCode.COMMAND_FAILED, ex.getLocalizedMessage());
     }

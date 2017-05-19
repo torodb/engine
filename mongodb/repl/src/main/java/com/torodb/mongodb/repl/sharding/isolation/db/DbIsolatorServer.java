@@ -18,21 +18,23 @@
 
 package com.torodb.mongodb.repl.sharding.isolation.db;
 
-import com.torodb.common.util.Empty;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.services.IdleTorodbService;
-import com.torodb.torod.TorodConnection;
+import com.torodb.torod.DocTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
 import com.torodb.torod.TorodServer;
+import com.torodb.torod.WriteDocTransaction;
 import org.apache.logging.log4j.Logger;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 
 public class DbIsolatorServer extends IdleTorodbService implements TorodServer {
 
   private final Logger logger;
-  private final String shardId;
+  private final Converter converter;
   private final TorodServer decorated;
 
   public DbIsolatorServer(String shardId, TorodServer decorated, ThreadFactory threadFactory,
@@ -41,34 +43,63 @@ public class DbIsolatorServer extends IdleTorodbService implements TorodServer {
     this.logger = lf.apply(this.getClass());
     assert decorated.isRunning() : "The decorated torod server must be running";
     this.decorated = decorated;
-    this.shardId = shardId;
+    this.converter = new Converter(shardId);
+  }
+
+  private DocTransaction decorate(DocTransaction trans) {
+    return new DbIsolatorTrans<DocTransaction>(converter, trans);
+  }
+
+  private WriteDocTransaction decorate(WriteDocTransaction trans) {
+    return new DbIsolatorWriteTrans(converter, trans);
+  }
+
+  private SchemaOperationExecutor decorate(SchemaOperationExecutor schemaEx) {
+    return new DbIsolatorSchemaOperationExecutor(converter, schemaEx);
   }
 
   @Override
-  public TorodConnection openConnection() {
-    return new DbIsolatorConn(this, decorated.openConnection());
-  }
-
-  final String convertDatabaseName(String dbName) {
-    return dbName + "_" + shardId;
-  }
-
-  final String convertIndexName(String indexName) {
-    return indexName + "_" + shardId;
-  }
-
-  final boolean isVisibleDatabase(String dbName) {
-    return dbName.endsWith("_" + dbName);
+  public DocTransaction openReadTransaction(long timeout, TimeUnit unit) throws TimeoutException {
+    checkRunning();
+    DocTransaction toDecorate = decorated.openReadTransaction(timeout, unit);
+    return decorate(toDecorate);
   }
 
   @Override
-  public CompletableFuture<Empty> disableDataImportMode(String dbName) {
-    return decorated.disableDataImportMode(convertDatabaseName(dbName));
+  public DocTransaction openReadTransaction() throws TimeoutException {
+    checkRunning();
+    DocTransaction toDecorate = decorated.openReadTransaction();
+    return decorate(toDecorate);
   }
 
   @Override
-  public CompletableFuture<Empty> enableDataImportMode(String dbName) {
-    return decorated.enableDataImportMode(convertDatabaseName(dbName));
+  public WriteDocTransaction openWriteTransaction(long timeout, TimeUnit unit) throws
+      TimeoutException {
+    checkRunning();
+    WriteDocTransaction toDecorate = decorated.openWriteTransaction(timeout, unit);
+    return decorate(toDecorate);
+  }
+
+  @Override
+  public WriteDocTransaction openWriteTransaction() throws TimeoutException {
+    checkRunning();
+    WriteDocTransaction toDecorate = decorated.openWriteTransaction();
+    return decorate(toDecorate);
+  }
+
+  @Override
+  public SchemaOperationExecutor openSchemaOperationExecutor(long timeout, TimeUnit unit) throws
+      TimeoutException {
+    checkRunning();
+    SchemaOperationExecutor toDecorate = decorated.openSchemaOperationExecutor(timeout, unit);
+    return decorate(toDecorate);
+  }
+
+  @Override
+  public SchemaOperationExecutor openSchemaOperationExecutor() throws TimeoutException {
+    checkRunning();
+    SchemaOperationExecutor toDecorate = decorated.openSchemaOperationExecutor();
+    return decorate(toDecorate);
   }
 
   @Override
@@ -77,6 +108,12 @@ public class DbIsolatorServer extends IdleTorodbService implements TorodServer {
 
   @Override
   protected void shutDown() throws Exception {
+  }
+
+  private void checkRunning() {
+    if (!isRunning()) {
+      throw new IllegalStateException("The isolator server is not running");
+    }
   }
 
 }

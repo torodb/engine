@@ -18,11 +18,11 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContext;
 import com.google.common.net.HostAndPort;
 import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.LimitedOplogFetcher;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.OplogFetcher;
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContext;
 import com.torodb.mongowp.commands.oplog.OplogOperation;
 import com.torodb.mongowp.commands.pojos.IteratorMongoCursor;
 

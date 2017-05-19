@@ -31,6 +31,7 @@ import com.torodb.mongodb.repl.TestReplEssentialOverrideModule;
 import com.torodb.mongodb.repl.commands.ReplCommandsBuilder;
 import com.torodb.mongodb.repl.filters.ToroDbReplicationFilters;
 import com.torodb.mongodb.repl.guice.ReplEssentialOverrideModule;
+import org.junit.After;
 import org.junit.Before;
 
 import java.util.List;
@@ -67,6 +68,13 @@ public class DefaultOplogApplierBundleTest extends AbstractReplBundleTest<Defaul
         mongoCoreBundle,
         new ToroDbReplicationFilters()
     );
+  }
+
+  @After
+  public void tearDown() {
+    if (bundle != null && bundle.isRunning()) {
+      bundle.stop().join();
+    }
   }
 
   public static DefaultOplogApplierBundle createBundle(BundleConfig generalConfig,

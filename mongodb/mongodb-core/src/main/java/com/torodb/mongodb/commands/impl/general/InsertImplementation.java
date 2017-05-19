@@ -18,27 +18,22 @@
 
 package com.torodb.mongodb.commands.impl.general;
 
-import com.google.common.collect.ImmutableList;
 import com.torodb.core.exceptions.user.UserException;
-import com.torodb.core.language.AttributeReference;
-import com.torodb.core.language.AttributeReference.Key;
-import com.torodb.core.language.AttributeReference.ObjectKey;
-import com.torodb.core.transaction.metainf.FieldIndexOrdering;
 import com.torodb.kvdocument.conversion.mongowp.FromBsonValueTranslator;
+import com.torodb.kvdocument.conversion.mongowp.MongoWpConverter;
 import com.torodb.kvdocument.values.KvDocument;
-import com.torodb.mongodb.commands.impl.WriteTorodbCommandImpl;
+import com.torodb.mongodb.commands.impl.WriteTransactionCommandImpl;
 import com.torodb.mongodb.commands.signatures.general.InsertCommand.InsertArgument;
 import com.torodb.mongodb.commands.signatures.general.InsertCommand.InsertResult;
-import com.torodb.mongodb.core.MongodMetrics;
 import com.torodb.mongodb.core.WriteMongodTransaction;
+import com.torodb.mongodb.language.ObjectIdFactory;
 import com.torodb.mongodb.utils.DefaultIdUtils;
 import com.torodb.mongowp.ErrorCode;
 import com.torodb.mongowp.Status;
+import com.torodb.mongowp.bson.BsonObjectId;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
-import com.torodb.torod.IndexFieldInfo;
 
-import java.util.Arrays;
 import java.util.stream.Stream;
 
 import javax.inject.Singleton;
@@ -47,34 +42,44 @@ import javax.inject.Singleton;
  *
  */
 @Singleton
-public class InsertImplementation implements WriteTorodbCommandImpl<InsertArgument, InsertResult> {
+public class InsertImplementation
+    implements WriteTransactionCommandImpl<InsertArgument, InsertResult> {
 
   @Override
   public Status<InsertResult> apply(Request req,
       Command<? super InsertArgument, ? super InsertResult> command, InsertArgument arg,
       WriteMongodTransaction context) {
-    MongodMetrics mongodMetrics = context.getConnection().getServer().getMetrics();
+    context.getMetrics().getInserts().mark(arg.getDocuments().size());
 
-    mongodMetrics.getInserts().mark(arg.getDocuments().size());
-    Stream<KvDocument> docsToInsert = arg.getDocuments().stream().map(FromBsonValueTranslator
-        .getInstance())
-        .map((v) -> (KvDocument) v);
+    ObjectIdFactory objectIdFactory = context.getObjectIdFactory();
+
+    Stream<KvDocument> docsToInsert = arg.getDocuments().stream()
+        .map(FromBsonValueTranslator.getInstance())
+        .map((doc) -> (KvDocument) doc)
+        .map(doc -> addId(objectIdFactory, doc));
 
     try {
-      if (!context.getTorodTransaction().existsCollection(req.getDatabase(), arg.getCollection())) {
-        context.getTorodTransaction().createIndex(req.getDatabase(), arg.getCollection(),
-            DefaultIdUtils.ID_INDEX,
-            ImmutableList.<IndexFieldInfo>of(new IndexFieldInfo(new AttributeReference(Arrays
-                .asList(new Key[]{new ObjectKey(DefaultIdUtils.ID_KEY)})), FieldIndexOrdering.ASC
-                .isAscending())), true);
-      }
-
-      context.getTorodTransaction().insert(req.getDatabase(), arg.getCollection(), docsToInsert);
+      context.getDocTransaction().insert(
+          req.getDatabase(),
+          arg.getCollection(),
+          docsToInsert
+      );
     } catch (UserException ex) {
       //TODO: Improve error reporting
       return Status.from(ErrorCode.COMMAND_FAILED, ex.getLocalizedMessage());
     }
 
     return Status.ok(new InsertResult(arg.getDocuments().size()));
+  }
+
+  private KvDocument addId(ObjectIdFactory objectIdFactory, KvDocument doc) {
+    if (doc.containsKey(DefaultIdUtils.ID_KEY)) {
+      return doc;
+    } else {
+      BsonObjectId newId = objectIdFactory.consumeObjectId();
+      return new KvDocument.Builder(doc)
+          .putValue(DefaultIdUtils.ID_KEY, MongoWpConverter.translate(newId))
+          .build();
+    }
   }
 }

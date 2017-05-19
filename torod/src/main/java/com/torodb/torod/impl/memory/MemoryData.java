@@ -49,7 +49,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  */
 @ThreadSafe
-public class MemoryData {
+class MemoryData {
 
   private static final String _ID = "_id";
   
@@ -161,7 +161,7 @@ public class MemoryData {
   @NotThreadSafe
   public static class MdWriteTransaction extends MdTransaction {
 
-    final Table<String, String, Map<Integer, KvDocument>> initialData;
+    Table<String, String, Map<Integer, KvDocument>> initialData;
     private final IntSupplier idGenerator;
     private final Consumer<MdTransaction> commitConsumer;
     private final Lock lock;
@@ -250,6 +250,9 @@ public class MemoryData {
       }
     }
 
+    void createDatabase(String dbName) {
+    }
+
     void createCollection(String dbName, String colName) {
       getMap(dbName, colName);
     }
@@ -263,11 +266,12 @@ public class MemoryData {
     }
 
     void rollback() {
-      this.data = initialData;
+      this.data = HashBasedTable.create(initialData);
     }
 
     void commit() {
       commitConsumer.accept(this);
+      initialData = HashBasedTable.create(data);
     }
 
     @Override

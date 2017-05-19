@@ -18,54 +18,41 @@
 
 package com.torodb.torod.impl.memory;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalNotification;
 import com.google.inject.Singleton;
-import com.torodb.common.util.Empty;
 import com.torodb.core.services.IdleTorodbService;
-import com.torodb.torod.TorodConnection;
-import com.torodb.torod.TorodServer;
+import com.torodb.torod.DocTransaction;
+import com.torodb.torod.ProtectedServer;
+import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.WriteDocTransaction;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-/**
- *
- */
 @Singleton
-public class MemoryTorodServer extends IdleTorodbService implements TorodServer {
+class MemoryTorodServer extends IdleTorodbService implements ProtectedServer {
 
   private final MemoryData data = new MemoryData();
-  private final AtomicInteger connIdGenerator = new AtomicInteger();
-  private final Cache<Integer, MemoryTorodConnection> openConnections;
 
   @Inject
   public MemoryTorodServer(ThreadFactory threadFactory) {
     super(threadFactory);
-
-    openConnections = CacheBuilder.newBuilder()
-        .weakValues()
-        .removalListener(this::onConnectionInvalidated)
-        .build();
   }
 
   @Override
-  public TorodConnection openConnection() {
-    return new MemoryTorodConnection(this, connIdGenerator.incrementAndGet());
+  public DocTransaction openReadTransaction(long timeout, TimeUnit unit) {
+    return new MemoryReadOnlyTransaction(this);
   }
 
   @Override
-  public CompletableFuture<Empty> disableDataImportMode(String dbName) {
-    return CompletableFuture.completedFuture(Empty.getInstance());
+  public WriteDocTransaction openWriteTransaction(long timeout, TimeUnit unit) {
+    return new MemoryWriteTransaction(this);
   }
 
   @Override
-  public CompletableFuture<Empty> enableDataImportMode(String dbName) {
-    return CompletableFuture.completedFuture(Empty.getInstance());
+  public SchemaOperationExecutor openSchemaOperationExecutor(long timeout, TimeUnit unit) {
+    return new MemorySchemaOperationExecutor(this);
   }
 
   @Override
@@ -74,7 +61,6 @@ public class MemoryTorodServer extends IdleTorodbService implements TorodServer 
 
   @Override
   protected void shutDown() throws Exception {
-    openConnections.invalidateAll();
     try (MemoryData.MdWriteTransaction trans = data.openWriteTransaction()) {
       trans.clear();
     }
@@ -82,18 +68,6 @@ public class MemoryTorodServer extends IdleTorodbService implements TorodServer 
 
   MemoryData getData() {
     return data;
-  }
-
-  private void onConnectionInvalidated(
-      RemovalNotification<Integer, MemoryTorodConnection> notification) {
-    MemoryTorodConnection value = notification.getValue();
-    if (value != null) {
-      value.close();
-    }
-  }
-
-  void onConnectionClosed(MemoryTorodConnection connection) {
-    openConnections.invalidate(connection.getConnectionId());
   }
 
 }

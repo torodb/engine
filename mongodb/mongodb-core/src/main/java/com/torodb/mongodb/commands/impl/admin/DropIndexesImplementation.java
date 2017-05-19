@@ -19,12 +19,12 @@
 package com.torodb.mongodb.commands.impl.admin;
 
 import com.torodb.core.language.AttributeReference;
-import com.torodb.mongodb.commands.impl.WriteTorodbCommandImpl;
+import com.torodb.core.logging.LoggerFactory;
+import com.torodb.mongodb.commands.impl.RetrierSchemaCommandImpl;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions.KnownType;
 import com.torodb.mongodb.commands.signatures.admin.DropIndexesCommand.DropIndexesArgument;
 import com.torodb.mongodb.commands.signatures.admin.DropIndexesCommand.DropIndexesResult;
-import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongodb.utils.DefaultIdUtils;
 import com.torodb.mongowp.ErrorCode;
 import com.torodb.mongowp.Status;
@@ -32,21 +32,30 @@ import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.torod.IndexFieldInfo;
 import com.torodb.torod.IndexInfo;
+import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.exception.UnexistentCollectionException;
+import com.torodb.torod.exception.UnexistentDatabaseException;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class DropIndexesImplementation implements
-    WriteTorodbCommandImpl<DropIndexesArgument, DropIndexesResult> {
+
+public class DropIndexesImplementation extends
+    RetrierSchemaCommandImpl<DropIndexesArgument, DropIndexesResult> {
+
+  public DropIndexesImplementation(LoggerFactory loggerFactory) {
+    super(loggerFactory);
+  }
 
   @Override
-  public Status<DropIndexesResult> apply(Request req,
+  public Status<DropIndexesResult> tryApply(Request req,
       Command<? super DropIndexesArgument, ? super DropIndexesResult> command,
-      DropIndexesArgument arg, WriteMongodTransaction context) {
-    int indexesBefore = (int) context.getTorodTransaction().getIndexesInfo(req.getDatabase(), arg
-        .getCollection()).count();
+      DropIndexesArgument arg, SchemaOperationExecutor context) {
+    List<IndexInfo> indexesInfo = context.getIndexesInfo(req.getDatabase(), arg.getCollection())
+        .collect(Collectors.toList());
+    int indexesBefore = indexesInfo.size();
 
     List<String> indexesToDrop;
 
@@ -57,14 +66,14 @@ public class DropIndexesImplementation implements
         }
         indexesToDrop = Arrays.asList(arg.getIndexToDrop());
       } else {
+        assert arg.getKeys() != null;
         if (arg.getKeys().stream().anyMatch(key -> !(KnownType.contains(key.getType())) || (key
             .getType() != KnownType.asc.getIndexType() && key.getType() != KnownType.desc
             .getIndexType()))) {
           return getStatusForIndexNotFoundWithKeys(arg);
         }
 
-        indexesToDrop = context.getTorodTransaction().getIndexesInfo(req.getDatabase(), arg
-            .getCollection())
+        indexesToDrop = indexesInfo.stream()
             .filter(index -> indexFieldsMatchKeys(index, arg.getKeys()))
             .map(index -> index.getName())
             .collect(Collectors.toList());
@@ -74,22 +83,30 @@ public class DropIndexesImplementation implements
         }
       }
     } else {
-      indexesToDrop = context.getTorodTransaction().getIndexesInfo(req.getDatabase(), arg
-          .getCollection())
+      indexesToDrop = indexesInfo.stream()
           .filter(indexInfo -> !DefaultIdUtils.ID_INDEX.equals(indexInfo.getName()))
           .map(indexInfo -> indexInfo.getName())
           .collect(Collectors.toList());
     }
 
     for (String indexToDrop : indexesToDrop) {
-      boolean dropped = context.getTorodTransaction().dropIndex(
-          req.getDatabase(),
-          arg.getCollection(),
-          indexToDrop
-      );
+      boolean dropped = false;
+      try {
+        dropped = context.dropIndex(
+            req.getDatabase(),
+            arg.getCollection(),
+            indexToDrop
+        );
+      } catch (UnexistentCollectionException ex) {
+        getLogger().debug("Trying to remove the index {} on the unexistent collection {}.{}",
+            indexToDrop, req.getDatabase(), arg.getCollection());
+      } catch (UnexistentDatabaseException ex) {
+        getLogger().debug("Trying to remove the index {}.{}.{}, but that database doesn't exist",
+            req.getDatabase(), arg.getCollection(), indexToDrop);
+      }
       if (!dropped) {
-        return Status.from(ErrorCode.INDEX_NOT_FOUND,
-            "index not found with name [" + indexToDrop + "]");
+        getLogger().info("Index {}.{}.{} not found",
+            req.getDatabase(), arg.getCollection(), indexToDrop);
       }
     }
 

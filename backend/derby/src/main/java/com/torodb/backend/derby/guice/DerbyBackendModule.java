@@ -28,6 +28,7 @@ import com.torodb.backend.MetaDataWriteInterface;
 import com.torodb.backend.ReadInterface;
 import com.torodb.backend.StructureInterface;
 import com.torodb.backend.WriteInterface;
+import com.torodb.backend.ddl.DdlOpsModule;
 import com.torodb.backend.derby.DerbyDataTypeProvider;
 import com.torodb.backend.derby.DerbyDbBackend;
 import com.torodb.backend.derby.DerbyErrorHandler;
@@ -45,11 +46,9 @@ import com.torodb.backend.guice.BackendModule;
 import com.torodb.backend.meta.SchemaUpdater;
 import com.torodb.core.backend.BackendService;
 import com.torodb.core.backend.IdentifierConstraints;
-import com.torodb.core.backend.SnapshotUpdater;
 import com.torodb.core.d2r.DefaultIdentifierFactory;
 import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.d2r.ReservedIdGenerator;
-import com.torodb.core.dsl.backend.BackendTransactionJobFactory;
 import com.torodb.core.guice.EssentialToDefaultModule;
 
 import javax.inject.Singleton;
@@ -66,9 +65,8 @@ public class DerbyBackendModule extends PrivateModule {
   protected void configure() {
     expose(BackendService.class);
     expose(ReservedIdGenerator.class);
-    expose(SnapshotUpdater.class);
-    expose(BackendTransactionJobFactory.class);
 
+    install(new DdlOpsModule());
     install(new BackendModule());
 
     install(new EssentialToDefaultModule());

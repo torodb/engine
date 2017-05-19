@@ -20,28 +20,29 @@ package com.torodb.backend.rid;
 
 import static org.junit.Assert.assertEquals;
 
-import com.google.common.util.concurrent.AbstractIdleService;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.torodb.core.TableRef;
 import com.torodb.core.TableRefFactory;
 import com.torodb.core.d2r.ReservedIdGenerator.DocPartRidGenerator;
 import com.torodb.core.impl.TableRefFactoryImpl;
-import org.junit.Test;
+import com.torodb.core.transaction.metainf.ImmutableMetaSnapshot;
+import com.torodb.core.transaction.metainf.MetaSnapshot;
+import org.junit.jupiter.api.Test;
+import org.junit.platform.runner.JUnitPlatform;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
+@RunWith(JUnitPlatform.class)
 public class ReservedIdGeneratorImplTest {
 
   @Test
   public void whenTableRefDoesntExistsCallsToFactory() {
     ReservedIdInfoFactory factory = new MockedReservedIdInfoFactory();
 
-    factory.startAsync();
-    factory.awaitRunning();
-
     TableRefFactory tableRefFactory = new TableRefFactoryImpl();
     ReservedIdInfoFactory reservedIdInfoFactory = Mockito.spy(factory);
-    ReservedIdGeneratorImpl container = new ReservedIdGeneratorImpl(
-        reservedIdInfoFactory, new ThreadFactoryBuilder().build());
+    ReservedIdGeneratorImpl container = new ReservedIdGeneratorImpl(reservedIdInfoFactory);
+    container.load(new ImmutableMetaSnapshot.Builder().build());
+
     DocPartRidGenerator docPartRidGenerator = container.getDocPartRidGenerator("myDB",
         "myCollection");
     int nextRid = docPartRidGenerator.nextRid(tableRefFactory.createRoot());
@@ -51,15 +52,10 @@ public class ReservedIdGeneratorImplTest {
 
   }
 
-  private static class MockedReservedIdInfoFactory extends AbstractIdleService implements
-      ReservedIdInfoFactory {
+  private static class MockedReservedIdInfoFactory implements ReservedIdInfoFactory {
 
     @Override
-    protected void startUp() throws Exception {
-    }
-
-    @Override
-    protected void shutDown() throws Exception {
+    public void load(MetaSnapshot snapshot) {
     }
 
     @Override

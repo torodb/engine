@@ -21,7 +21,7 @@ package com.torodb.mongodb.commands.impl.diagnostic;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.torodb.core.logging.LoggerFactory;
-import com.torodb.mongodb.commands.impl.ConnectionTorodbCommandImpl;
+import com.torodb.mongodb.commands.impl.ServerCommandImpl;
 import com.torodb.mongodb.commands.signatures.diagnostic.ServerStatusCommand.Asserts;
 import com.torodb.mongodb.commands.signatures.diagnostic.ServerStatusCommand.BackgroundFlushing;
 import com.torodb.mongodb.commands.signatures.diagnostic.ServerStatusCommand.Connections;
@@ -40,7 +40,7 @@ import com.torodb.mongodb.commands.signatures.diagnostic.ServerStatusCommand.Ser
 import com.torodb.mongodb.commands.signatures.diagnostic.ServerStatusCommand.ServerStatusReply;
 import com.torodb.mongodb.commands.signatures.diagnostic.ServerStatusCommand.StorageEngine;
 import com.torodb.mongodb.core.MongoLayerConstants;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.core.MongodServerConfig;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
@@ -57,7 +57,7 @@ import javax.inject.Inject;
  *
  */
 public class ServerStatusImplementation
-    extends ConnectionTorodbCommandImpl<ServerStatusArgument, ServerStatusReply> {
+    extends ServerCommandImpl<ServerStatusArgument, ServerStatusReply> {
 
   private final Logger logger;
 
@@ -74,7 +74,7 @@ public class ServerStatusImplementation
   public Status<ServerStatusReply> apply(Request req,
       Command<? super ServerStatusArgument, ? super ServerStatusReply> command,
       ServerStatusArgument arg,
-      MongodConnection context) {
+      MongodServer context) {
     ServerStatusReply.Builder replyBuilder = new ServerStatusReply.Builder();
 
     //TODO: improve and complete
