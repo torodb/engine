@@ -41,12 +41,9 @@ import java.sql.SQLException;
 import java.util.stream.Stream;
 
 /**
- * A {@link DdlOperationExecutor} that is implemented by composing several interfaces.
- *
- * The idea is to provide a standard implementation for each composing interface but open that to
- * backend specific implementations.
+ * A default implementation of {@link DdlOperationExecutor}.
  */
-public class ComposedDdlOperationExecutor implements DdlOperationExecutor {
+public class DefaultDdlOperationExecutor implements DdlOperationExecutor {
 
   private boolean closed = false;
   private final SqlInterface sqlInterface;
@@ -54,7 +51,7 @@ public class ComposedDdlOperationExecutor implements DdlOperationExecutor {
   private final DdlOps ddlOps;
   private final Connection connection;
 
-  public ComposedDdlOperationExecutor(SqlInterface sqlInterface, DdlOps ddlOps) {
+  public DefaultDdlOperationExecutor(SqlInterface sqlInterface, DdlOps ddlOps) {
     this.sqlInterface = sqlInterface;
     this.connection = sqlInterface.getDbBackend().createSystemConnection();
     this.dsl = sqlInterface.getDslContextFactory().createDslContext(connection);

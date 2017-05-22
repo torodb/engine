@@ -21,7 +21,7 @@ package com.torodb.backend.service;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.torodb.backend.SqlInterface;
-import com.torodb.backend.ddl.ComposedDdlOperationExecutor;
+import com.torodb.backend.ddl.DefaultDdlOperationExecutor;
 import com.torodb.backend.service.BackendServiceImpl.DdlOperationExecutorFactory;
 import com.torodb.backend.service.BackendServiceImpl.ReadDmlTransactionFactory;
 import com.torodb.backend.service.BackendServiceImpl.WriteDmlTransactionFactory;
@@ -63,7 +63,7 @@ public class BackendServiceModule extends PrivateModule {
 
   @Provides
   DdlOperationExecutorFactory createDdlOperationExecutorFactory(SqlInterface sqlInterface) {
-    return (ddlOps) -> new ComposedDdlOperationExecutor(sqlInterface, ddlOps);
+    return (ddlOps) -> new DefaultDdlOperationExecutor(sqlInterface, ddlOps);
   }
 
 }
