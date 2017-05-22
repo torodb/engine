@@ -32,7 +32,7 @@ public class MemoryRidGenerator implements ReservedIdGenerator {
   private Table<String, String, DocPartRidGenerator> generators = HashBasedTable.create();
 
   @Override
-  public void load(MetaSnapshot snapshot) {
+  public synchronized void load(MetaSnapshot snapshot) {
     generators = HashBasedTable.create();
   }
 

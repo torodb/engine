@@ -19,6 +19,7 @@
 package com.torodb.torod.exception;
 
 import com.torodb.core.exceptions.user.UserException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  *
@@ -36,6 +37,7 @@ public class UserSchemaException extends SchemaOperationException {
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST_OF_RETURN_VALUE")
   public synchronized UserException getCause() {
     //The casting is correct by construction
     return (UserException) super.getCause();

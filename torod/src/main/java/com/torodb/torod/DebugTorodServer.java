@@ -94,7 +94,7 @@ public class DebugTorodServer extends IdleTorodbService implements ProtectedServ
     return result;
   }
 
-  private class ElementId {}
+  private static class ElementId {}
 
   private interface ManagedElement extends AutoCloseable {
 
