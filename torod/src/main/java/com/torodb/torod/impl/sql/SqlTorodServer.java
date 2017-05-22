@@ -139,9 +139,14 @@ public class SqlTorodServer extends IdleTorodbService implements ProtectedServer
   }
 
   private void prepareSchema(String dbName, String colName, Collection<KvDocument> docs) {
-    try (DdlOperationExecutor ddlOpsEx = backend.openDdlOperationExecutor()) {
-      schemaManager.prepareSchema(ddlOpsEx, dbName, colName, docs);
-    }
+    DdlOperationExecutor ddlOpsEx = backend.openDdlOperationExecutor();
+    schemaManager.prepareSchema(ddlOpsEx, dbName, colName, docs)
+        .whenComplete((result, ex) -> {
+          if (ex != null) {
+            LOGGER.debug("Error while trying to adapt the schema to fit with some documents", ex);
+          }
+          ddlOpsEx.close();
+        });
   }
 
   static interface ReadDocTransactionFactory {

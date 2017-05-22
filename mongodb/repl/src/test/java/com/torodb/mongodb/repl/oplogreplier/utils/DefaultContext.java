@@ -16,31 +16,32 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.mongodb.repl.oplogreplier;
+package com.torodb.mongodb.repl.oplogreplier.utils;
 
 import com.google.common.net.HostAndPort;
 import com.torodb.mongodb.core.MongodServer;
+import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
+import com.torodb.mongodb.repl.oplogreplier.OplogApplier;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.LimitedOplogFetcher;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.OplogFetcher;
-import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContext;
 import com.torodb.mongowp.commands.oplog.OplogOperation;
 import com.torodb.mongowp.commands.pojos.IteratorMongoCursor;
 
 import java.util.stream.Stream;
 
-public class DefaultOplogTestContext implements OplogTestContext {
+public class DefaultContext implements Context {
 
-  private final MongodServer mongodServer;
+  private final MongodServer server;
   private final OplogApplier oplogApplier;
 
-  public DefaultOplogTestContext(MongodServer mongodServer, OplogApplier oplogApplier) {
-    this.mongodServer = mongodServer;
+  public DefaultContext(MongodServer server, OplogApplier oplogApplier) {
+    this.server = server;
     this.oplogApplier = oplogApplier;
   }
 
   @Override
   public MongodServer getMongodServer() {
-    return mongodServer;
+    return server;
   }
 
   @Override

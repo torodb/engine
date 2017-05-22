@@ -123,7 +123,7 @@ public class OplogBatchMarshallerTest {
     private static List<OplogOperation> parse(String filename) {
       Class<OplogBatchMarshallerTest> clazz = OplogBatchMarshallerTest.class;
       String text;
-      try (InputStream resourceAsStream = clazz.getResourceAsStream("marshaller/" + filename + ".json");
+      try (InputStream resourceAsStream = clazz.getResourceAsStream("/oplogbatch/marshaller/" + filename + ".json");
         BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream))) {
         text = reader.lines().collect(Collectors.joining("\n"));
       } catch (IOException ex) {

@@ -164,7 +164,8 @@ class Logic {
       MutableMetaDatabase metaDb = snapshot.getMetaDatabaseByName(dbName);
       if (metaDb != null) {
         ops.dropDatabase(metaDb);
-        metaDb.removeMetaCollectionByName(dbName);
+        boolean removed = snapshot.removeMetaDatabaseByName(dbName);
+        assert removed : "The database wasn't found on the snapshot";
         snapshot.commit();
       }
     }

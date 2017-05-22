@@ -46,7 +46,7 @@ public class ReplCoreBundleTest extends AbstractReplBundleTest<ReplCoreBundle>{
   public void setUp() {
     TestBundleConfig generalConfig = new TestBundleConfig();
 
-    MongoDbCoreBundleServiceBundle mongoCoreBundleFactory = MongoDbCoreBundleServiceBundle.createBundle();
+    MemoryCoreMetaBundle mongoCoreBundleFactory = MemoryCoreMetaBundle.createBundle();
     MongoDbCoreBundle mongoCoreBundle = mongoCoreBundleFactory.getExternalInterface();
     
     List<Service> dependencies = Lists.newArrayList(

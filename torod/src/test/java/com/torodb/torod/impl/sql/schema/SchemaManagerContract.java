@@ -358,7 +358,7 @@ public abstract class SchemaManagerContract {
 
       //Then
       ImmutableMetaDatabase foundDb = sm.getMetaSnapshot().join().getMetaDatabaseByName(dbName);
-      Assert.assertThat(foundDb, notNullValue());
+      Assert.assertThat(foundDb, nullValue());
 
       //ddlOpsEx must recive a request to drop a db with the same name and id
       verify(ddlOpsEx).dropDatabase(argThat(matchDb(initialDb)));

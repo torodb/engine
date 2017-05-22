@@ -19,7 +19,6 @@
 package com.torodb.packaging.config.util;
 
 import com.google.inject.Injector;
-import com.torodb.backend.BackendConfig;
 import com.torodb.backend.BackendConfigImpl;
 import com.torodb.backend.BackendConfigImplBuilder;
 import com.torodb.backend.derby.DerbyDbBackendBundle;
@@ -32,9 +31,9 @@ import com.torodb.packaging.config.model.backend.AbstractBackend;
 import com.torodb.packaging.config.model.backend.ConnectionPoolConfig;
 import com.torodb.packaging.config.model.backend.derby.AbstractDerby;
 import com.torodb.packaging.config.model.backend.postgres.AbstractPostgres;
+import com.torodb.torod.TorodBundle;
 import com.torodb.torod.impl.sql.SqlTorodBundle;
 import com.torodb.torod.impl.sql.SqlTorodConfig;
-import com.torodb.torod.TorodBundle;
 
 public class BundleFactory {
   private BundleFactory() {}

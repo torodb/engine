@@ -69,26 +69,49 @@ public class ComposedDdlOperationExecutor implements DdlOperationExecutor {
     }
   }
 
+  private void rollback() {
+    try {
+      connection.rollback();
+    } catch (SQLException ex) {
+      sqlInterface.getErrorHandler().handleException(ErrorHandler.Context.ROLLBACK, ex);
+    }
+  }
+
   @Override
   public void addDatabase(MetaDatabase db) throws RollbackException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    ddlOps.getWriteStructureDdlOps().addDatabase(dsl, db);
-    commit();
+    try {
+      ddlOps.getWriteStructureDdlOps().addDatabase(dsl, db);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void addCollection(MetaDatabase db, MetaCollection newCol) throws RollbackException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    ddlOps.getWriteStructureDdlOps().addCollection(dsl, db, newCol);
-    commit();
+    try {
+      ddlOps.getWriteStructureDdlOps().addCollection(dsl, db, newCol);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void addDocPart(MetaDatabase db, MetaCollection col, MutableMetaDocPart newDocPart,
       boolean addColumns) throws RollbackException, UserException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    ddlOps.getWriteStructureDdlOps().addDocPart(dsl, db, col, newDocPart, addColumns);
-    commit();
+    try {
+      ddlOps.getWriteStructureDdlOps().addDocPart(dsl, db, col, newDocPart, addColumns);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
@@ -97,86 +120,146 @@ public class ComposedDdlOperationExecutor implements DdlOperationExecutor {
       Stream<? extends MetaField> fields) throws UserException, RollbackException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
 
-    ddlOps.getWriteStructureDdlOps().addColumns(dsl, db, col, docPart, scalars, fields);
-    commit();
+    try {
+      ddlOps.getWriteStructureDdlOps().addColumns(dsl, db, col, docPart, scalars, fields);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public MetaSnapshot readMetadata() {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    return ddlOps.getReadStructureDdlOp().readMetadata(dsl);
+    try {
+      return ddlOps.getReadStructureDdlOp().readMetadata(dsl);
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void disableDataImportMode(MetaDatabase db) throws RollbackException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    ddlOps.getDataImportModeDdlOps().disableDataImportMode(dsl, db);
-    commit();
+    try {
+      ddlOps.getDataImportModeDdlOps().disableDataImportMode(dsl, db);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void enableDataImportMode(MetaDatabase db) throws RollbackException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    ddlOps.getDataImportModeDdlOps().enableDataImportMode(dsl, db);
-    commit();
+    try {
+      ddlOps.getDataImportModeDdlOps().enableDataImportMode(dsl, db);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void dropCollection(MetaDatabase db, MetaCollection coll) throws RollbackException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    ddlOps.getWriteStructureDdlOps().dropCollection(dsl, db, coll);
-    commit();
+    try {
+      ddlOps.getWriteStructureDdlOps().dropCollection(dsl, db, coll);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void dropDatabase(MetaDatabase db) throws RollbackException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    ddlOps.getWriteStructureDdlOps().dropDatabase(dsl, db);
-    commit();
+    try {
+      ddlOps.getWriteStructureDdlOps().dropDatabase(dsl, db);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void createIndex(MetaDatabase db, MutableMetaCollection col, MetaIndex index) 
       throws UserException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    ddlOps.getCreateIndexDdlOp().createIndex(dsl, db, col, index);
-    commit();
+    try {
+      ddlOps.getCreateIndexDdlOp().createIndex(dsl, db, col, index);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void dropIndex(MetaDatabase db, MutableMetaCollection col, MetaIndex index) {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    ddlOps.getDropIndexDdlOp().dropIndex(dsl, db, col, index);
-    commit();
+    try {
+      ddlOps.getDropIndexDdlOp().dropIndex(dsl, db, col, index);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void renameCollection(MetaDatabase fromDb, MetaCollection fromColl,
       MutableMetaDatabase toDb, MutableMetaCollection toColl) throws RollbackException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    ddlOps.getRenameDdlOp().renameCollection(dsl, fromDb, fromColl, toDb, toColl);
-    commit();
+    try {
+      ddlOps.getRenameDdlOp().renameCollection(dsl, fromDb, fromColl, toDb, toColl);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void dropAll() throws RollbackException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    sqlInterface.getStructureInterface().dropAll(dsl);
-    commit();
+    try {
+      sqlInterface.getStructureInterface().dropAll(dsl);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void dropUserData() throws RollbackException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    sqlInterface.getStructureInterface().dropUserData(dsl);
-    commit();
+    try {
+      sqlInterface.getStructureInterface().dropUserData(dsl);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override
   public void checkOrCreateMetaDataTables() throws InvalidDatabaseException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
-    ddlOps.getWriteStructureDdlOps().checkOrCreateMetaDataTables(dsl);
-    commit();
+    try {
+      ddlOps.getWriteStructureDdlOps().checkOrCreateMetaDataTables(dsl);
+      commit();
+    } catch (RollbackException ex) {
+      rollback();
+      throw ex;
+    }
   }
 
   @Override

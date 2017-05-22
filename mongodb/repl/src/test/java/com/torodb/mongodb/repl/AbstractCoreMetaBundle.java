@@ -19,34 +19,27 @@
 package com.torodb.mongodb.repl;
 
 import com.google.common.util.concurrent.Service;
+import com.torodb.core.bundle.AbstractBundle;
 import com.torodb.core.bundle.BundleConfig;
-import com.torodb.core.bundle.ServiceBundle;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.core.MongoDbCoreConfig;
 import com.torodb.torod.TorodBundle;
-import com.torodb.torod.impl.memory.MemoryTorodBundle;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 
-public class MongoDbCoreBundleServiceBundle extends ServiceBundle<MongoDbCoreBundle>{
+public class AbstractCoreMetaBundle extends AbstractBundle<MongoDbCoreBundle> {
 
   private final TorodBundle torodBundle;
   private final MongoDbCoreBundle mongoDbCoreBundle;
 
-  public static MongoDbCoreBundleServiceBundle createBundle() {
-    TestBundleConfig generalConfig = new TestBundleConfig();
-    return new MongoDbCoreBundleServiceBundle(generalConfig);
-  }
-
-  public MongoDbCoreBundleServiceBundle(BundleConfig generalConfig) {
+  public AbstractCoreMetaBundle(BundleConfig generalConfig, TorodBundle torodBundle) {
     super(generalConfig);
 
-    torodBundle = new MemoryTorodBundle(generalConfig);
+    this.torodBundle = torodBundle;
 
     MongoDbCoreConfig mongoDbCoreConfig = MongoDbCoreConfig.simpleNonServerConfig(
         torodBundle,
@@ -58,11 +51,6 @@ public class MongoDbCoreBundleServiceBundle extends ServiceBundle<MongoDbCoreBun
   }
 
   @Override
-  protected List<Service> getManagedDependencies() {
-    return Collections.singletonList(torodBundle);
-  }
-
-  @Override
   public Collection<Service> getDependencies() {
     return Collections.emptyList();
   }
@@ -70,6 +58,24 @@ public class MongoDbCoreBundleServiceBundle extends ServiceBundle<MongoDbCoreBun
   @Override
   public MongoDbCoreBundle getExternalInterface() {
     return mongoDbCoreBundle;
+  }
+
+  @Override
+  protected void postDependenciesStartUp() throws Exception {
+    torodBundle.startAsync();
+    torodBundle.awaitRunning();
+
+    mongoDbCoreBundle.startAsync();
+    mongoDbCoreBundle.awaitRunning();
+  }
+
+  @Override
+  protected void preDependenciesShutDown() throws Exception {
+    mongoDbCoreBundle.stopAsync();
+    mongoDbCoreBundle.awaitTerminated();
+
+    torodBundle.stopAsync();
+    torodBundle.awaitTerminated();
   }
 
 }

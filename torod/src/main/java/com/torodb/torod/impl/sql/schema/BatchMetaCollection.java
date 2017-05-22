@@ -33,9 +33,7 @@ import com.torodb.torod.TorodLoggerFactory;
 import org.apache.logging.log4j.Logger;
 import org.jooq.lambda.tuple.Tuple2;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,8 +46,8 @@ class BatchMetaCollection implements MutableMetaCollection {
 
   private final MutableMetaCollection delegate;
   private final Map<TableRef, BatchMetaDocPart> docPartsByRef;
-  private final ArrayList<BatchMetaDocPart> changesOnBatch = new ArrayList<>();
-  private final HashSet<BatchMetaDocPart> modifiedDocParts = new HashSet<>();
+  private final Map<TableRef, BatchMetaDocPart> changesOnBatch = new HashMap<>();
+  private final Map<TableRef, BatchMetaDocPart> modifiedDocParts = new HashMap<>();
 
   private static final Logger LOGGER = TorodLoggerFactory.get(BatchMetaCollection.class);
 
@@ -74,7 +72,7 @@ class BatchMetaCollection implements MutableMetaCollection {
 
   @DoNotChange
   public Iterable<BatchMetaDocPart> getOnBatchModifiedMetaDocParts() {
-    return changesOnBatch;
+    return changesOnBatch.values();
   }
 
   @Override
@@ -100,15 +98,15 @@ class BatchMetaCollection implements MutableMetaCollection {
         delegateDocPart, this::onDocPartChange, true);
     docPartsByRef.put(myDocPart.getTableRef(), myDocPart);
 
-    changesOnBatch.add(myDocPart);
-    modifiedDocParts.add(myDocPart);
+    changesOnBatch.put(myDocPart.getTableRef(), myDocPart);
+    modifiedDocParts.put(myDocPart.getTableRef(), myDocPart);
 
     return myDocPart;
   }
 
   @Override
   public Stream<? extends MutableMetaDocPart> streamModifiedMetaDocParts() {
-    return modifiedDocParts.stream();
+    return modifiedDocParts.values().stream();
   }
 
   @Override
@@ -184,8 +182,8 @@ class BatchMetaCollection implements MutableMetaCollection {
   }
 
   private void onDocPartChange(BatchMetaDocPart changedDocPart) {
-    changesOnBatch.add(changedDocPart);
-    modifiedDocParts.add(changedDocPart);
+    changesOnBatch.put(changedDocPart.getTableRef(), changedDocPart);
+    modifiedDocParts.put(changedDocPart.getTableRef(), changedDocPart);
   }
 
 }

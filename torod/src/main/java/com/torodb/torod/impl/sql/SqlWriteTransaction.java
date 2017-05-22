@@ -83,7 +83,7 @@ class SqlWriteTransaction extends SqlTransaction<WriteDmlTransaction>
 
       prepareSchemaCallback.prepareSchema(dbName, colName, documents);
 
-      throw new RollbackException();
+      throw new RollbackException(ex);
     }
   }
 

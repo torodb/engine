@@ -39,7 +39,16 @@ import javax.annotation.Nonnull;
 
 public interface StructureInterface {
 
-  void createSchema(@Nonnull DSLContext dsl, @Nonnull String schemaName);
+  /**
+   * Creates the database where metainfo is going to be stored.
+   *
+   * <p>Usually it corresponds to create a schema called torodb that will contain all meta tables
+   */
+  default void createMetainfoDatabase(@Nonnull DSLContext dsl) {
+    createDatabase(dsl, TorodbSchema.IDENTIFIER);
+  }
+
+  void createDatabase(@Nonnull DSLContext dsl, @Nonnull String schemaName);
 
   void dropDatabase(@Nonnull DSLContext dsl, @Nonnull MetaDatabase metaDatabase);
 

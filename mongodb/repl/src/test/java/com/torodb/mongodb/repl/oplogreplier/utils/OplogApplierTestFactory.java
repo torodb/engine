@@ -16,33 +16,33 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.mongodb.repl.oplogreplier;
+package com.torodb.mongodb.repl.oplogreplier.utils;
 
-import com.google.common.collect.Lists;
-import org.junit.Test;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.DynamicTest;
 
-import java.util.Collection;
+import java.util.function.Supplier;
 
 /**
- * This class test that filters are correctly applied by {@link DefaultOplogApplier}.
+ *
  */
-public class FilterOplogApplierTest extends DefaultOplogApplierTest {
+public class OplogApplierTestFactory {
 
-  @Parameters(name = "{0}")
-  public static Collection<Object[]> data() {
-    return loadData(Lists.newArrayList(
-        "create_collection_filtered",
-        "dropDatabase_ignored",
-        "drop_collection_filtered",
-        "rename_collection_filtered_1",
-        "rename_collection_filtered_2"
-    ));
-  }
+  public static DynamicTest oplogTest(
+      String displayName,
+      OplogApplierTest oplogTest,
+      Supplier<ClosableContext> contextSupplier) {
+    return DynamicTest.dynamicTest(displayName, () -> {
 
-  @Test
-  public void test() throws Exception {
-    super.test();
+      Assumptions.assumeFalse(
+          oplogTest.shouldIgnore(),
+          "Test " + oplogTest + " marked as ignorable"
+      );
+
+      try (ClosableContext context = contextSupplier.get()) {
+        oplogTest.execute(context);
+      }
+    });
   }
 
 }

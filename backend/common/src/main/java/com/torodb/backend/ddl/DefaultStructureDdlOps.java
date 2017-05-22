@@ -71,7 +71,7 @@ public class DefaultStructureDdlOps implements WriteStructureDdlOps {
   @Override
   public void addDatabase(DSLContext dsl, MetaDatabase db) throws RollbackException {
     sqlInterface.getMetaDataWriteInterface().addMetaDatabase(dsl, db);
-    sqlInterface.getStructureInterface().createSchema(
+    sqlInterface.getStructureInterface().createDatabase(
         dsl, db.getIdentifier());
   }
 
@@ -147,6 +147,10 @@ public class DefaultStructureDdlOps implements WriteStructureDdlOps {
             LOGGER.info("Created internal index {} for table {}", index,
                 newDocPart.getIdentifier());
           });
+    }
+
+    if (addColumns) {
+      addColumns(dsl, db, col, newDocPart, newDocPart.streamScalars(), newDocPart.streamFields());
     }
   }
 

@@ -22,13 +22,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.truth.Truth;
+import com.torodb.core.exceptions.user.UserException;
+import com.torodb.core.retrier.DefaultRetrier;
+import com.torodb.core.retrier.Retrier;
+import com.torodb.core.retrier.RetrierAbortException;
+import com.torodb.core.transaction.RollbackException;
 import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvValue;
+import com.torodb.kvdocument.values.utils.UnorderedDocEquals;
+import com.torodb.mongodb.core.MongodSchemaExecutor;
 import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.core.MongodTransaction;
 import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
-import com.torodb.mongodb.repl.oplogreplier.OplogTest;
 import com.torodb.mongowp.commands.oplog.OplogOperation;
 import com.torodb.torod.DocTransaction;
 import org.junit.Assert;
@@ -37,12 +43,15 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
-public abstract class BddOplogTest implements OplogTest {
+public abstract class BddOplogTest implements OplogApplierTest {
+
+  private static final Retrier RETRIER = DefaultRetrier.getInstance();
 
   protected abstract Collection<DatabaseState> getInitialState();
 
@@ -54,13 +63,21 @@ public abstract class BddOplogTest implements OplogTest {
   protected abstract Class<? extends Exception> getExpectedExceptionClass();
 
   @Override
-  public void execute(OplogTestContext context) throws Exception {
+  public void execute(Context context) throws Exception {
     MongodServer server = context.getMongodServer();
 
-    try (WriteMongodTransaction trans = server.openWriteTransaction()) {
-      given(trans);
-      trans.commit();
+    try (MongodSchemaExecutor schemaEx = server.openSchemaExecutor()) {
+      prepare(schemaEx);
     }
+    RETRIER.retry(() -> {
+      try (WriteMongodTransaction trans = server.openWriteTransaction()) {
+        given(trans);
+        trans.commit();
+        return null;
+      } catch (TimeoutException | UserException ex) {
+        throw new RetrierAbortException(ex);
+      }
+    });
 
     Exception error = null;
     try {
@@ -91,7 +108,17 @@ public abstract class BddOplogTest implements OplogTest {
     return false;
   }
 
-  protected void given(WriteMongodTransaction trans) throws Exception {
+  protected void prepare(MongodSchemaExecutor schemaEx) {
+    for (DatabaseState db : getInitialState()) {
+      String dbName = db.getName();
+      for (CollectionState col : db.getCollections()) {
+        String colName = col.getName();
+        schemaEx.getDocSchemaExecutor().prepareSchema(dbName, colName, col.getDocs());
+      }
+    }
+  }
+
+  protected void given(WriteMongodTransaction trans) throws UserException, RollbackException {
     for (DatabaseState db : getInitialState()) {
       String dbName = db.getName();
       for (CollectionState col : db.getCollections()) {
@@ -131,8 +158,9 @@ public abstract class BddOplogTest implements OplogTest {
             KvDocument storedDoc = storedDocs.get(id);
             assertTrue("It was expected that " + db.getName() + "." + col.getName() + " contains a "
                 + "document with _id " + id, storedDoc != null);
-            assertEquals("The document on " + db.getName() + "." + col.getName() + " whose id is "
-                + id + " is different than expected", expectedDoc, storedDoc);
+            assertTrue("The document on " + db.getName() + "." + col.getName() + " whose id is "
+                + id + " is different than expected. Expected: <" + expectedDoc + "> but was: <"
+                + storedDoc + ">", UnorderedDocEquals.equals(expectedDoc, storedDoc));
           }
 
           assertEquals("Unexpected size on " + dbName + "." + colName,

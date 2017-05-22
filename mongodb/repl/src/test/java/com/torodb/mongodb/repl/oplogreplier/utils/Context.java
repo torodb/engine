@@ -16,21 +16,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.mongodb.repl.oplogreplier;
+package com.torodb.mongodb.repl.oplogreplier.utils;
 
-import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContext;
+import com.torodb.mongodb.core.MongodServer;
+import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
+import com.torodb.mongowp.commands.oplog.OplogOperation;
 
-import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  *
  */
-public interface OplogTest {
+public interface Context {
 
-  Optional<String> getTestName();
+  public abstract MongodServer getMongodServer();
 
-  boolean shouldIgnore();
-
-  void execute(OplogTestContext context) throws Exception;
+  public void apply(Stream<OplogOperation> streamOplog, ApplierContext applierContext) throws
+      Exception;
 
 }

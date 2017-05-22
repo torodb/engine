@@ -250,7 +250,7 @@ public abstract class AbstractStructureIntegrationSuite {
   }
 
   private void createSchema(DSLContext dslContext) {
-    sqlInterface.getStructureInterface().createSchema(dslContext, SCHEMA_NAME);
+    sqlInterface.getStructureInterface().createDatabase(dslContext, SCHEMA_NAME);
   }
 
   private TableRef createRootTable(DSLContext dslContext, String rootName) {

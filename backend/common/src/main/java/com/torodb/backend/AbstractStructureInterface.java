@@ -137,7 +137,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
       }
 
       if (!fromSchemaName.equals(toSchemaName)) {
-        String setSchemaStatement = getSetTableSchemaStatement(fromSchemaName, fromMetaDocPart
+        String setSchemaStatement = getSetTableSchemaStatement(fromSchemaName, toMetaDocPart
             .getIdentifier(), toSchemaName);
         sqlHelper.executeUpdate(dsl, setSchemaStatement, Context.SET_TABLE_SCHEMA);
       }
@@ -178,10 +178,24 @@ public abstract class AbstractStructureInterface implements StructureInterface {
     sqlHelper.executeUpdate(dsl, statement, Context.DROP_INDEX);
   }
 
+  /**
+   * Drops the schema or database where ToroDB's meta tables are stored.
+   *
+   * <p>Usually it implies to drop the schema torodb.
+   */
+  protected void dropMetainfoDatabase(DSLContext dsl) {
+    metaDataReadInterface.getMetaTables().forEach(t ->
+        dsl.dropTable(t).execute()
+    );
+
+    String statement = getDropSchemaStatement(TorodbSchema.IDENTIFIER);
+    sqlHelper.executeUpdate(dsl, statement, Context.DROP_SCHEMA);
+  }
+
   @Override
   public void dropAll(DSLContext dsl) {
     dropUserDatabases(dsl, metaDataReadInterface);
-    metaDataReadInterface.getMetaTables().forEach(t -> dsl.dropTable(t).execute());
+    dropMetainfoDatabase(dsl);
   }
 
   @Override
@@ -253,7 +267,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
   }
 
   @Override
-  public void createSchema(DSLContext dsl, String schemaName) {
+  public void createDatabase(DSLContext dsl, String schemaName) {
     String statement = getCreateSchemaStatement(schemaName);
     sqlHelper.executeUpdate(dsl, statement, Context.CREATE_SCHEMA);
   }

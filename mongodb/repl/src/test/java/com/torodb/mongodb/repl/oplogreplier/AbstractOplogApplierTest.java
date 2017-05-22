@@ -19,72 +19,82 @@
 package com.torodb.mongodb.repl.oplogreplier;
 
 
-import com.torodb.mongodb.repl.oplogreplier.utils.BddOplogTest;
-import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContextResourceRule;
-import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestContextResourceRule.OplogApplierBundleFactory;
-import com.torodb.mongodb.repl.oplogreplier.utils.OplogTestParser;
-import org.jooq.lambda.Unchecked;
-import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple2;
-import org.junit.Assume;
-import org.junit.Rule;
+import com.torodb.mongodb.repl.oplogreplier.utils.ClosableContext;
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogApplierTest;
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogApplierTestFactory;
+import com.torodb.mongodb.repl.oplogreplier.utils.ResourceOplogTestStreamer;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
+import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-@RunWith(Parameterized.class)
+@RunWith(JUnitPlatform.class)
 public abstract class AbstractOplogApplierTest {
+  
+  protected String getName(OplogApplierTest oplogTest) {
+    return oplogTest.getTestName().orElse("unknown");
+  }
+  
+  protected abstract Supplier<ClosableContext> contextSupplier();
 
-  @Parameter(0)
-  public String testName;
-  @Parameter(1)
-  public OplogTest oplogTest;
-  @Rule
-  public OplogTestContextResourceRule testContextResource =
-      new OplogTestContextResourceRule(getApplierBundleFactory());
-
-  public abstract OplogApplierBundleFactory getApplierBundleFactory();
-
-  protected static Collection<Object[]> loadData(ArrayList<String> filesList) {
-    return filesList.stream()
-        .map(filename -> Tuple.tuple(filename, filename + ".json"))
-        .map(Unchecked.<Tuple2<String, String>, Tuple2<String, OplogTest>>function((
-            Tuple2<String, String> tuple) -> {
-          try {
-            OplogTest test = fromExtendedJsonResource(tuple.v2);
-            return Tuple.tuple(tuple.v1, test);
-          } catch (Throwable ex) {
-            throw new AssertionError("Failed to parse '" + tuple.v2 + "'", ex);
-          }
-        }))
-        .map(tuple -> new Object[]{
-      tuple.v2.getTestName().orElse(tuple.v1),
-      tuple.v2
-    })
-        .collect(Collectors.toList());
+  @TestFactory
+  protected Stream<DynamicTest> createJsonTests() throws Exception {
+    return oplogTestSupplier()
+        .map(oplogTest -> OplogApplierTestFactory.oplogTest(
+            getName(oplogTest),
+            oplogTest,
+            contextSupplier())
+        );
   }
 
-  protected void test() throws Exception {
-    Assume.assumeTrue("Test " + this.oplogTest + " marked as ignorable", !oplogTest.shouldIgnore());
-
-    oplogTest.execute(testContextResource.getTestContext());
+  protected Stream<OplogApplierTest> oplogTestSupplier() {
+    return new DefaultTestsStreamer().get();
   }
 
-  public static BddOplogTest fromExtendedJsonResource(String resourceName) throws IOException {
-    String text;
-    try (InputStream resourceAsStream = AbstractOplogApplierTest.class.getResourceAsStream(resourceName);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(resourceAsStream))) {
-      text = reader.lines().collect(Collectors.joining("\n"));
+  static class DefaultTestsStreamer extends ResourceOplogTestStreamer {
+
+    @Override
+    protected Stream<String> streamFileNames() {
+      return Stream.of(
+          "create_collection_filtered",
+          "deleteIndex",
+          "deleteIndexes",
+          "doNothing",
+          "dropDatabase",
+          "dropDatabase_ignored",
+          "dropIndex",
+          "dropIndexes",
+          "drop_collection_filtered",
+          "insertRepeated",
+          "insert_update_add",
+          "letschat_upsert",
+          "update_array",
+          "update_no_upsert",
+          "update_upsert",
+          "rename_collection_filtered_1",
+          "rename_collection_filtered_2",
+          "renamecollection_noDropTarget",
+          "renamecollection_dropTarget",
+
+          //test that have to fail
+          "failing/applyOps",
+          "failing/delete_arr_id",
+          "failing/delete_doc_id",
+          "failing/delete_without_id",
+          "failing/emptyCommand",
+          "failing/insert_arr_id",
+          "failing/insert_doc_id",
+          "failing/insert_without_id",
+          "failing/unknownCommand",
+          "failing/update_arr_id",
+          "failing/update_doc_id",
+          "failing/update_no_upsert_without_id"
+      ).map(name -> "/oplogapplier/" + name + ".json");
     }
-    return OplogTestParser.fromExtendedJsonString(text);
+
   }
 
 }

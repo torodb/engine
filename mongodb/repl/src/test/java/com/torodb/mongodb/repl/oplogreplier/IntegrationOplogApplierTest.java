@@ -18,35 +18,19 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import com.google.common.collect.Lists;
-import org.junit.Test;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.DynamicTest;
 
-import java.util.Collection;
+import java.util.stream.Stream;
 
-public class DefaultFailingOplogApplierTest extends DefaultOplogApplierTest {
+/**
+ *
+ */
+public abstract class IntegrationOplogApplierTest extends AbstractOplogApplierTest {
 
-  @Parameters(name = "{0}")
-  public static Collection<Object[]> data() {
-    return loadData(Lists.newArrayList(
-        "applyOps",
-        "unknownCommand",
-        "emptyCommand",
-        "insert_without_id",
-        "update_no_upsert_without_id",
-        "delete_without_id",
-        "insert_doc_id",
-        "insert_arr_id",
-        "update_doc_id",
-        "update_arr_id",
-        "delete_doc_id",
-        "delete_arr_id"
-    ));
-  }
-
-  @Test
-  public void test() throws Exception {
-    super.test();
+//  @Tag("integration")
+  @Override
+  protected Stream<DynamicTest> createJsonTests() throws Exception {
+    return super.createJsonTests();
   }
 
 }

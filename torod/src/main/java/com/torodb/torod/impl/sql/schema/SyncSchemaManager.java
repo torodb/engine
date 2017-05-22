@@ -271,9 +271,10 @@ public class SyncSchemaManager {
     try {
       return future.join();
     } catch (CompletionException ex) {
-      Throwables.throwIfInstanceOf(ex.getCause(), exClass);
-      throw new ToroRuntimeException("Unexpected exception",
-          CompletionExceptions.getFirstNonCompletionException(ex));
+      Throwable firstNonCompletion = CompletionExceptions.getFirstNonCompletionException(ex);
+      Throwables.throwIfInstanceOf(firstNonCompletion, exClass);
+      Throwables.throwIfInstanceOf(firstNonCompletion, RuntimeException.class);
+      throw new ToroRuntimeException("Unexpected exception", firstNonCompletion);
     }
   }
 

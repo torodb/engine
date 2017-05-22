@@ -18,16 +18,12 @@
 
 package com.torodb.mongodb.repl.oplogreplier.utils;
 
-import com.torodb.mongodb.core.MongodServer;
-import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
-import com.torodb.mongowp.commands.oplog.OplogOperation;
+/**
+ *
+ */
+public interface ClosableContext extends Context, AutoCloseable {
 
-import java.util.stream.Stream;
+  @Override
+  public void close();
 
-public interface OplogTestContext {
-
-  public abstract MongodServer getMongodServer();
-
-  public abstract void apply(Stream<OplogOperation> streamOplog,
-      ApplierContext applierContext) throws Exception;
 }

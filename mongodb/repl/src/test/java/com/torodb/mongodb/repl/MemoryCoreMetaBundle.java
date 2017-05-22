@@ -16,31 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.torod.impl.sql;
+package com.torodb.mongodb.repl;
 
-import com.google.inject.Injector;
-import com.torodb.core.backend.BackendBundle;
 import com.torodb.core.bundle.BundleConfig;
-import com.torodb.core.bundle.BundleConfigImpl;
-import com.torodb.core.supervision.Supervisor;
+import com.torodb.torod.impl.memory.MemoryTorodBundle;
 
+public class MemoryCoreMetaBundle extends AbstractCoreMetaBundle {
 
-public class SqlTorodConfig extends BundleConfigImpl {
-  private final BackendBundle backendBundle;
-
-  public SqlTorodConfig(BackendBundle backendBundle, Injector essentialInjector,
-      Supervisor supervisor) {
-    super(essentialInjector, supervisor);
-    this.backendBundle = backendBundle;
+  public static MemoryCoreMetaBundle createBundle() {
+    TestBundleConfig generalConfig = new TestBundleConfig();
+    return new MemoryCoreMetaBundle(generalConfig);
   }
 
-  public SqlTorodConfig(BackendBundle backendBundle, BundleConfig other) {
-    super(other);
-    this.backendBundle = backendBundle;
+  public MemoryCoreMetaBundle(BundleConfig generalConfig) {
+    super(generalConfig, new MemoryTorodBundle(generalConfig));
   }
-
-  public BackendBundle getBackendBundle() {
-    return backendBundle;
-  }
-  
 }

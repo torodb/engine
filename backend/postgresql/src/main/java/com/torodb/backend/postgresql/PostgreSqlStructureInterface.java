@@ -25,6 +25,7 @@ import com.torodb.backend.InternalField;
 import com.torodb.backend.SqlBuilder;
 import com.torodb.backend.SqlHelper;
 import com.torodb.backend.converters.jooq.DataTypeForKv;
+import com.torodb.backend.meta.TorodbSchema;
 import com.torodb.core.backend.IdentifierConstraints;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
@@ -53,6 +54,12 @@ public class PostgreSqlStructureInterface extends AbstractStructureInterface {
     super(dbBackend, metaDataReadInterface, sqlHelper, identifierConstraints);
 
     this.sqlHelper = sqlHelper;
+  }
+
+  @Override
+  protected void dropMetainfoDatabase(DSLContext dsl) {
+    String statement = getDropSchemaStatement(TorodbSchema.IDENTIFIER);
+    sqlHelper.executeUpdate(dsl, statement, Context.DROP_SCHEMA);
   }
 
   @Override
@@ -88,7 +95,7 @@ public class PostgreSqlStructureInterface extends AbstractStructureInterface {
   @Override
   protected String getSetTableSchemaStatement(String fromSchemaName, String fromTableName,
       String toSchemaName) {
-    return "ALTER TABLE \"" + fromSchemaName + "\".\"" + fromTableName + "\" SET SCHEMA = \""
+    return "ALTER TABLE \"" + fromSchemaName + "\".\"" + fromTableName + "\" SET SCHEMA \""
         + toSchemaName + "\"";
   }
 

@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -54,6 +55,7 @@ class MemoryData {
   private static final String _ID = "_id";
   
   private Table<String, String, Map<Integer, KvDocument>> data = HashBasedTable.create();
+  private Set<String> dbs = new HashSet<>();
   private Table<String, String, Map<String, IndexInfo>> indexes = HashBasedTable.create();
   private final AtomicInteger idGenerator = new AtomicInteger();
   private ReadWriteLock lock = new ReentrantReadWriteLock(true);
@@ -61,7 +63,7 @@ class MemoryData {
   public MdReadTransaction openReadTransaction() {
     lock.readLock().lock();
     try {
-      return new MdReadTransaction(data, indexes);
+      return new MdReadTransaction(data, dbs, indexes);
     } finally {
       lock.readLock().unlock();
     }
@@ -72,7 +74,7 @@ class MemoryData {
     Lock writeLock = lock.writeLock();
     writeLock.lock();
     try {
-      return new MdWriteTransaction(data, indexes, () -> idGenerator.incrementAndGet(),
+      return new MdWriteTransaction(data, dbs, indexes, () -> idGenerator.incrementAndGet(),
           this::onCommit, writeLock);
     } catch (Throwable ex) {
       writeLock.unlock();
@@ -82,6 +84,7 @@ class MemoryData {
 
   private void onCommit(MdTransaction trans) {
     this.data = trans.getData();
+    this.dbs = trans.getDbs();
     this.indexes = trans.getIndexes();
   }
 
@@ -89,16 +92,22 @@ class MemoryData {
 
     private boolean closed = false;
     Table<String, String, Map<Integer, KvDocument>> data;
+    Set<String> dbs;
     Table<String, String, Map<String, IndexInfo>> indexes;
 
     public MdTransaction(Table<String, String, Map<Integer, KvDocument>> data,
-        Table<String, String, Map<String, IndexInfo>> indexes) {
+        Set<String> dbs, Table<String, String, Map<String, IndexInfo>> indexes) {
       this.data = data;
+      this.dbs = dbs;
       this.indexes = indexes;
     }
 
     public Table<String, String, Map<Integer, KvDocument>> getData() {
       return data;
+    }
+
+    public Set<String> getDbs() {
+      return dbs;
     }
 
     public Table<String, String, Map<String, IndexInfo>> getIndexes() {
@@ -127,7 +136,7 @@ class MemoryData {
     }
 
     public Stream<String> streamDbs() {
-      return data.rowKeySet().stream();
+      return dbs.stream();
     }
 
     @Override
@@ -152,8 +161,9 @@ class MemoryData {
   public static class MdReadTransaction extends MdTransaction {
 
     public MdReadTransaction(Table<String, String, Map<Integer, KvDocument>> data,
+        Set<String> dbs,
         Table<String, String, Map<String, IndexInfo>> indexes) {
-      super(data, indexes);
+      super(data, dbs, indexes);
     }
 
   }
@@ -162,21 +172,24 @@ class MemoryData {
   public static class MdWriteTransaction extends MdTransaction {
 
     Table<String, String, Map<Integer, KvDocument>> initialData;
+    Set<String> initialDbs;
     private final IntSupplier idGenerator;
     private final Consumer<MdTransaction> commitConsumer;
     private final Lock lock;
 
     public MdWriteTransaction(
         Table<String, String, Map<Integer, KvDocument>> data,
+        Set<String> dbs,
         Table<String, String, Map<String, IndexInfo>> indexes,
         IntSupplier idGenerator,
         Consumer<MdTransaction> commitConsumer,
         Lock lock) {
-      super(HashBasedTable.create(data), HashBasedTable.create(indexes));
+      super(HashBasedTable.create(data), new HashSet<>(dbs), HashBasedTable.create(indexes));
       this.idGenerator = idGenerator;
       this.commitConsumer = commitConsumer;
       this.lock = lock;
       this.initialData = data;
+      this.initialDbs = dbs;
     }
 
     public void clear() {
@@ -189,6 +202,7 @@ class MemoryData {
       if (map == null) {
         map = new HashMap<>();
         data.put(db, col, map);
+        dbs.add(db);
       }
       return map;
     }
@@ -247,10 +261,12 @@ class MemoryData {
       Map<Integer, KvDocument> col = data.remove(fromDb, fromCollection);
       if (col != null) {
         data.put(toDb, toCollection, col);
+        dbs.add(toDb);
       }
     }
 
     void createDatabase(String dbName) {
+      dbs.add(dbName);
     }
 
     void createCollection(String dbName, String colName) {
@@ -263,15 +279,18 @@ class MemoryData {
       for (String colName : columns) {
         data.remove(dbName, colName);
       }
+      dbs.remove(dbName);
     }
 
     void rollback() {
       this.data = HashBasedTable.create(initialData);
+      this.dbs = new HashSet<>(initialDbs);
     }
 
     void commit() {
       commitConsumer.accept(this);
       initialData = HashBasedTable.create(data);
+      initialDbs = new HashSet<>(dbs);
     }
 
     @Override
