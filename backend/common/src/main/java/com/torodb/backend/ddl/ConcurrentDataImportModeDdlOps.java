@@ -74,6 +74,8 @@ public class ConcurrentDataImportModeDdlOps implements DataImportModeDdlOps {
     this.streamExecutor = concurrentToolsFactory.createStreamExecutor(
         LOGGER, "backend-inner-jobs", true);
     this.retrier = retrier;
+    streamExecutor.startAsync();
+    streamExecutor.awaitRunning();
   }
 
   @Override

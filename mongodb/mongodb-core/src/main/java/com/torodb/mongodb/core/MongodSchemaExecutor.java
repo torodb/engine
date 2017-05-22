@@ -41,7 +41,7 @@ public class MongodSchemaExecutor implements AutoCloseable {
   }
 
   public <A, R> Status<R> execute(Request request, Command<? super A, ? super R> command, A arg) {
-    Preconditions.checkState(schemaOperationExecutor.isClosed(), "This executor is closed");
+    Preconditions.checkState(!schemaOperationExecutor.isClosed(), "This executor is closed");
     return commandsExecutor.execute(request, command, arg, schemaOperationExecutor);
   }
 
