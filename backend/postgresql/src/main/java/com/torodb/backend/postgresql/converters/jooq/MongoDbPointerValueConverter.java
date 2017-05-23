@@ -23,6 +23,7 @@ import com.torodb.backend.converters.jooq.KvValueConverter;
 import com.torodb.backend.converters.sql.SqlBinding;
 import com.torodb.backend.postgresql.converters.jooq.binding.JsonbBinding;
 import com.torodb.backend.postgresql.converters.sql.JsonbSqlBinding;
+import com.torodb.core.exceptions.ToroRuntimeException;
 import com.torodb.kvdocument.types.KvType;
 import com.torodb.kvdocument.types.MongoDbPointerType;
 import com.torodb.kvdocument.values.KvMongoDbPointer;
@@ -64,9 +65,8 @@ public class MongoDbPointerValueConverter
           object.getString("namespace"),
           new ByteArrayKvMongoObjectId(object.getString("objectId").getBytes("UTF-8")));
     } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
+      throw new ToroRuntimeException(e);
     }
-    return null;
   }
 
   @Override
@@ -78,9 +78,8 @@ public class MongoDbPointerValueConverter
           .build()
           .toString();
     } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
+      throw new ToroRuntimeException(e);
     }
-    return null;
   }
 
   @Override
