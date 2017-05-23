@@ -28,6 +28,7 @@ import com.torodb.backend.MetaDataWriteInterface;
 import com.torodb.backend.ReadInterface;
 import com.torodb.backend.StructureInterface;
 import com.torodb.backend.WriteInterface;
+import com.torodb.backend.ddl.DdlOpsModule;
 import com.torodb.backend.ddl.DefaultReadStructure;
 import com.torodb.backend.guice.BackendModule;
 import com.torodb.backend.meta.SchemaUpdater;
@@ -68,6 +69,7 @@ public class MySqlBackendModule extends PrivateModule {
     expose(BackendService.class);
     expose(ReservedIdGenerator.class);
 
+    install(new DdlOpsModule());
     install(new BackendModule());
 
     install(new EssentialToDefaultModule());
