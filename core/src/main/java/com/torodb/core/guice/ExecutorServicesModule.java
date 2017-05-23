@@ -42,7 +42,9 @@ public class ExecutorServicesModule extends AbstractModule {
 
     bind(Integer.class)
         .annotatedWith(ParallelLevel.class)
-        .toInstance(Runtime.getRuntime().availableProcessors());
+        //TODO: restore Runtime.getRuntime().availableProcessors() 
+        //  when non-transactional DDL are supported
+        .toInstance(1);
 
     ThreadFactory threadFactory = new ThreadFactoryBuilder()
         .setNameFormat("torodb-%d")

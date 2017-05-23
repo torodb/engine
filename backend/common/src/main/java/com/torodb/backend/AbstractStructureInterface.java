@@ -27,6 +27,7 @@ import com.torodb.core.TableRef;
 import com.torodb.core.backend.IdentifierConstraints;
 import com.torodb.core.exceptions.InvalidDatabaseException;
 import com.torodb.core.exceptions.user.UserException;
+import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
@@ -36,7 +37,7 @@ import org.jooq.DSLContext;
 import org.jooq.Meta;
 import org.jooq.Schema;
 import org.jooq.Table;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -155,7 +156,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
 
   @Override
   public void createIndex(DSLContext dsl, String indexName, String schemaName, String tableName,
-      List<Tuple2<String, Boolean>> columnList, boolean unique)
+      List<Tuple3<String, Boolean, FieldType>> columnList, boolean unique)
       throws UserException {
     if (!dbBackend.isOnDataInsertMode(schemaName)) {
       Preconditions.checkArgument(!columnList.isEmpty(), "Can not create index on 0 columns");
@@ -169,7 +170,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
   }
 
   protected abstract String getCreateIndexStatement(String indexName, String schemaName,
-      String tableName, List<Tuple2<String, Boolean>> columnList, boolean unique);
+      String tableName, List<Tuple3<String, Boolean, FieldType>> columnList, boolean unique);
 
   @Override
   public void dropIndex(DSLContext dsl, String schemaName, String indexName) {
@@ -311,8 +312,8 @@ public abstract class AbstractStructureInterface implements StructureInterface {
   }
 
   @Override
-  public Stream<Function<DSLContext, String>> streamDocPartTableIndexesCreation(String schemaName,
-      String tableName, TableRef tableRef, String foreignTableName) {
+  public Stream<Function<DSLContext, String>> streamDocPartTableIndexesCreation(
+      String schemaName, String tableName, TableRef tableRef, String foreignTableName) {
     List<Function<DSLContext, String>> result = new ArrayList<>(4);
     if (!dbBackend.isOnDataInsertMode(schemaName)) {
       String primaryKeyStatement = getAddDocPartTablePrimaryKeyStatement(schemaName, tableName,
@@ -374,8 +375,8 @@ public abstract class AbstractStructureInterface implements StructureInterface {
       Collection<InternalField<?>> referenceFields, String foreignTableName,
       Collection<InternalField<?>> foreignFields);
 
-  protected abstract String getCreateDocPartTableIndexStatement(String schemaName, String tableName,
-      Collection<InternalField<?>> indexedFields);
+  protected abstract String getCreateDocPartTableIndexStatement(
+      String schemaName, String tableName, Collection<InternalField<?>> indexedFields);
 
   @Override
   public void addColumnToDocPartTable(DSLContext dsl, String schemaName, String tableName,

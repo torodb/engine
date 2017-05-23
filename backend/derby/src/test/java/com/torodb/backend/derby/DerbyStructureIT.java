@@ -18,8 +18,16 @@
 
 package com.torodb.backend.derby;
 
+import com.torodb.backend.DataTypeProvider;
+import com.torodb.backend.ErrorHandler;
+import com.torodb.backend.SqlHelper;
+import com.torodb.backend.SqlInterface;
+import com.torodb.backend.ddl.DefaultReadStructure;
+import com.torodb.backend.derby.schema.DerbySchemaUpdater;
+import com.torodb.backend.meta.SchemaUpdater;
 import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
 import com.torodb.backend.tests.common.DatabaseTestContext;
+import com.torodb.core.TableRefFactory;
 import com.torodb.core.transaction.metainf.FieldType;
 
 import java.util.HashMap;
@@ -57,6 +65,27 @@ public class DerbyStructureIT extends AbstractStructureIntegrationSuite {
   @Override
   protected DatabaseTestContext getDatabaseTestContext() {
     return new DerbyDatabaseTestContextFactory().createInstance();
+  }
+
+  @Override
+  protected DataTypeProvider getDataTypeProvider() {
+    return new DerbyDataTypeProvider();
+  }
+
+  @Override
+  protected ErrorHandler getErrorHandler() {
+    return new DerbyErrorHandler();
+  }
+
+  @Override
+  protected SchemaUpdater getSchemaUpdater(SqlInterface sqlInterface, SqlHelper sqlHelper) {
+    return new DerbySchemaUpdater(sqlInterface, sqlHelper);
+  }
+
+  @Override
+  protected DefaultReadStructure getDefaultReadStructure(SqlInterface sqlInterface, SqlHelper sqlHelper,
+                                                    SchemaUpdater schemaUpdater, TableRefFactory tableRefFactory) {
+    return new DefaultReadStructure(sqlInterface, sqlHelper, schemaUpdater, tableRefFactory);
   }
 
   @Override

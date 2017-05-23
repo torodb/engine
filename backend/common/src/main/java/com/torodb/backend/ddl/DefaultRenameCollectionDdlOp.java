@@ -22,6 +22,7 @@ import com.torodb.backend.SqlInterface;
 import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.d2r.ReservedIdGenerator;
 import com.torodb.core.transaction.RollbackException;
+import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
@@ -37,7 +38,7 @@ import com.torodb.core.transaction.metainf.MutableMetaDocPart;
 import com.torodb.core.transaction.metainf.MutableMetaDocPartIndex;
 import com.torodb.core.transaction.metainf.MutableMetaIndex;
 import org.jooq.DSLContext;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -170,8 +171,8 @@ public class DefaultRenameCollectionDdlOp implements RenameCollectionDdlOp {
       MetaIdentifiedDocPartIndex fromMetaDocPartIndex = fromMetaDocPartIndexIterator.next();
       MutableMetaDocPartIndex toMutableMetaDocPartIndex = toMetaDocPart.addMetaDocPartIndex(
           fromMetaDocPartIndex.isUnique());
-      List<Tuple2<String, Boolean>> identifiers =
-          copyMetaIndexColumns(fromMetaDocPartIndex, toMutableMetaDocPartIndex);
+      List<Tuple3<String, Boolean, FieldType>> identifiers =
+          copyMetaIndexColumns(fromMetaDocPart, fromMetaDocPartIndex, toMutableMetaDocPartIndex);
       MetaIdentifiedDocPartIndex toMetaDocPartIndex = toMutableMetaDocPartIndex.immutableCopy(
           identifierFactory.toIndexIdentifier(
               toMetaDb,
@@ -184,18 +185,21 @@ public class DefaultRenameCollectionDdlOp implements RenameCollectionDdlOp {
     }
   }
 
-  private List<Tuple2<String, Boolean>> copyMetaIndexColumns(
+  private List<Tuple3<String, Boolean, FieldType>> copyMetaIndexColumns(
+      MetaDocPart fromMetaDocPart,
       MetaIdentifiedDocPartIndex fromMetaDocPartIndex,
       MutableMetaDocPartIndex toMetaDocPartIndex) {
-    List<Tuple2<String, Boolean>> identifiers = new ArrayList<>();
+    List<Tuple3<String, Boolean, FieldType>> identifiers = new ArrayList<>();
     Iterator<? extends MetaDocPartIndexColumn> fromMetaDocPartIndexColumnIterator =
         fromMetaDocPartIndex.iteratorColumns();
     while (fromMetaDocPartIndexColumnIterator.hasNext()) {
       MetaDocPartIndexColumn fromMetaDocPartIndexColumn = fromMetaDocPartIndexColumnIterator.next();
       toMetaDocPartIndex.addMetaDocPartIndexColumn(
           fromMetaDocPartIndexColumn.getIdentifier(), fromMetaDocPartIndexColumn.getOrdering());
-      identifiers.add(new Tuple2<>(fromMetaDocPartIndexColumn.getIdentifier(),
-          fromMetaDocPartIndexColumn.getOrdering().isAscending()));
+      identifiers.add(new Tuple3<>(fromMetaDocPartIndexColumn.getIdentifier(),
+          fromMetaDocPartIndexColumn.getOrdering().isAscending(),
+          fromMetaDocPart.getMetaFieldByIdentifier(
+              fromMetaDocPartIndexColumn.getIdentifier()).getType()));
     }
     return identifiers;
   }

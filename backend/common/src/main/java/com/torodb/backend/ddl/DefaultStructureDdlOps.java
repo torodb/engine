@@ -27,6 +27,7 @@ import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.exceptions.InvalidDatabaseException;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.transaction.RollbackException;
+import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
@@ -40,6 +41,7 @@ import com.torodb.core.transaction.metainf.MutableMetaDocPartIndex;
 import org.apache.logging.log4j.Logger;
 import org.jooq.DSLContext;
 import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -195,12 +197,13 @@ public class DefaultStructureDdlOps implements WriteStructureDdlOps {
               missingIndex, identifiers, newField);
 
       if (missingIndex.isMatch(docPart, identifiers, docPartIndex)) {
-        List<Tuple2<String, Boolean>> columnList = new ArrayList<>(docPartIndex.size());
+        List<Tuple3<String, Boolean, FieldType>> columnList = new ArrayList<>(docPartIndex.size());
         for (String identifier : identifiers) {
           MetaDocPartIndexColumn docPartIndexColumn = docPartIndex
               .getMetaDocPartIndexColumnByIdentifier(identifier);
-          columnList.add(new Tuple2<>(docPartIndexColumn.getIdentifier(), docPartIndexColumn
-              .getOrdering().isAscending()));
+          columnList.add(new Tuple3<>(docPartIndexColumn.getIdentifier(), docPartIndexColumn
+              .getOrdering().isAscending(),
+              docPart.getMetaFieldByIdentifier(identifier).getType()));
         }
         MetaIdentifiedDocPartIndex identifiedDocPartIndex = docPartIndex.immutableCopy(
             identifierFactory.toIndexIdentifier(db, docPart.getIdentifier(), columnList));

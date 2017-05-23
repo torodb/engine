@@ -24,7 +24,7 @@ import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
 import com.torodb.core.transaction.metainf.MetaSnapshot;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -76,9 +76,10 @@ public class MockIdentifierFactory implements IdentifierFactory {
 
   @Override
   public String toIndexIdentifier(MetaDatabase metaSnapshot, String tableName,
-      Iterable<Tuple2<String, Boolean>> identifiers) {
+      Iterable<Tuple3<String, Boolean, FieldType>> identifiers) {
     return Streams.stream(identifiers)
-        .map((tuple) -> tuple.v1 + ':' + (tuple.v2 ? "a" : "b")).collect(Collectors.joining("."));
+        .map((tuple) -> tuple.v1 + ':' + tuple.v3 + ":" + (tuple.v2 ? "a" : "b"))
+          .collect(Collectors.joining("."));
   }
 
 }

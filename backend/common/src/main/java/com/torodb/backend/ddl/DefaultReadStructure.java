@@ -18,6 +18,8 @@
 
 package com.torodb.backend.ddl;
 
+import com.torodb.backend.BackendLoggerFactory;
+import com.torodb.backend.SqlHelper;
 import com.torodb.backend.SqlInterface;
 import com.torodb.backend.exceptions.InvalidDatabaseSchemaException;
 import com.torodb.backend.meta.SchemaUpdater;
@@ -57,6 +59,7 @@ import com.torodb.core.transaction.metainf.MutableMetaDocPartIndex;
 import com.torodb.core.transaction.metainf.MutableMetaIndex;
 import com.torodb.core.transaction.metainf.MutableMetaSnapshot;
 import com.torodb.core.transaction.metainf.WrapperMutableMetaSnapshot;
+import org.apache.logging.log4j.Logger;
 import org.jooq.DSLContext;
 import org.jooq.DataType;
 import org.jooq.Result;
@@ -69,13 +72,17 @@ import javax.inject.Inject;
 
 public class DefaultReadStructure implements ReadStructureDdlOp {
 
-  private final SqlInterface sqlInterface;
-  private final TableRefFactory tableRefFactory;
+  protected static final Logger LOGGER = BackendLoggerFactory.get(DefaultReadStructure.class);
+
+  protected final SqlInterface sqlInterface;
+  protected final SqlHelper sqlHelper;
+  protected final TableRefFactory tableRefFactory;
 
   @Inject
-  public DefaultReadStructure(SqlInterface sqlInterface, SchemaUpdater schemaUpdater,
-      TableRefFactory tableRefFactory) {
+  public DefaultReadStructure(SqlInterface sqlInterface, SqlHelper sqlHelper,
+      SchemaUpdater schemaUpdater, TableRefFactory tableRefFactory) {
     this.sqlInterface = sqlInterface;
+    this.sqlHelper = sqlHelper;
     this.tableRefFactory = tableRefFactory;
   }
 
@@ -83,7 +90,7 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
   public MetaSnapshot readMetadata(DSLContext dsl) {
     MutableMetaSnapshot mutableSnapshot = WrapperMutableMetaSnapshot.createEmpty();
 
-    Updater updater = new Updater(dsl, tableRefFactory, sqlInterface);
+    Updater updater = createUpdater(dsl);
     updater.loadMetaSnapshot(mutableSnapshot);
 
     return mutableSnapshot;
@@ -93,20 +100,24 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
   public void close() throws Exception {
   }
 
-  private static class Updater {
+  protected Updater createUpdater(DSLContext dsl) {
+    return new Updater(dsl, tableRefFactory, sqlInterface);
+  }
 
-    private final DSLContext dsl;
-    private final TableRefFactory tableRefFactory;
-    private final SqlInterface sqlInterface;
-    private final MetaCollectionTable<MetaCollectionRecord> collectionTable;
-    private final MetaDocPartTable<Object, MetaDocPartRecord<Object>> docPartTable;
-    private final MetaFieldTable<Object, MetaFieldRecord<Object>> fieldTable;
-    private final MetaScalarTable<Object, MetaScalarRecord<Object>> scalarTable;
-    private final MetaIndexTable<MetaIndexRecord> indexTable;
-    private final MetaIndexFieldTable<Object, MetaIndexFieldRecord<Object>> indexFieldTable;
-    private final MetaDocPartIndexTable<Object, MetaDocPartIndexRecord<Object>> docPartIndexTable;
+  protected static class Updater {
+
+    protected final DSLContext dsl;
+    protected final TableRefFactory tableRefFactory;
+    protected final SqlInterface sqlInterface;
+    protected final MetaCollectionTable<MetaCollectionRecord> collectionTable;
+    protected final MetaDocPartTable<Object, MetaDocPartRecord<Object>> docPartTable;
+    protected final MetaFieldTable<Object, MetaFieldRecord<Object>> fieldTable;
+    protected final MetaScalarTable<Object, MetaScalarRecord<Object>> scalarTable;
+    protected final MetaIndexTable<MetaIndexRecord> indexTable;
+    protected final MetaIndexFieldTable<Object, MetaIndexFieldRecord<Object>> indexFieldTable;
+    protected final MetaDocPartIndexTable<Object, MetaDocPartIndexRecord<Object>> docPartIndexTable;
     @SuppressWarnings("checkstyle:lineLength")
-    private final MetaDocPartIndexColumnTable<Object, MetaDocPartIndexColumnRecord<Object>> fieldIndexTable;
+    protected final MetaDocPartIndexColumnTable<Object, MetaDocPartIndexColumnRecord<Object>> fieldIndexTable;
 
     public Updater(DSLContext dsl, TableRefFactory tableRefFactory, SqlInterface sqlInterface) {
       this.dsl = dsl;
@@ -147,8 +158,7 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
       MutableMetaDatabase metaDatabase = snapshot.addMetaDatabase(databaseRecord.getName(),
           databaseRecord.getIdentifier());
 
-      SchemaValidator schemaValidator = new SchemaValidator(dsl, databaseRecord.getIdentifier(),
-          databaseRecord.getName());
+      SchemaValidator schemaValidator = createSchemaValidator(databaseRecord);
 
       dsl.selectFrom(collectionTable)
           .where(collectionTable.DATABASE.eq(databaseRecord.getName()))
@@ -157,6 +167,11 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
               (col) -> analyzeCollection(metaDatabase, col, schemaValidator));
 
       checkCompleteness(databaseRecord, schemaValidator);
+    }
+
+    protected SchemaValidator createSchemaValidator(MetaDatabaseRecord databaseRecord) {
+      return new SchemaValidator(dsl, databaseRecord.getIdentifier(),
+          databaseRecord.getName());
     }
 
     private void checkCompleteness(MetaDatabaseRecord database, SchemaValidator schemaValidator) {
@@ -279,13 +294,14 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
       //TODO: some types can not be recognized using meta data
       if (!schemaValidator.existsColumnWithType(docPart.getIdentifier(), field.getIdentifier(),
           sqlInterface.getDataTypeProvider().getDataType(field.getType()))) {
-        String existingType = schemaValidator.getColumn(
-            docPart.getIdentifier(), field.getIdentifier())
-            .getTypeName();
+        Table existingTable = schemaValidator.getTable(docPart.getIdentifier());
+        TableField existingColumn = schemaValidator.getColumn(
+            docPart.getIdentifier(), field.getIdentifier());
         throw new InvalidDatabaseSchemaException(database.getIdentifier(),
             "Field " + getFieldRef(database, collection, docPart, field)
             + " is associated with column " + getColumnRef(database, docPart, field)
-            + " but existing column has a different type " + existingType);
+            + " but existing column has a different type " + getColumnRef(
+                database.getIdentifier(), existingTable, existingColumn));
       }
     }
 
@@ -452,12 +468,20 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
     }
 
     private String getTableRef(MetaDatabaseRecord database, Table table) {
-      return database.getIdentifier() + "." + table.getName();
+      return getTableRef(database.getIdentifier(), table);
+    }
+
+    private String getTableRef(String database, Table table) {
+      return database + "." + table.getName();
     }
 
     private String getColumnRef(MetaDatabaseRecord database, Table table, TableField field) {
-      return getTableRef(database, table) + "." + field.getName() + " (type:" + field.getTypeName()
-          + ")";
+      return getColumnRef(database.getIdentifier(), table, field);
+    }
+
+    private String getColumnRef(String database, Table table, TableField field) {
+      return getTableRef(database, table) + "." + field.getName() + "." + field.getName()
+        + " (type:" + field.getTypeName() + ", sqlType:" + field.getSqlType() + ")";
     }
 
     private String getColumnRef(MetaDatabase database, MetaDocPart docPart,

@@ -38,9 +38,8 @@ import com.google.common.collect.ImmutableMap;
 import com.torodb.core.exceptions.SystemException;
 import com.torodb.packaging.config.model.backend.AbstractBackend;
 import com.torodb.packaging.config.model.backend.BackendImplementation;
-import com.torodb.packaging.config.model.backend.derby.AbstractDerby;
-import com.torodb.packaging.config.model.backend.postgres.AbstractPostgres;
-import com.torodb.packaging.config.util.BackendImplementationVisitor;
+import com.torodb.packaging.config.model.backend.BackendPasswordConfig;
+import com.torodb.packaging.config.util.BackendImplementationVisitorWithDefault;
 
 import java.io.IOException;
 import java.util.Map;
@@ -129,7 +128,7 @@ public abstract class AbstractBackendSerializer<T extends AbstractBackend>
   }
 
   private static class BackendImplementationSerializerVisitor implements
-      BackendImplementationVisitor<Void, Void> {
+      BackendImplementationVisitorWithDefault<Void, Void> {
 
     private final AbstractBackend backend;
     private final JsonGenerator jgen;
@@ -140,23 +139,14 @@ public abstract class AbstractBackendSerializer<T extends AbstractBackend>
     }
 
     @Override
-    public Void visit(AbstractPostgres value, Void arg) {
-      defaultVisit(value);
-      return null;
-    }
-
-    @Override
-    public Void visit(AbstractDerby value, Void arg) {
-      defaultVisit(value);
-      return null;
-    }
-
-    private void defaultVisit(BackendImplementation value) {
+    public <T extends BackendImplementation & BackendPasswordConfig> Void defaultVisit(T value,
+        Void arg) {
       try {
         jgen.writeObjectField(backend.getBackendImplementationName(value.getClass()), value);
       } catch (Exception exception) {
         throw new SystemException(exception);
       }
+      return null;
     }
   }
 }

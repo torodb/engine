@@ -18,8 +18,16 @@
 
 package com.torodb.backend.postgresql;
 
+import com.torodb.backend.DataTypeProvider;
+import com.torodb.backend.ErrorHandler;
+import com.torodb.backend.SqlHelper;
+import com.torodb.backend.SqlInterface;
+import com.torodb.backend.ddl.DefaultReadStructure;
+import com.torodb.backend.meta.SchemaUpdater;
+import com.torodb.backend.postgresql.meta.PostgreSqlSchemaUpdater;
 import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
 import com.torodb.backend.tests.common.DatabaseTestContext;
+import com.torodb.core.TableRefFactory;
 import com.torodb.core.transaction.metainf.FieldType;
 
 import java.util.HashMap;
@@ -57,6 +65,27 @@ public class PostgreSqlStructureIT extends AbstractStructureIntegrationSuite {
   @Override
   protected DatabaseTestContext getDatabaseTestContext() {
     return new PostgreSqlDatabaseTestContextFactory().createInstance();
+  }
+
+  @Override
+  protected DataTypeProvider getDataTypeProvider() {
+    return new PostgreSqlDataTypeProvider();
+  }
+
+  @Override
+  protected ErrorHandler getErrorHandler() {
+    return new PostgreSqlErrorHandler();
+  }
+
+  @Override
+  protected SchemaUpdater getSchemaUpdater(SqlInterface sqlInterface, SqlHelper sqlHelper) {
+    return new PostgreSqlSchemaUpdater(sqlInterface, sqlHelper);
+  }
+
+  @Override
+  protected DefaultReadStructure getDefaultReadStructure(SqlInterface sqlInterface, SqlHelper sqlHelper,
+                                                    SchemaUpdater schemaUpdater, TableRefFactory tableRefFactory) {
+    return new DefaultReadStructure(sqlInterface, sqlHelper, schemaUpdater, tableRefFactory);
   }
 
   @Override

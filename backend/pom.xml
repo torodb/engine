@@ -23,6 +23,7 @@
         <module>common</module>
         <module>derby</module>
         <module>postgresql</module>
+        <module>mysql</module>
         <module>test-tools</module>
     </modules>
 

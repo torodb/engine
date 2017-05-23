@@ -24,6 +24,7 @@ import com.torodb.backend.SqlInterface;
 import com.torodb.core.TableRef;
 import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.exceptions.user.UserException;
+import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPartIndexColumn;
@@ -35,7 +36,7 @@ import com.torodb.core.transaction.metainf.MutableMetaDocPart;
 import com.torodb.core.transaction.metainf.MutableMetaDocPartIndex;
 import org.apache.logging.log4j.Logger;
 import org.jooq.DSLContext;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -88,7 +89,7 @@ public class DefaultCreateIndexDdlOp implements CreateIndexDdlOp {
     Iterator<? extends MetaIndexField> indexFieldIterator = index.iteratorMetaIndexFieldByTableRef(
         docPart.getTableRef());
     int position = 0;
-    List<Tuple2<String, Boolean>> columnList = new ArrayList<>(identifiers.size());
+    List<Tuple3<String, Boolean, FieldType>> columnList = new ArrayList<>(identifiers.size());
     for (String identifier : identifiers) {
       MetaIndexField indexField = indexFieldIterator.next();
       MetaDocPartIndexColumn docPartIndexColumn = docPartIndex.putMetaDocPartIndexColumn(
@@ -96,8 +97,8 @@ public class DefaultCreateIndexDdlOp implements CreateIndexDdlOp {
           identifier, 
           indexField.getOrdering()
       );
-      columnList.add(new Tuple2<>(docPartIndexColumn.getIdentifier(), docPartIndexColumn
-          .getOrdering().isAscending()));
+      columnList.add(new Tuple3<>(docPartIndexColumn.getIdentifier(), docPartIndexColumn
+          .getOrdering().isAscending(), docPart.getMetaFieldByIdentifier(identifier).getType()));
     }
     MetaIdentifiedDocPartIndex identifiedDocPartIndex = docPartIndex.immutableCopy(
         identifierFactory.toIndexIdentifier(
