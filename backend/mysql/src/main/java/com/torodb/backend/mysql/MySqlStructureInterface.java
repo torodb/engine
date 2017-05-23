@@ -95,15 +95,15 @@ public class MySqlStructureInterface extends AbstractStructureInterface {
   @Override
   protected String getRenameIndexStatement(String fromSchemaName, String fromIndexName,
       String toIndexName) {
-    return "ALTER INDEX `" + fromSchemaName + "`.`" + fromIndexName + "` RENAME TO `"
+    return "ALTER TABLE RENAME INDEX `" + fromSchemaName + "`.`" + fromIndexName + "` TO `"
         + toIndexName + "`";
   }
 
   @Override
   protected String getSetTableSchemaStatement(String fromSchemaName, String fromTableName,
       String toSchemaName) {
-    return "ALTER TABLE `" + fromSchemaName + "`.`" + fromTableName + "` SET SCHEMA = `"
-        + toSchemaName + "`";
+    return "ALTER TABLE `" + fromSchemaName + "`.`" + fromTableName + "` RENAME TO `"
+        + toSchemaName + "`.`" + fromTableName;
   }
 
   @Override
