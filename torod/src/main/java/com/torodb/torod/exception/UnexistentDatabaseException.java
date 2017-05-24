@@ -44,4 +44,7 @@ public class UnexistentDatabaseException extends SchemaOperationException {
     this.dbName = dbName;
   }
 
+  public String getDbName() {
+    return dbName;
+  }
 }

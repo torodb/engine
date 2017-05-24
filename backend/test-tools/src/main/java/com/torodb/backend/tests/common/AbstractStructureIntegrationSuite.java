@@ -28,7 +28,6 @@ import com.torodb.backend.SqlHelper;
 import com.torodb.backend.SqlInterface;
 import com.torodb.backend.converters.jooq.DataTypeForKv;
 import com.torodb.backend.ddl.DefaultReadStructure;
-import com.torodb.backend.meta.SchemaUpdater;
 import com.torodb.core.TableRef;
 import com.torodb.core.TableRefFactory;
 import com.torodb.core.exceptions.InvalidDatabaseException;
@@ -78,9 +77,8 @@ public abstract class AbstractStructureIntegrationSuite {
     DataTypeProvider dataTypeProvider = getDataTypeProvider();
     ErrorHandler errorHandler = getErrorHandler();
     SqlHelper sqlHelper = new SqlHelper(dataTypeProvider, errorHandler);
-    SchemaUpdater schemaUpdater = getSchemaUpdater(sqlInterface, sqlHelper);
     defaultReadStructure = getDefaultReadStructure(
-        sqlInterface, sqlHelper, schemaUpdater, tableRefFactory);
+        sqlInterface, sqlHelper, tableRefFactory);
     dbTestContext.setupDatabase();
   }
 
@@ -95,12 +93,9 @@ public abstract class AbstractStructureIntegrationSuite {
 
   protected abstract ErrorHandler getErrorHandler();
 
-  protected abstract SchemaUpdater getSchemaUpdater(
-      SqlInterface sqlInterface, SqlHelper sqlHelper);
-
   protected abstract DefaultReadStructure getDefaultReadStructure(
       SqlInterface sqlInterface, SqlHelper sqlHelper,
-      SchemaUpdater schemaUpdater, TableRefFactory tableRefFactory);
+      TableRefFactory tableRefFactory);
 
   protected abstract String getSqlTypeOf(FieldType fieldType);
 

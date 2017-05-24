@@ -25,8 +25,4 @@ class IncompatibleSchemaException extends Exception {
 
   private static final long serialVersionUID = 5421394120084L;
 
-  public IncompatibleSchemaException() {
-  }
-
-
 }

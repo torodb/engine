@@ -28,7 +28,6 @@ import com.torodb.core.transaction.metainf.FieldType;
 import java.io.StringReader;
 
 import javax.json.Json;
-import javax.json.JsonObject;
 import javax.json.JsonReader;
 
 public class MySqlMetaFieldRecord extends MetaFieldRecord<String> {

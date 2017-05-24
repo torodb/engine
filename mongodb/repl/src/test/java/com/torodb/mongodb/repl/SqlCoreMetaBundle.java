@@ -71,7 +71,7 @@ public class SqlCoreMetaBundle extends AbstractCoreMetaBundle {
   @Override
   protected void postDependenciesStartUp() throws Exception {
     backendBundle.startAsync();
-    backendBundle.awaitRunning();;
+    backendBundle.awaitRunning();
     
     super.postDependenciesStartUp();
   }

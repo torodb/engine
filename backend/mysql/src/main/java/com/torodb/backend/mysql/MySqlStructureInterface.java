@@ -37,11 +37,8 @@ import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
 import com.torodb.kvdocument.values.KvInstant;
 import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 import org.jooq.lambda.tuple.Tuple3;
 
-import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;

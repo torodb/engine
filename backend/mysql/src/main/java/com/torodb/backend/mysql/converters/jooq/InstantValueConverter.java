@@ -30,7 +30,6 @@ import org.jooq.DataType;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
-import org.jooq.util.mysql.MySQLDataType;
 
 import java.sql.Timestamp;
 import java.time.Instant;

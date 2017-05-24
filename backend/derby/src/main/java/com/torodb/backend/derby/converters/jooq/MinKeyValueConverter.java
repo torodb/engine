@@ -30,8 +30,6 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
 
-import java.sql.Types;
-
 /**
  *
  */

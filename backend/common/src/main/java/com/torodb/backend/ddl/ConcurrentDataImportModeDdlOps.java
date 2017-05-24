@@ -80,7 +80,7 @@ public class ConcurrentDataImportModeDdlOps implements DataImportModeDdlOps {
   }
 
   @Override
-  public void enableDataImportMode(DSLContext dsl, MetaDatabase db) throws RollbackException {
+  public void enableDataImportMode(MetaDatabase db) throws RollbackException {
     if (!sqlInterface.getDbBackend().isOnDataInsertMode(db)) {
       sqlInterface.getDbBackend().enableDataInsertMode(db);
     }
@@ -98,13 +98,13 @@ public class ConcurrentDataImportModeDdlOps implements DataImportModeDdlOps {
     //create internal indexes
     Stream<Consumer<DSLContext>> createInternalIndexesJobs = db.streamMetaCollections().flatMap(
         col -> col.streamContainedMetaDocParts().flatMap(
-            docPart -> enableInternalIndexJobs(dsl, db, col, docPart)
+            docPart -> enableInternalIndexJobs(db, col, docPart)
         )
     );
 
     //create indexes
     Stream<Consumer<DSLContext>> createIndexesJobs = db.streamMetaCollections().flatMap(
-        col -> enableIndexJobs(dsl, db, col)
+        col -> enableIndexJobs(db, col)
     );
 
     //backend specific jobs
@@ -131,7 +131,7 @@ public class ConcurrentDataImportModeDdlOps implements DataImportModeDdlOps {
   }
 
   private Stream<Consumer<DSLContext>> enableInternalIndexJobs(
-      DSLContext dsl, MetaDatabase db, MetaCollection col, MetaDocPart docPart) {
+      MetaDatabase db, MetaCollection col, MetaDocPart docPart) {
     StructureInterface structureInterface = sqlInterface.getStructureInterface();
 
     Stream<Function<DSLContext, String>> consumerStream;
@@ -164,7 +164,7 @@ public class ConcurrentDataImportModeDdlOps implements DataImportModeDdlOps {
   }
 
   private Stream<Consumer<DSLContext>> enableIndexJobs(
-      DSLContext dsl, MetaDatabase db, MetaCollection col) {
+      MetaDatabase db, MetaCollection col) {
     List<Consumer<DSLContext>> consumerList = new ArrayList<>();
 
     Iterator<? extends MetaDocPart> docPartIterator = col.streamContainedMetaDocParts().iterator();
@@ -176,14 +176,14 @@ public class ConcurrentDataImportModeDdlOps implements DataImportModeDdlOps {
       while (docPartIndexIterator.hasNext()) {
         MetaIdentifiedDocPartIndex docPartIndex = docPartIndexIterator.next();
 
-        consumerList.add(createIndexJob(dsl, db, docPart, docPartIndex));
+        consumerList.add(createIndexJob(db, docPart, docPartIndex));
       }
     }
 
     return consumerList.stream();
   }
 
-  private Consumer<DSLContext> createIndexJob(DSLContext dsl, MetaDatabase db, MetaDocPart docPart,
+  private Consumer<DSLContext> createIndexJob(MetaDatabase db, MetaDocPart docPart,
       MetaIdentifiedDocPartIndex docPartIndex) {
     return _dsl -> {
       List<Tuple3<String, Boolean, FieldType>> columnList = new ArrayList<>(docPartIndex.size());

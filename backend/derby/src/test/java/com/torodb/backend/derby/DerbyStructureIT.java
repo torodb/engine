@@ -23,8 +23,6 @@ import com.torodb.backend.ErrorHandler;
 import com.torodb.backend.SqlHelper;
 import com.torodb.backend.SqlInterface;
 import com.torodb.backend.ddl.DefaultReadStructure;
-import com.torodb.backend.derby.schema.DerbySchemaUpdater;
-import com.torodb.backend.meta.SchemaUpdater;
 import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
 import com.torodb.backend.tests.common.DatabaseTestContext;
 import com.torodb.core.TableRefFactory;
@@ -78,14 +76,9 @@ public class DerbyStructureIT extends AbstractStructureIntegrationSuite {
   }
 
   @Override
-  protected SchemaUpdater getSchemaUpdater(SqlInterface sqlInterface, SqlHelper sqlHelper) {
-    return new DerbySchemaUpdater(sqlInterface, sqlHelper);
-  }
-
-  @Override
   protected DefaultReadStructure getDefaultReadStructure(SqlInterface sqlInterface, SqlHelper sqlHelper,
-                                                    SchemaUpdater schemaUpdater, TableRefFactory tableRefFactory) {
-    return new DefaultReadStructure(sqlInterface, sqlHelper, schemaUpdater, tableRefFactory);
+      TableRefFactory tableRefFactory) {
+    return new DefaultReadStructure(sqlInterface, sqlHelper, tableRefFactory);
   }
 
   @Override

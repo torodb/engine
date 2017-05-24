@@ -57,7 +57,6 @@ import com.torodb.torod.exception.UnexistentCollectionException;
 import com.torodb.torod.exception.UnexistentDatabaseException;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.CustomMatcher;
-import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -288,8 +287,8 @@ public abstract class SchemaManagerContract {
 
       //Then
       ImmutableMetaDatabase foundDb = sm.getMetaSnapshot().join().getMetaDatabaseByName(dbName);
-      Assert.assertThat(foundDb, notNullValue());
-      Assert.assertThat(foundDb.getName(), is(equalTo(dbName)));
+      assertThat(foundDb, notNullValue());
+      assertThat(foundDb.getName(), is(equalTo(dbName)));
 
       //ddlOpsEx must recive a request to create a db with the same name and id than the returned db
       verify(ddlOpsEx).addDatabase(argThat(matchDb(foundDb)));
@@ -306,8 +305,8 @@ public abstract class SchemaManagerContract {
 
       //Then
       ImmutableMetaDatabase foundDb = sm.getMetaSnapshot().join().getMetaDatabaseByName(dbName);
-      Assert.assertThat(foundDb, notNullValue());
-      Assert.assertThat(foundDb.getName(), is(equalTo(dbName)));
+      assertThat(foundDb, notNullValue());
+      assertThat(foundDb.getName(), is(equalTo(dbName)));
 
       verify(ddlOpsEx, times(0)).addDatabase(foundDb);
     }
@@ -339,7 +338,7 @@ public abstract class SchemaManagerContract {
 
       //Then
       ImmutableMetaDatabase foundDb = sm.getMetaSnapshot().join().getMetaDatabaseByName(dbName);
-      Assert.assertThat(foundDb, nullValue());
+      assertThat(foundDb, nullValue());
 
       //ddlOpsEx must not recive a request to drop the db
       verify(ddlOpsEx, times(0)).dropDatabase(foundDb);
@@ -358,7 +357,7 @@ public abstract class SchemaManagerContract {
 
       //Then
       ImmutableMetaDatabase foundDb = sm.getMetaSnapshot().join().getMetaDatabaseByName(dbName);
-      Assert.assertThat(foundDb, nullValue());
+      assertThat(foundDb, nullValue());
 
       //ddlOpsEx must recive a request to drop a db with the same name and id
       verify(ddlOpsEx).dropDatabase(argThat(matchDb(initialDb)));
@@ -414,10 +413,10 @@ public abstract class SchemaManagerContract {
 
       //Then
       ImmutableMetaDatabase foundDb = sm.getMetaSnapshot().join().getMetaDatabaseByName(dbName);
-      Assert.assertThat(foundDb, notNullValue());
+      assertThat(foundDb, notNullValue());
       ImmutableMetaCollection foundCol = foundDb.getMetaCollectionByName(colName);
-      Assert.assertThat(foundCol, notNullValue());
-      Assert.assertThat(foundCol.getName(), is(equalTo(colName)));
+      assertThat(foundCol, notNullValue());
+      assertThat(foundCol.getName(), is(equalTo(colName)));
 
       //ddlOpsEx must recive a request to add that collection
       verify(ddlOpsEx).addCollection(argThat(matchDb(initialDb)), argThat(matchCol(foundCol)));
@@ -488,9 +487,9 @@ public abstract class SchemaManagerContract {
 
       //Then
       ImmutableMetaDatabase foundDb = sm.getMetaSnapshot().join().getMetaDatabaseByName(dbName);
-      Assert.assertThat(foundDb, notNullValue());
+      assertThat(foundDb, notNullValue());
       ImmutableMetaCollection foundCol = foundDb.getMetaCollectionByName(colName);
-      Assert.assertThat(foundCol, nullValue());
+      assertThat(foundCol, nullValue());
 
       verify(ddlOpsEx, times(0)).dropCollection(any(), any());
     }
@@ -512,9 +511,9 @@ public abstract class SchemaManagerContract {
       //Then
       verify(ddlOpsEx, times(0)).addCollection(any(), any());
       ImmutableMetaDatabase foundDb = sm.getMetaSnapshot().join().getMetaDatabaseByName(dbName);
-      Assert.assertThat(foundDb, notNullValue());
+      assertThat(foundDb, notNullValue());
       ImmutableMetaCollection foundCol = foundDb.getMetaCollectionByName(colName);
-      Assert.assertThat(foundCol, nullValue());
+      assertThat(foundCol, nullValue());
 
       //ddlOpsEx must recive a request to add that collection
       verify(ddlOpsEx, times(1)).dropCollection(

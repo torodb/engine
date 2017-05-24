@@ -27,7 +27,7 @@ import org.jooq.DSLContext;
  */
 public interface DataImportModeDdlOps extends AutoCloseable {
 
-  public void enableDataImportMode(DSLContext dsl, MetaDatabase db) throws RollbackException;
+  public void enableDataImportMode(MetaDatabase db) throws RollbackException;
 
   public void disableDataImportMode(DSLContext dsl, MetaDatabase db) throws RollbackException;
 

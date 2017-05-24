@@ -153,7 +153,7 @@ public class DefaultDdlOperationExecutor implements DdlOperationExecutor {
   public void enableDataImportMode(MetaDatabase db) throws RollbackException {
     Preconditions.checkState(!isClosed(), "This operation executor is closed");
     try {
-      ddlOps.getDataImportModeDdlOps().enableDataImportMode(dsl, db);
+      ddlOps.getDataImportModeDdlOps().enableDataImportMode(db);
       commit();
     } catch (RollbackException ex) {
       rollback();

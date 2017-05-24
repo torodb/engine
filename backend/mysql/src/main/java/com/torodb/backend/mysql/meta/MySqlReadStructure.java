@@ -20,7 +20,6 @@ package com.torodb.backend.mysql.meta;
 import com.torodb.backend.SqlHelper;
 import com.torodb.backend.SqlInterface;
 import com.torodb.backend.ddl.DefaultReadStructure;
-import com.torodb.backend.meta.SchemaUpdater;
 import com.torodb.backend.meta.SchemaValidator;
 import com.torodb.backend.tables.records.MetaDatabaseRecord;
 import com.torodb.core.TableRefFactory;
@@ -32,8 +31,8 @@ public class MySqlReadStructure extends DefaultReadStructure {
 
   @Inject
   public MySqlReadStructure(SqlInterface sqlInterface, SqlHelper sqlHelper,
-                            SchemaUpdater schemaUpdater, TableRefFactory tableRefFactory) {
-    super(sqlInterface, sqlHelper, schemaUpdater, tableRefFactory);
+      TableRefFactory tableRefFactory) {
+    super(sqlInterface, sqlHelper, tableRefFactory);
   }
 
   @Override

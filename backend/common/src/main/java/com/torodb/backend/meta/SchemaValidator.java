@@ -36,7 +36,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 
 public class SchemaValidator {
 
@@ -142,12 +141,8 @@ public class SchemaValidator {
         for (TableField field : table.fields()) {
           if (field.getName().equals(columnName)) {
             String typeName = columnType.getTypeName();
-            if (field.getSqlType() == columnType.getSQLType() 
-                && field.getTypeName().replace("\"", "").equals(typeName)) {
-              return true;
-            } else {
-              return false;
-            }
+            return field.getSqlType() == columnType.getSQLType() 
+                && field.getTypeName().replace("\"", "").equals(typeName);
           }
         }
       }

@@ -18,7 +18,6 @@
 
 package com.torodb.backend.derby;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.torodb.backend.AbstractStructureInterface;
 import com.torodb.backend.InternalField;

@@ -44,9 +44,6 @@ public class BatchMetaCollectionTest {
   private BatchMetaCollection collection;
   private WrapperMutableMetaCollection delegate;
 
-  public BatchMetaCollectionTest() {
-  }
-
   @Before
   public void setUp() {
     ImmutableMetaCollection immutableCollection = new ImmutableMetaCollection.Builder("colName",

@@ -20,9 +20,6 @@ package com.torodb.backend.tests.common;
 
 import static org.junit.Assert.assertEquals;
 
-import com.torodb.backend.DataTypeProvider;
-import com.torodb.backend.ErrorHandler;
-import com.torodb.backend.SqlHelper;
 import com.torodb.backend.SqlInterface;
 import com.torodb.backend.tables.MetaCollectionTable;
 import com.torodb.backend.tables.MetaDatabaseTable;

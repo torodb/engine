@@ -23,9 +23,7 @@ import com.torodb.backend.ErrorHandler;
 import com.torodb.backend.SqlHelper;
 import com.torodb.backend.SqlInterface;
 import com.torodb.backend.ddl.DefaultReadStructure;
-import com.torodb.backend.meta.SchemaUpdater;
 import com.torodb.backend.mysql.meta.MySqlReadStructure;
-import com.torodb.backend.mysql.meta.MySqlSchemaUpdater;
 import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
 import com.torodb.backend.tests.common.DatabaseTestContext;
 import com.torodb.core.TableRefFactory;
@@ -45,13 +43,13 @@ public class MySqlStructureIT extends AbstractStructureIntegrationSuite {
 
   private static MysqlService mysqlDockerService;
 
+  private Map<FieldType, String> typesDictionary = new HashMap<>();
+
   @BeforeClass
   public static void beforeAll() {
     mysqlDockerService = MysqlService.defaultService(EnumVersion.LATEST);
-    System.out.println("Starting mysql docker");
     mysqlDockerService.startAsync();
     mysqlDockerService.awaitRunning();
-    System.out.println("Mysql docker started");
   }
 
   @AfterClass
@@ -61,8 +59,6 @@ public class MySqlStructureIT extends AbstractStructureIntegrationSuite {
       mysqlDockerService.awaitTerminated();
     }
   }
-
-  private Map<FieldType, String> typesDictionary = new HashMap<>();
 
   public MySqlStructureIT() {
     typesDictionary.put(FieldType.STRING, "TEXT");
@@ -110,14 +106,9 @@ public class MySqlStructureIT extends AbstractStructureIntegrationSuite {
   }
 
   @Override
-  protected SchemaUpdater getSchemaUpdater(SqlInterface sqlInterface, SqlHelper sqlHelper) {
-    return new MySqlSchemaUpdater(sqlInterface, sqlHelper);
-  }
-
-  @Override
   protected DefaultReadStructure getDefaultReadStructure(SqlInterface sqlInterface, SqlHelper sqlHelper,
-                                                    SchemaUpdater schemaUpdater, TableRefFactory tableRefFactory) {
-    return new MySqlReadStructure(sqlInterface, sqlHelper, schemaUpdater, tableRefFactory);
+      TableRefFactory tableRefFactory) {
+    return new MySqlReadStructure(sqlInterface, sqlHelper, tableRefFactory);
   }
 
   @Override

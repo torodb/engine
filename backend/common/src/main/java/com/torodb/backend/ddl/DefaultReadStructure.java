@@ -22,7 +22,6 @@ import com.torodb.backend.BackendLoggerFactory;
 import com.torodb.backend.SqlHelper;
 import com.torodb.backend.SqlInterface;
 import com.torodb.backend.exceptions.InvalidDatabaseSchemaException;
-import com.torodb.backend.meta.SchemaUpdater;
 import com.torodb.backend.meta.SchemaValidator;
 import com.torodb.backend.meta.SchemaValidator.Table;
 import com.torodb.backend.meta.SchemaValidator.TableField;
@@ -80,7 +79,7 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
 
   @Inject
   public DefaultReadStructure(SqlInterface sqlInterface, SqlHelper sqlHelper,
-      SchemaUpdater schemaUpdater, TableRefFactory tableRefFactory) {
+      TableRefFactory tableRefFactory) {
     this.sqlInterface = sqlInterface;
     this.sqlHelper = sqlHelper;
     this.tableRefFactory = tableRefFactory;
@@ -377,7 +376,7 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
       if (field == null) {
         throw new InvalidDatabaseSchemaException(database.getIdentifier(),
             "Found doc part index column " + getDocPartIndexColumnRef(database, collection, docPart,
-                docPartIndexIdentifier, indexColumn)
+                indexColumn)
             + " but no associated field has been found");
       }
 
@@ -385,7 +384,7 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
           field.getIdentifier())) {
         throw new InvalidDatabaseSchemaException(database.getIdentifier(),
             "Doc part index column " + getDocPartIndexColumnRef(database, collection, docPart,
-                docPartIndexIdentifier, indexColumn)
+                indexColumn)
             + " is associated with field " + getFieldRef(database, collection, docPart, field)
             + " but there is no column with that name in index " + getIndexRef(database, docPart,
                 docPartIndexIdentifier));
@@ -410,13 +409,12 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
           .orderBy(indexFieldTable.POSITION)
           .fetch()
           .forEach(
-              (indexField) -> analyzeIndexField(db, metaIndex, indexField, schemaValidator));
+              (indexField) -> analyzeIndexField(metaIndex, indexField));
 
     }
 
-    private void analyzeIndexField(MutableMetaDatabase db,
-        MutableMetaIndex metaIndex, MetaIndexFieldRecord<Object> indexField,
-        SchemaValidator schemaValidator) {
+    private void analyzeIndexField(
+        MutableMetaIndex metaIndex, MetaIndexFieldRecord<Object> indexField) {
       if (!indexField.getIndex().equals(metaIndex.getName())) {
         return;
       }
@@ -454,8 +452,7 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
     }
 
     private String getDocPartIndexColumnRef(MetaDatabase database, MetaCollection collection,
-        MetaDocPart docPart, String docPartIndexIdentifier,
-        MetaDocPartIndexColumnRecord<?> column) {
+        MetaDocPart docPart, MetaDocPartIndexColumnRecord<?> column) {
       return getDocPartRef(database, collection, docPart) + "." + column.getIdentifier();
     }
 

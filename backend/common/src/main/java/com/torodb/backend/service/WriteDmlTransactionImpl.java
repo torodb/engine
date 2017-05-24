@@ -40,7 +40,6 @@ import java.util.Collection;
 
 class WriteDmlTransactionImpl extends BackendTransactionImpl implements
     WriteDmlTransaction {
-
   private static final Logger LOGGER = BackendLoggerFactory.get(WriteDmlTransactionImpl.class);
 
   public WriteDmlTransactionImpl(

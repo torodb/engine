@@ -94,6 +94,18 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>com.torodb.testing</groupId>
+                <artifactId>postgres-junit-5</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.torodb.testing</groupId>
+                <artifactId>mysql-junit-5</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>commons-logging</groupId>
                 <artifactId>commons-logging</artifactId>
                 <version>1.2</version>

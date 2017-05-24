@@ -41,16 +41,12 @@ public class BatchMetaDocPartTest {
   private BatchMetaDocPart docPart;
   private WrapperMutableMetaDocPart delegate;
   private Consumer<BatchMetaDocPart> testChangeConsumer;
-  private Consumer<WrapperMutableMetaDocPart> delegateChangeConsumer;
-
-  public BatchMetaDocPartTest() {
-  }
 
   @Before
   @SuppressWarnings("unchecked")
   public void setUp() throws Exception {
     testChangeConsumer = mock(Consumer.class);
-    delegateChangeConsumer = mock(Consumer.class);
+    Consumer<WrapperMutableMetaDocPart> delegateChangeConsumer = mock(Consumer.class);
 
     delegate = new WrapperMutableMetaDocPart(
         new ImmutableMetaDocPart(tableRefFactory.createRoot(), "docPartId"),

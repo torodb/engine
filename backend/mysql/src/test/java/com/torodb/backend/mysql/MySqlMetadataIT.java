@@ -33,10 +33,8 @@ public class MySqlMetadataIT extends AbstractMetaDataIntegrationSuite {
   @BeforeClass
   public static void beforeAll() {
     mysqlDockerService = MysqlService.defaultService(EnumVersion.LATEST);
-    System.out.println("Starting mysql docker");
     mysqlDockerService.startAsync();
     mysqlDockerService.awaitRunning();
-    System.out.println("Mysql docker started");
   }
 
   @AfterClass

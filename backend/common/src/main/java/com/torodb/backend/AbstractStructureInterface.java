@@ -37,11 +37,8 @@ import org.jooq.DSLContext;
 import org.jooq.Meta;
 import org.jooq.Schema;
 import org.jooq.Table;
-import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 import org.jooq.lambda.tuple.Tuple3;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
