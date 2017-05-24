@@ -87,8 +87,8 @@ public class PostgreSqlStructureInterface extends AbstractStructureInterface {
   }
 
   @Override
-  protected String getRenameIndexStatement(String fromSchemaName, String fromIndexName,
-      String toIndexName) {
+  protected String getRenameIndexStatement(String fromSchemaName, String fromTableName, 
+      String fromIndexName, String toIndexName) {
     return "ALTER INDEX \"" + fromSchemaName + "\".\"" + fromIndexName + "\" RENAME TO \""
         + toIndexName + "\"";
   }

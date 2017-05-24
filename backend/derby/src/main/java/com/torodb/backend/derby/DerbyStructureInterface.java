@@ -74,8 +74,8 @@ public class DerbyStructureInterface extends AbstractStructureInterface {
   }
 
   @Override
-  protected String getRenameIndexStatement(String fromSchemaName, String fromIndexName,
-      String toIndexName) {
+  protected String getRenameIndexStatement(String fromSchemaName, String fromTableName, 
+      String fromIndexName, String toIndexName) {
     return "SET SCHEMA = \"" + fromSchemaName + "\"; RENAME INDEX \"" + fromIndexName + "\" TO \""
         + toIndexName + "\"";
   }

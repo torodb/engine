@@ -43,7 +43,8 @@ public class InstantValueConverter implements KvValueConverter<Timestamp, Timest
   private static final long serialVersionUID = 1L;
 
   public static final DataType<Timestamp> TIMESTAMP =
-      new DefaultDataType<Timestamp>(SQLDialect.MYSQL, SQLDataType.TIMESTAMP, "TIMESTAMP");
+      new DefaultDataType<Timestamp>(SQLDialect.MYSQL, SQLDataType.TIMESTAMP.length(3), 
+          "TIMESTAMP");
 
   public static final DataTypeForKv<KvInstant> TYPE = DataTypeForKv.from(
       InstantValueConverter.TIMESTAMP, new InstantValueConverter());

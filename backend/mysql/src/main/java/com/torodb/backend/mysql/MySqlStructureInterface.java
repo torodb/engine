@@ -35,9 +35,13 @@ import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
+import com.torodb.kvdocument.values.KvInstant;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.lambda.tuple.Tuple3;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -88,22 +92,22 @@ public class MySqlStructureInterface extends AbstractStructureInterface {
   @Override
   protected String getRenameTableStatement(String fromSchemaName, String fromTableName,
       String toTableName) {
-    return "ALTER TABLE `" + fromSchemaName + "`.`" + fromTableName + "` RENAME TO `"
-        + toTableName + "`";
+    return "ALTER TABLE `" + fromSchemaName + "`.`" + fromTableName + "` RENAME TO  `" 
+      + fromSchemaName + "`.`" + toTableName + "`";
   }
 
   @Override
-  protected String getRenameIndexStatement(String fromSchemaName, String fromIndexName,
-      String toIndexName) {
-    return "ALTER TABLE RENAME INDEX `" + fromSchemaName + "`.`" + fromIndexName + "` TO `"
-        + toIndexName + "`";
+  protected String getRenameIndexStatement(String fromSchemaName, String fromTableName, 
+      String fromIndexName, String toIndexName) {
+    return "ALTER TABLE `" + fromSchemaName + "`.`" + fromTableName + "` RENAME INDEX `" 
+        + fromIndexName + "` TO `" + toIndexName + "`";
   }
 
   @Override
   protected String getSetTableSchemaStatement(String fromSchemaName, String fromTableName,
       String toSchemaName) {
     return "ALTER TABLE `" + fromSchemaName + "`.`" + fromTableName + "` RENAME TO `"
-        + toSchemaName + "`.`" + fromTableName;
+        + toSchemaName + "`.`" + fromTableName + "`";
   }
 
   @Override
@@ -124,8 +128,8 @@ public class MySqlStructureInterface extends AbstractStructureInterface {
         .append(" (");
     for (Tuple3<String, Boolean, FieldType> columnEntry : columnList) {
       sb.append("`").append(columnEntry.v1()).append("`");
-      if (StringValueConverter.TEXT == dataTypeProvider
-          .getDataType(columnEntry.v3()).getSQLDataType()) {
+      if (StringValueConverter.TEXT.getTypeName().equals(dataTypeProvider
+          .getDataType(columnEntry.v3()).getSQLDataType().getTypeName())) {
         sb.append("(3072)");
       }
       sb.append(columnEntry.v2() ? " ASC," : " DESC,");
@@ -251,12 +255,19 @@ public class MySqlStructureInterface extends AbstractStructureInterface {
   protected String getAddColumnToDocPartTableStatement(String schemaName, String tableName,
       String columnName,
       DataTypeForKv<?> dataType) {
+    String castDataTypeName = dataType.getCastTypeName();
+    
+    if (dataType.getType() == KvInstant.class) {
+      castDataTypeName += "(" + dataType.length() + ")";
+    }
+    
     SqlBuilder sb = new MySqlBuilder("ALTER TABLE ")
         .table(schemaName, tableName)
         .append(" ADD COLUMN ")
         .quote(columnName)
         .append(" ")
-        .append(dataType.getCastTypeName());
+        .append(castDataTypeName)
+        .append(" NULL");
     return sb.toString();
   }
 

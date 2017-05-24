@@ -37,8 +37,11 @@ import org.jooq.DSLContext;
 import org.jooq.Meta;
 import org.jooq.Schema;
 import org.jooq.Table;
+import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.lambda.tuple.Tuple3;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -132,14 +135,15 @@ public abstract class AbstractStructureInterface implements StructureInterface {
             .findAny()
             .get();
 
-        String renameIndexStatement = getRenameIndexStatement(fromSchemaName, fromMetaIndex
-            .getIdentifier(), toMetaIndex.getIdentifier());
+        String renameIndexStatement = getRenameIndexStatement(
+            fromSchemaName, toMetaDocPart.getIdentifier(), 
+            fromMetaIndex.getIdentifier(), toMetaIndex.getIdentifier());
         sqlHelper.executeUpdate(dsl, renameIndexStatement, Context.RENAME_INDEX);
       }
 
       if (!fromSchemaName.equals(toSchemaName)) {
-        String setSchemaStatement = getSetTableSchemaStatement(fromSchemaName, toMetaDocPart
-            .getIdentifier(), toSchemaName);
+        String setSchemaStatement = getSetTableSchemaStatement(fromSchemaName, 
+            toMetaDocPart.getIdentifier(), toSchemaName);
         sqlHelper.executeUpdate(dsl, setSchemaStatement, Context.SET_TABLE_SCHEMA);
       }
     }
@@ -147,9 +151,9 @@ public abstract class AbstractStructureInterface implements StructureInterface {
 
   protected abstract String getRenameTableStatement(String fromSchemaName, String fromTableName,
       String toTableName);
-
-  protected abstract String getRenameIndexStatement(String fromSchemaName, String fromIndexName,
-      String toIndexName);
+  
+  protected abstract String getRenameIndexStatement(String fromSchemaName, String fromTableName, 
+      String fromIndexName, String toIndexName);
 
   protected abstract String getSetTableSchemaStatement(String fromSchemaName, String fromTableName,
       String toSchemaName);
