@@ -92,12 +92,23 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.torodb.testing</groupId>
+            <artifactId>mysql-docker</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
         </dependency>
         <dependency>
             <groupId>com.torodb.engine.backend</groupId>
             <artifactId>backend-postgresql</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.torodb.engine.backend</groupId>
+            <artifactId>backend-mysql</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
