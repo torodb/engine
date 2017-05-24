@@ -21,12 +21,35 @@ package com.torodb.backend.mysql;
 
 import com.torodb.backend.tests.common.AbstractMetaDataIntegrationSuite;
 import com.torodb.backend.tests.common.DatabaseTestContext;
+import com.torodb.testing.docker.mysql.EnumVersion;
+import com.torodb.testing.docker.mysql.MysqlService;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 public class MySqlMetadataIT extends AbstractMetaDataIntegrationSuite {
 
+  private static MysqlService mysqlDockerService;
+
+  @BeforeClass
+  public static void beforeAll() {
+    mysqlDockerService = MysqlService.defaultService(EnumVersion.LATEST);
+    System.out.println("Starting mysql docker");
+    mysqlDockerService.startAsync();
+    mysqlDockerService.awaitRunning();
+    System.out.println("Mysql docker started");
+  }
+
+  @AfterClass
+  public static void afterAll() {
+    if (mysqlDockerService != null && mysqlDockerService.isRunning()) {
+      mysqlDockerService.stopAsync();
+      mysqlDockerService.awaitTerminated();
+    }
+  }
+
   @Override
   protected DatabaseTestContext getDatabaseTestContext() {
-    return new MySqlDatabaseTestContextFactory().createInstance();
+    return new MySqlDatabaseTestContextFactory().createInstance(mysqlDockerService);
   }
 
 }

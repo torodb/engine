@@ -18,41 +18,41 @@
 
 package com.torodb.backend.mysql;
 
-import com.torodb.backend.*;
+import com.torodb.backend.BackendConfig;
+import com.torodb.backend.BackendConfigImplBuilder;
+import com.torodb.backend.DslContextFactory;
+import com.torodb.backend.DslContextFactoryImpl;
+import com.torodb.backend.SqlHelper;
+import com.torodb.backend.SqlInterface;
+import com.torodb.backend.SqlInterfaceDelegate;
 import com.torodb.backend.meta.SchemaUpdater;
-import com.torodb.backend.mysql.MySqlDataTypeProvider;
-import com.torodb.backend.mysql.MySqlDbBackend;
-import com.torodb.backend.mysql.MySqlErrorHandler;
-import com.torodb.backend.mysql.MySqlIdentifierConstraints;
-import com.torodb.backend.mysql.MySqlMetaDataReadInterface;
-import com.torodb.backend.mysql.MySqlMetaDataWriteInterface;
-import com.torodb.backend.mysql.MySqlStructureInterface;
-import com.torodb.backend.mysql.driver.OfficialMySqlDriver;
 import com.torodb.backend.mysql.driver.MySqlDriverProvider;
+import com.torodb.backend.mysql.driver.OfficialMySqlDriver;
 import com.torodb.backend.mysql.meta.MySqlSchemaUpdater;
 import com.torodb.backend.tests.common.DatabaseTestContext;
 import com.torodb.backend.tests.common.IntegrationTestBundleConfig;
 import com.torodb.core.backend.IdentifierConstraints;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.core.d2r.UniqueIdentifierGenerator;
+import com.torodb.testing.docker.mysql.MysqlService;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 public class MySqlDatabaseTestContextFactory {
 
-  public DatabaseTestContext createInstance() {
+  public DatabaseTestContext createInstance(MysqlService mysqlService) {
     MySqlDataTypeProvider dataTypeProvider = new MySqlDataTypeProvider();
     MySqlErrorHandler errorHandler = new MySqlErrorHandler();
     SqlHelper sqlHelper = new SqlHelper(dataTypeProvider, errorHandler);
 
     BundleConfig bundleConfig = new IntegrationTestBundleConfig();
     BackendConfig backendConfig = new BackendConfigImplBuilder(bundleConfig)
-        .setUsername("test")
-        .setPassword("test")
-        .setDbHost("localhost")
-        .setDbName("test")
-        .setDbPort(13306)
+        .setUsername(mysqlService.getConfig().getUsername())
+        .setPassword(mysqlService.getConfig().getPassword())
+        .setDbName(mysqlService.getConfig().getDb())
+        .setDbHost(mysqlService.getAddress().getHost())
+        .setDbPort(mysqlService.getAddress().getPort())
         .setIncludeForeignKeys(false)
         .build();
 

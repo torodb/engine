@@ -24,12 +24,16 @@ import com.torodb.backend.SqlHelper;
 import com.torodb.backend.SqlInterface;
 import com.torodb.backend.ddl.DefaultReadStructure;
 import com.torodb.backend.meta.SchemaUpdater;
-import com.torodb.backend.mysql.meta.MySqlSchemaUpdater;
 import com.torodb.backend.mysql.meta.MySqlReadStructure;
+import com.torodb.backend.mysql.meta.MySqlSchemaUpdater;
 import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
 import com.torodb.backend.tests.common.DatabaseTestContext;
 import com.torodb.core.TableRefFactory;
 import com.torodb.core.transaction.metainf.FieldType;
+import com.torodb.testing.docker.mysql.EnumVersion;
+import com.torodb.testing.docker.mysql.MysqlService;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -38,6 +42,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MySqlStructureIT extends AbstractStructureIntegrationSuite {
+
+  private static MysqlService mysqlDockerService;
+
+  @BeforeClass
+  public static void beforeAll() {
+    mysqlDockerService = MysqlService.defaultService(EnumVersion.LATEST);
+    System.out.println("Starting mysql docker");
+    mysqlDockerService.startAsync();
+    mysqlDockerService.awaitRunning();
+    System.out.println("Mysql docker started");
+  }
+
+  @AfterClass
+  public static void afterAll() {
+    if (mysqlDockerService != null && mysqlDockerService.isRunning()) {
+      mysqlDockerService.stopAsync();
+      mysqlDockerService.awaitTerminated();
+    }
+  }
 
   private Map<FieldType, String> typesDictionary = new HashMap<>();
 
@@ -73,7 +96,7 @@ public class MySqlStructureIT extends AbstractStructureIntegrationSuite {
 
   @Override
   protected DatabaseTestContext getDatabaseTestContext() {
-    return new MySqlDatabaseTestContextFactory().createInstance();
+    return new MySqlDatabaseTestContextFactory().createInstance(mysqlDockerService);
   }
 
   @Override
