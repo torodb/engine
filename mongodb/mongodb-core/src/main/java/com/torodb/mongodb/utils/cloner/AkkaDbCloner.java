@@ -190,6 +190,10 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
   private void cloneDatabase(List<Entry> collsToClone, String dstDb, MongoClient remoteClient,
       MongodServer localServer, CloneOptions opts) throws MongoException {
 
+    if (collsToClone.isEmpty()) {
+      return;
+    }
+
     prepareCollections(collsToClone, localServer, dstDb);
 
     enableImportMode(localServer, dstDb);
