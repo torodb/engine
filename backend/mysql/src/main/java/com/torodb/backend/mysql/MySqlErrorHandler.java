@@ -65,6 +65,7 @@ public class MySqlErrorHandler extends AbstractErrorHandler {
         /**
          * Duplicate key value in unique index on insert
          */
+        userRule("23000", b -> new UniqueIndexViolationException(b.getMessage(), b), INSERT),
         userRule("23505", b -> new UniqueIndexViolationException(b.getMessage(), b), INSERT)
     );
   }

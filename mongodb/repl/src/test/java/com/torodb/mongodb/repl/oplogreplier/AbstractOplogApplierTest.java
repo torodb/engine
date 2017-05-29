@@ -68,6 +68,8 @@ public abstract class AbstractOplogApplierTest {
           "dropIndex",
           "dropIndexes",
           "drop_collection_filtered",
+          "simpleFirstInsert",
+          "simpleInsert",
           "insertRepeated",
           "insert_update_add",
           "letschat_upsert",
