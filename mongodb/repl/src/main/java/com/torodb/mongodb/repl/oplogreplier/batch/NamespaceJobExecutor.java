@@ -65,6 +65,7 @@ public class NamespaceJobExecutor {
       try (WriteMongodTransaction trans = server.openWriteTransaction()) {
         apply(job, trans, optimisticDeleteAndCreate);
         trans.commit();
+        break;
       } catch (RollbackException ignore) {
         //just retry in case the transaction rolled because it was needed to change the schema
       } catch (TimeoutException ex) {
