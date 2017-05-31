@@ -159,7 +159,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
   public void createIndex(DSLContext dsl, String indexName, String schemaName, String tableName,
       List<Tuple3<String, Boolean, FieldType>> columnList, boolean unique)
       throws UserException {
-    if (!dbBackend.isOnDataInsertMode(schemaName)) {
+    if (!dbBackend.isOnDataInsertMode(dbName)) {
       Preconditions.checkArgument(!columnList.isEmpty(), "Can not create index on 0 columns");
 
       String statement = getCreateIndexStatement(indexName, schemaName, tableName, columnList,
@@ -297,9 +297,9 @@ public abstract class AbstractStructureInterface implements StructureInterface {
 
   @Override
   public Stream<Function<DSLContext, String>> streamRootDocPartTableIndexesCreation(
-      String schemaName, String tableName, TableRef tableRef) {
+      String dbName, String schemaName, String tableName, TableRef tableRef) {
     List<Function<DSLContext, String>> result = new ArrayList<>(1);
-    if (!dbBackend.isOnDataInsertMode(schemaName)) {
+    if (!dbBackend.isOnDataInsertMode(dbName)) {
       String primaryKeyStatement = getAddDocPartTablePrimaryKeyStatement(schemaName, tableName,
           metaDataReadInterface.getPrimaryKeyInternalFields(tableRef));
 
@@ -316,7 +316,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
   public Stream<Function<DSLContext, String>> streamDocPartTableIndexesCreation(
       String schemaName, String tableName, TableRef tableRef, String foreignTableName) {
     List<Function<DSLContext, String>> result = new ArrayList<>(4);
-    if (!dbBackend.isOnDataInsertMode(schemaName)) {
+    if (!dbBackend.isOnDataInsertMode(dbName)) {
       String primaryKeyStatement = getAddDocPartTablePrimaryKeyStatement(schemaName, tableName,
           metaDataReadInterface.getPrimaryKeyInternalFields(tableRef));
       result.add((dsl) -> {
@@ -325,7 +325,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
       });
     }
 
-    if (!dbBackend.isOnDataInsertMode(schemaName)) {
+    if (!dbBackend.isOnDataInsertMode(dbName)) {
       String readIndexStatement = getCreateDocPartTableIndexStatement(schemaName, tableName,
           metaDataReadInterface.getReadInternalFields(tableRef));
       result.add((dsl) -> {
@@ -335,7 +335,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
       });
     }
 
-    if (!dbBackend.isOnDataInsertMode(schemaName)) {
+    if (!dbBackend.isOnDataInsertMode(dbName)) {
       if (dbBackend.includeForeignKeys()) {
         String foreignKeyStatement = getAddDocPartTableForeignKeyStatement(schemaName, tableName,
             metaDataReadInterface.getReferenceInternalFields(tableRef),
