@@ -73,14 +73,10 @@ public interface StructureInterface {
    *
    * The returned stream is empty if the backend is not including the internal indexes
    *
-   * @param schemaName
-   * @param tableName
-   * @param tableRef
-   * @return
    * @see DbBackend#includeInternalIndexes()
    */
-  Stream<Function<DSLContext, String>> streamRootDocPartTableIndexesCreation(String schemaName,
-      String tableName, TableRef tableRef);
+  Stream<Function<DSLContext, String>> streamRootDocPartTableIndexesCreation(
+      String schemaName, String tableName, TableRef tableRef);
 
   /**
    * Returns a stream of functions that, when executed, creates the required indexes on a doc part
@@ -88,11 +84,6 @@ public interface StructureInterface {
    *
    * The returned stream is empty if the backend is not including the internal indexes
    *
-   * @param schemaName
-   * @param tableName
-   * @param tableRef
-   * @param foreignTableName
-   * @return
    * @see DbBackend#includeInternalIndexes()
    */
   Stream<Function<DSLContext, String>> streamDocPartTableIndexesCreation(

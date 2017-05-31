@@ -203,18 +203,18 @@ public abstract class AbstractDbBackendService<ConfigurationT extends BackendCon
                                                         String poolName);
 
   @Override
-  public void disableDataInsertMode(String schemaName) {
-    schemaImportMode.put(schemaName, Boolean.FALSE);
+  public void disableDataInsertMode(String dbName) {
+    schemaImportMode.put(dbName, Boolean.FALSE);
   }
 
   @Override
-  public void enableDataInsertMode(String schemaName) {
-    schemaImportMode.put(schemaName, Boolean.TRUE);
+  public void enableDataInsertMode(String dbName) {
+    schemaImportMode.put(dbName, Boolean.TRUE);
   }
 
   @Override
-  public boolean isOnDataInsertMode(String schemaName) {
-    Boolean importMode = schemaImportMode.get(schemaName);
+  public boolean isOnDataInsertMode(String dbName) {
+    Boolean importMode = schemaImportMode.get(dbName);
     if (importMode == null) {
       return false;
     }

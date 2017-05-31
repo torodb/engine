@@ -81,19 +81,21 @@ public class ConcurrentDataImportModeDdlOps implements DataImportModeDdlOps {
 
   @Override
   public void enableDataImportMode(MetaDatabase db) throws RollbackException {
-    if (!sqlInterface.getDbBackend().isOnDataInsertMode(db)) {
-      sqlInterface.getDbBackend().enableDataInsertMode(db);
+    String dbId = db.getIdentifier();
+    if (!sqlInterface.getDbBackend().isOnDataInsertMode(dbId)) {
+      sqlInterface.getDbBackend().enableDataInsertMode(dbId);
     }
   }
 
   @Override
   public void disableDataImportMode(DSLContext dsl, MetaDatabase db) throws RollbackException {
-    if (!sqlInterface.getDbBackend().isOnDataInsertMode(db)) {
+    String dbId = db.getIdentifier();
+    if (!sqlInterface.getDbBackend().isOnDataInsertMode(dbId)) {
       LOGGER.debug("Ignoring attempt to disable import mode on {} as it is not on that mode",
-          db.getIdentifier());
+          dbId);
       return ;
     }
-    sqlInterface.getDbBackend().disableDataInsertMode(db);
+    sqlInterface.getDbBackend().disableDataInsertMode(dbId);
 
     //create internal indexes
     Stream<Consumer<DSLContext>> createInternalIndexesJobs = db.streamMetaCollections().flatMap(

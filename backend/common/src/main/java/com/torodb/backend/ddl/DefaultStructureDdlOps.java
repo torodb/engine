@@ -129,8 +129,8 @@ public class DefaultStructureDdlOps implements WriteStructureDdlOps {
     if (tableRef.isRoot()) {
       sqlInterface.getStructureInterface().createRootDocPartTable(dsl, db.getIdentifier(),
           newDocPart.getIdentifier(), tableRef);
-      sqlInterface.getStructureInterface().streamRootDocPartTableIndexesCreation(db
-          .getIdentifier(), newDocPart.getIdentifier(), tableRef)
+      sqlInterface.getStructureInterface().streamRootDocPartTableIndexesCreation(
+          db.getIdentifier(), newDocPart.getIdentifier(), tableRef)
           .forEach(consumer -> {
             String index = consumer.apply(dsl);
             LOGGER.info("Created internal index {} for table {}", index,

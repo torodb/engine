@@ -16,33 +16,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.backend;
+package com.torodb.backend.derby;
 
-import com.torodb.core.services.TorodbService;
+import com.torodb.backend.tests.common.AbstractCommonIntegrationSuite;
+import com.torodb.backend.tests.common.DatabaseTestContext;
 
-import java.sql.Connection;
+public class DerbyCommonIT extends AbstractCommonIntegrationSuite {
 
-import javax.sql.DataSource;
+  @Override
+  protected DatabaseTestContext getDatabaseTestContext() {
+    return new DerbyDatabaseTestContextFactory().createInstance();
+  }
 
-public interface DbBackendService extends TorodbService {
-
-  public DataSource getSessionDataSource();
-
-  public DataSource getSystemDataSource();
-
-  public DataSource getGlobalCursorDatasource();
-
-  public void disableDataInsertMode(String dbName);
-
-  public void enableDataInsertMode(String dbName);
-
-  public boolean isOnDataInsertMode(String dbName);
-
-  public boolean includeForeignKeys();
-
-  public Connection createSystemConnection();
-
-  public Connection createReadOnlyConnection();
-
-  public Connection createWriteConnection();
 }
