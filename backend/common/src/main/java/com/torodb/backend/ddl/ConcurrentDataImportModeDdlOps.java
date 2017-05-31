@@ -38,7 +38,6 @@ import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
 import com.torodb.core.transaction.metainf.MetaDocPartIndexColumn;
 import com.torodb.core.transaction.metainf.MetaIdentifiedDocPartIndex;
-import com.torodb.core.transaction.metainf.MetaSnapshot;
 import org.apache.logging.log4j.Logger;
 import org.jooq.DSLContext;
 import org.jooq.lambda.tuple.Tuple3;
@@ -98,13 +97,6 @@ public class ConcurrentDataImportModeDdlOps implements DataImportModeDdlOps {
     }
     sqlInterface.getDbBackend().disableDataInsertMode(dbId);
 
-    
-    MetaDatabase db = snapshot.getMetaDatabaseByName(dbName);
-    if (db == null) {
-      LOGGER.debug("Disabled import mode on {}. Nothing to do",
-          dbName);
-      return CompletableFuture.completedFuture(Empty.getInstance());
-    }
     //create internal indexes
     Stream<Consumer<DSLContext>> createInternalIndexesJobs = db.streamMetaCollections().flatMap(
         col -> col.streamContainedMetaDocParts().flatMap(
@@ -148,7 +140,6 @@ public class ConcurrentDataImportModeDdlOps implements DataImportModeDdlOps {
 
     if (docPart.getTableRef().isRoot()) {
       consumerStream = structureInterface.streamRootDocPartTableIndexesCreation(
-          db.getName(),
           db.getIdentifier(),
           docPart.getIdentifier(),
           docPart.getTableRef()
@@ -159,7 +150,6 @@ public class ConcurrentDataImportModeDdlOps implements DataImportModeDdlOps {
       );
       assert parentDocPart != null;
       consumerStream = structureInterface.streamDocPartTableIndexesCreation(
-          db.getName(),
           db.getIdentifier(),
           docPart.getIdentifier(),
           docPart.getTableRef(),
