@@ -37,7 +37,7 @@ public class CountImplementation implements ReadTorodbCommandImpl<CountArgument,
   public Status<Long> apply(Request req, Command<? super CountArgument, ? super Long> command,
       CountArgument arg, MongodTransaction context) {
     return Status.ok(
-        context.getTorodTransaction()
+        context.getDocTransaction()
             .countAll(req.getDatabase(), arg.getCollection())
     );
   }

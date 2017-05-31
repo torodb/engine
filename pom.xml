@@ -81,6 +81,41 @@
                 <artifactId>org-bson-utils</artifactId>
                 <version>${mongowp.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.torodb.testing</groupId>
+                <artifactId>postgres-docker</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.torodb.testing</groupId>
+                <artifactId>mysql-docker</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.torodb.testing</groupId>
+                <artifactId>postgres-junit-5</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.torodb.testing</groupId>
+                <artifactId>mysql-junit-5</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>1.2</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>com.torodb</groupId>
+                <artifactId>akka-chronicle-queue</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+            </dependency>
             
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -103,6 +138,11 @@
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
                 <version>9.4.1212.jre7</version>
+            </dependency>
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>6.0.6</version>
             </dependency>
             <dependency>
                 <groupId>org.jooq</groupId>

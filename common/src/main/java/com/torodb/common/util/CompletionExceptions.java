@@ -40,7 +40,7 @@ public class CompletionExceptions {
     Throwable throwableResult = ex;
     while (isCompletionException(throwableResult)) {
       Throwable cause = throwableResult.getCause();
-      if (cause == null) {
+      if (cause == null || cause == throwableResult) {
         return throwableResult;
       }
       throwableResult = cause;

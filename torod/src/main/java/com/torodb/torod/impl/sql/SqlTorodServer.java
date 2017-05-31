@@ -18,133 +18,145 @@
 
 package com.torodb.torod.impl.sql;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalNotification;
-import com.torodb.common.util.Empty;
-import com.torodb.core.TableRefFactory;
 import com.torodb.core.annotations.TorodbIdleService;
 import com.torodb.core.backend.BackendService;
-import com.torodb.core.d2r.D2RTranslatorFactory;
-import com.torodb.core.d2r.IdentifierFactory;
-import com.torodb.core.d2r.R2DTranslator;
+import com.torodb.core.backend.DdlOperationExecutor;
+import com.torodb.core.backend.DmlTransaction;
+import com.torodb.core.backend.WriteDmlTransaction;
+import com.torodb.core.concurrent.CompletableFutureUtils;
+import com.torodb.core.d2r.ReservedIdGenerator;
 import com.torodb.core.services.IdleTorodbService;
-import com.torodb.core.transaction.InternalTransactionManager;
 import com.torodb.core.transaction.metainf.ImmutableMetaSnapshot;
-import com.torodb.torod.TorodServer;
-import com.torodb.torod.pipeline.InsertPipelineFactory;
+import com.torodb.kvdocument.values.KvDocument;
+import com.torodb.torod.DocTransaction;
+import com.torodb.torod.ProtectedServer;
+import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.TorodLoggerFactory;
+import com.torodb.torod.WriteDocTransaction;
+import com.torodb.torod.impl.sql.schema.SchemaManager;
+import org.apache.logging.log4j.Logger;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.Collection;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.inject.Inject;
 
 /**
  *
  */
-public class SqlTorodServer extends IdleTorodbService implements TorodServer {
+public class SqlTorodServer extends IdleTorodbService implements ProtectedServer {
 
-  private final AtomicInteger connectionIdCounter = new AtomicInteger();
-  private final D2RTranslatorFactory d2RTranslatorFactory;
-  private final R2DTranslator r2DTranslator;
-  private final IdentifierFactory idFactory;
-  private final InsertPipelineFactory insertPipelineFactory;
-  private final Cache<Integer, SqlTorodConnection> openConnections;
+  private static final Logger LOGGER = TorodLoggerFactory.get(SqlTorodServer.class);
+  private final CompletableFutureUtils completableFutureUtils;
   private final BackendService backend;
-  private final InternalTransactionManager internalTransactionManager;
-  private final TableRefFactory tableRefFactory;
+  private final SchemaManager schemaManager;
+  private final SqlWriteTransaction.PrepareSchemaCallback prepareSchemaCallback =
+      this::prepareSchema;
+  private final ReadDocTransactionFactory readTransFactory;
+  private final WriteDocTransactionFactory writeTransFactory;
+  private final ReservedIdGenerator idGenerator;
 
   @Inject
   public SqlTorodServer(@TorodbIdleService ThreadFactory threadFactory,
-      D2RTranslatorFactory d2RTranslatorFactory,
-      R2DTranslator r2DTranslator, IdentifierFactory idFactory,
-      InsertPipelineFactory insertPipelineFactory,
-      BackendService backend, TableRefFactory tableRefFactory,
-      InternalTransactionManager internalTransactionManager) {
+      CompletableFutureUtils completableFutureUtils,
+      BackendService backend,
+      SchemaManager schemaManager,
+      ReadDocTransactionFactory readTransFactory,
+      WriteDocTransactionFactory writeTransFactory,
+      ReservedIdGenerator idGenerator) {
     super(threadFactory);
-    this.d2RTranslatorFactory = d2RTranslatorFactory;
-    this.r2DTranslator = r2DTranslator;
-    this.idFactory = idFactory;
-    this.insertPipelineFactory = insertPipelineFactory;
+    this.completableFutureUtils = completableFutureUtils;
     this.backend = backend;
-    this.internalTransactionManager = internalTransactionManager;
-    this.tableRefFactory = tableRefFactory;
-
-    openConnections = CacheBuilder.newBuilder()
-        .weakValues()
-        .removalListener(this::onConnectionInvalidated)
-        .build();
+    this.schemaManager = schemaManager;
+    this.readTransFactory = readTransFactory;
+    this.writeTransFactory = writeTransFactory;
+    this.idGenerator = idGenerator;
   }
 
   @Override
-  public SqlTorodConnection openConnection() {
-    int connectionId = connectionIdCounter.incrementAndGet();
-    SqlTorodConnection connection = new SqlTorodConnection(this, connectionId);
-    openConnections.put(connectionId, connection);
+  public DocTransaction openReadTransaction(long timeout, TimeUnit unit)
+      throws TimeoutException {
+    return completableFutureUtils.executeOrTimeout(
+        schemaManager.executeAtomically((snapshot) ->
+            readTransFactory.createReadTransaction(backend.openReadTransaction(), snapshot)
+        ),
+        timeout,
+        unit
+    );
+  }
 
-    return connection;
+  @Override
+  public WriteDocTransaction openWriteTransaction(long timeout, TimeUnit unit)
+      throws TimeoutException {
+    return completableFutureUtils.executeOrTimeout(
+        schemaManager.executeAtomically((snapshot) ->
+            writeTransFactory.createWriteTransaction(
+                backend.openWriteTransaction(),
+                snapshot,
+                prepareSchemaCallback
+            )
+        ),
+        timeout,
+        unit
+    );
+  }
+
+  @Override
+  public SchemaOperationExecutor openSchemaOperationExecutor(long timeout, TimeUnit unit)
+      throws TimeoutException {
+    return completableFutureUtils.executeOrTimeout(
+        schemaManager.executeAtomically((snapshot) ->
+            new SqlSchemaOperationExecutor(schemaManager, backend.openDdlOperationExecutor())),
+        timeout,
+        unit
+    );
   }
 
   @Override
   protected void startUp() throws Exception {
-    backend.awaitRunning();
+    if (!backend.isRunning()) {
+      LOGGER.debug("Waiting until backend layer is running");
+      backend.awaitRunning();
+    }
+
+    schemaManager.start();
+    schemaManager.awaitRunning();
+    try (DdlOperationExecutor opsExec = backend.openDdlOperationExecutor()) {
+      schemaManager.refreshMetadata(opsExec).join();
+    }
+
+    LOGGER.debug("Reading last used rids...");
+    ImmutableMetaSnapshot snapshot = schemaManager.getMetaSnapshot().join();
+    idGenerator.load(snapshot);
   }
 
   @Override
   protected void shutDown() throws Exception {
-    openConnections.invalidateAll();
+    schemaManager.stopAsync();
+    schemaManager.awaitTerminated();
   }
 
-  private void onConnectionInvalidated(
-      RemovalNotification<Integer, SqlTorodConnection> notification) {
-    SqlTorodConnection value = notification.getValue();
-    if (value != null) {
-      value.close();
-    }
+  private void prepareSchema(String dbName, String colName, Collection<KvDocument> docs) {
+    DdlOperationExecutor ddlOpsEx = backend.openDdlOperationExecutor();
+    schemaManager.prepareSchema(ddlOpsEx, dbName, colName, docs)
+        .whenComplete((result, ex) -> {
+          if (ex != null) {
+            LOGGER.debug("Error while trying to adapt the schema to fit with some documents", ex);
+          }
+          ddlOpsEx.close();
+        });
   }
 
-  @Override
-  public CompletableFuture<Empty> enableDataImportMode(String dbName) {
-    return backend.enableDataImportMode(dbName);
+  static interface ReadDocTransactionFactory {
+    DocTransaction createReadTransaction(DmlTransaction dmlTrans, ImmutableMetaSnapshot snapshot);
   }
 
-  @Override
-  public CompletableFuture<Empty> disableDataImportMode(String dbName) {
-    ImmutableMetaSnapshot snapshot = internalTransactionManager.takeMetaSnapshot();
-    return backend.disableDataImportMode(snapshot, dbName);
-  }
-
-  D2RTranslatorFactory getD2RTranslatorFactory() {
-    return d2RTranslatorFactory;
-  }
-
-  IdentifierFactory getIdentifierFactory() {
-    return idFactory;
-  }
-
-  InsertPipelineFactory getInsertPipelineFactory() {
-    return insertPipelineFactory;
-  }
-
-  BackendService getBackend() {
-    return backend;
-  }
-
-  InternalTransactionManager getInternalTransactionManager() {
-    return internalTransactionManager;
-  }
-
-  void onConnectionClosed(SqlTorodConnection connection) {
-    openConnections.invalidate(connection.getConnectionId());
-  }
-
-  TableRefFactory getTableRefFactory() {
-    return tableRefFactory;
-  }
-
-  R2DTranslator getR2DTranslator() {
-    return r2DTranslator;
+  static interface WriteDocTransactionFactory {
+    WriteDocTransaction createWriteTransaction(WriteDmlTransaction dmlTrans,
+        ImmutableMetaSnapshot snapshot,
+        SqlWriteTransaction.PrepareSchemaCallback prepareSchemaCallback);
   }
 
 }

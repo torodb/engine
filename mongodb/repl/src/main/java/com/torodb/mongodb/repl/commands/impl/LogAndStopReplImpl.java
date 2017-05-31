@@ -25,9 +25,10 @@ import com.torodb.mongodb.repl.guice.MongoDbRepl;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
 
 import javax.inject.Inject;
+
 
 /**
  * The implementation of {@link LogAndStopCommand}.
@@ -45,7 +46,7 @@ public class LogAndStopReplImpl extends ReplCommandImpl<String, Empty> {
 
   @Override
   public Status<Empty> apply(Request req, Command<? super String, ? super Empty> command, 
-      String arg, SharedWriteTorodTransaction trans) {
+      String arg, SchemaOperationExecutor schemaEx) {
     if (!filterUtil.testDbFilter(req.getDatabase(), command)) {
       return Status.ok();
     }

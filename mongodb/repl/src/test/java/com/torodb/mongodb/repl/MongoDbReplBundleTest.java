@@ -33,7 +33,7 @@ import com.torodb.mongodb.core.MongoDbCoreConfig;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
 import com.torodb.mongodb.repl.impl.AlwaysConsistentConsistencyHandler;
 import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
-import com.torodb.torod.MemoryTorodBundle;
+import com.torodb.torod.impl.memory.MemoryTorodBundle;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

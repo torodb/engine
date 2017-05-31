@@ -18,28 +18,32 @@
 
 package com.torodb.mongodb.core;
 
+import com.torodb.mongodb.commands.CommandClassifier;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.CommandExecutor;
 import com.torodb.mongowp.commands.Request;
-import com.torodb.torod.ReadOnlyTorodTransaction;
+import com.torodb.torod.DocTransaction;
+import org.apache.logging.log4j.Logger;
+
+import java.util.function.Function;
 
 class ReadOnlyMongodTransactionImpl extends MongodTransactionImpl implements
     ReadOnlyMongodTransaction {
 
-  private final ReadOnlyTorodTransaction torodTransaction;
+  private final DocTransaction docTransaction;
   private final CommandExecutor<? super ReadOnlyMongodTransactionImpl> commandsExecutor;
 
-  public ReadOnlyMongodTransactionImpl(MongodConnection connection) {
-    super(connection);
-    this.torodTransaction = connection.getTorodConnection().openReadOnlyTransaction();
-    this.commandsExecutor = connection.getServer().getCommandsExecutorClassifier()
-        .getReadOnlyCommandsExecutor();
+  public ReadOnlyMongodTransactionImpl(Function<Class<?>, Logger> loggerFactory,
+      DocTransaction docTransaction, CommandClassifier commandClassifier) {
+    super(loggerFactory);
+    this.docTransaction = docTransaction;
+    this.commandsExecutor = commandClassifier.getReadCommandsExecutor();
   }
 
   @Override
-  public ReadOnlyTorodTransaction getTorodTransaction() {
-    return torodTransaction;
+  public DocTransaction getDocTransaction() {
+    return docTransaction;
   }
 
   @Override

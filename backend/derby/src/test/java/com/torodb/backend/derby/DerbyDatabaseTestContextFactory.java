@@ -29,6 +29,7 @@ import com.torodb.backend.tests.common.DatabaseTestContext;
 import com.torodb.backend.tests.common.IntegrationTestBundleConfig;
 import com.torodb.core.backend.IdentifierConstraints;
 import com.torodb.core.bundle.BundleConfig;
+import com.torodb.core.d2r.UniqueIdentifierGenerator;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -62,12 +63,13 @@ public class DerbyDatabaseTestContextFactory {
     ThreadFactory threadFactory = Executors.defaultThreadFactory();
 
     IdentifierConstraints identifierConstraints = new DerbyIdentifierConstraints();
+    UniqueIdentifierGenerator uniqueIdentifierGenerator = new UniqueIdentifierGenerator(identifierConstraints);
 
     DerbyDbBackend dbBackend = new DerbyDbBackend(threadFactory, configuration, driver, errorHandler);
 
     DerbyMetaDataReadInterface metaDataReadInterface = new DerbyMetaDataReadInterface(sqlHelper);
     DerbyStructureInterface derbyStructureInterface =
-        new DerbyStructureInterface(dbBackend, metaDataReadInterface, sqlHelper, identifierConstraints);
+        new DerbyStructureInterface(dbBackend, metaDataReadInterface, sqlHelper, identifierConstraints, uniqueIdentifierGenerator);
 
     DerbyMetaDataWriteInterface metadataWriteInterface =
         new DerbyMetaDataWriteInterface(metaDataReadInterface, sqlHelper);

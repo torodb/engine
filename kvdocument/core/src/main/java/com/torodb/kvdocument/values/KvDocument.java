@@ -215,6 +215,15 @@ public abstract class KvDocument extends KvValue<KvDocument> implements Iterable
     private final LinkedHashMap<String, KvValue<?>> values = Maps.newLinkedHashMap();
     private boolean built = false;
 
+    public Builder() {
+    }
+
+    public Builder(KvDocument other) {
+      for (DocEntry<?> docEntry : other) {
+        values.put(docEntry.getKey(), docEntry.getValue());
+      }
+    }
+
     public Builder putValue(String key, KvValue<?> value) {
       checkBuilt();
       values.put(key, value);

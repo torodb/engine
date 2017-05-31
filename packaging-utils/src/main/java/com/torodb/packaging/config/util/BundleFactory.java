@@ -19,22 +19,23 @@
 package com.torodb.packaging.config.util;
 
 import com.google.inject.Injector;
-import com.torodb.backend.BackendConfig;
 import com.torodb.backend.BackendConfigImpl;
 import com.torodb.backend.BackendConfigImplBuilder;
 import com.torodb.backend.derby.DerbyDbBackendBundle;
 import com.torodb.backend.derby.driver.DerbyDbBackendConfig;
 import com.torodb.backend.derby.driver.DerbyDbBackendConfigBuilder;
+import com.torodb.backend.mysql.MySqlBackendBundle;
 import com.torodb.backend.postgresql.PostgreSqlBackendBundle;
 import com.torodb.core.backend.BackendBundle;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.packaging.config.model.backend.AbstractBackend;
 import com.torodb.packaging.config.model.backend.ConnectionPoolConfig;
 import com.torodb.packaging.config.model.backend.derby.AbstractDerby;
+import com.torodb.packaging.config.model.backend.mysql.AbstractMySql;
 import com.torodb.packaging.config.model.backend.postgres.AbstractPostgres;
-import com.torodb.torod.SqlTorodBundle;
-import com.torodb.torod.SqlTorodConfig;
 import com.torodb.torod.TorodBundle;
+import com.torodb.torod.impl.sql.SqlTorodBundle;
+import com.torodb.torod.impl.sql.SqlTorodConfig;
 
 public class BundleFactory {
   private BundleFactory() {}
@@ -84,6 +85,24 @@ public class BundleFactory {
                 .setEmbedded(value.getEmbedded())
                 .build();
             return new DerbyDbBackendBundle(config);
+
+          }
+
+          @Override
+          public BackendBundle visit(AbstractMySql value, Void arg) {
+            BackendConfigImpl config =
+                (BackendConfigImpl) new BackendConfigImplBuilder(generalConfig)
+                .setConnectionPoolSize(connPoolConf.getConnectionPoolSize())
+                .setConnectionPoolTimeout(connPoolConf.getConnectionPoolTimeout())
+                .setDbHost(value.getHost())
+                .setDbName(value.getDatabase())
+                .setDbPort(value.getPort())
+                .setIncludeForeignKeys(value.getIncludeForeignKeys())
+                .setPassword(value.getPassword())
+                .setReservedReadPoolSize(connPoolConf.getReservedReadPoolSize())
+                .setUsername(value.getUser())
+                .build();
+            return new MySqlBackendBundle(config);
 
           }
         }, null);

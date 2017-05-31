@@ -21,12 +21,33 @@ package com.torodb.backend.postgresql;
 
 import com.torodb.backend.tests.common.AbstractMetaDataIntegrationSuite;
 import com.torodb.backend.tests.common.DatabaseTestContext;
+import com.torodb.testing.docker.postgres.EnumVersion;
+import com.torodb.testing.docker.postgres.PostgresService;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 public class PostgreSqlMetadataIT extends AbstractMetaDataIntegrationSuite {
 
+  private static PostgresService postgresDockerService;
+
+  @BeforeClass
+  public static void beforeAll() {
+    postgresDockerService = PostgresService.defaultService(EnumVersion.LATEST);
+    postgresDockerService.startAsync();
+    postgresDockerService.awaitRunning();
+  }
+
+  @AfterClass
+  public static void afterAll() {
+    if (postgresDockerService != null && postgresDockerService.isRunning()) {
+      postgresDockerService.stopAsync();
+      postgresDockerService.awaitTerminated();
+    }
+  }
+
   @Override
   protected DatabaseTestContext getDatabaseTestContext() {
-    return new PostgreSqlDatabaseTestContextFactory().createInstance();
+    return new PostgreSqlDatabaseTestContextFactory().createInstance(postgresDockerService);
   }
 
 }

@@ -35,7 +35,7 @@ import com.torodb.mongodb.commands.signatures.diagnostic.GetLogCommand;
 import com.torodb.mongodb.commands.signatures.diagnostic.PingCommand;
 import com.torodb.mongodb.commands.signatures.diagnostic.ServerStatusCommand;
 import com.torodb.mongodb.commands.signatures.repl.IsMasterCommand;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.core.MongodServerConfig;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.CommandImplementation;
@@ -48,14 +48,14 @@ import javax.inject.Inject;
 
 @ThreadSafe
 @SuppressWarnings("checkstyle:LineLength")
-public class ConnectionCmdImpl implements CmdImplMapSupplier<MongodConnection> {
+public class ConnectionCmdImpl implements CmdImplMapSupplier<MongodServer> {
 
-  private final ImmutableMap<Command<?, ?>, CommandImplementation<?, ?, ? super MongodConnection>> map;
+  private final ImmutableMap<Command<?, ?>, CommandImplementation<?, ?, ? super MongodServer>> map;
 
   @Inject
   ConnectionCmdImpl(LoggerFactory loggerFactory, Clock clock, BuildProperties buildProp,
       MongodServerConfig mongodServerConfig) {
-    map = ImmutableMap.<Command<?, ?>, CommandImplementation<?, ?, ? super MongodConnection>>builder()
+    map = ImmutableMap.<Command<?, ?>, CommandImplementation<?, ?, ? super MongodServer>>builder()
         .put(GetNonceCommand.INSTANCE, new GetNonceImplementation(loggerFactory))
         .put(BuildInfoCommand.INSTANCE, new BuildInfoImplementation(buildProp))
         .put(ServerStatusCommand.INSTANCE, new ServerStatusImplementation(
@@ -73,7 +73,7 @@ public class ConnectionCmdImpl implements CmdImplMapSupplier<MongodConnection> {
   }
 
   @Override
-  public ImmutableMap<Command<?, ?>, CommandImplementation<?, ?, ? super MongodConnection>> get() {
+  public ImmutableMap<Command<?, ?>, CommandImplementation<?, ?, ? super MongodServer>> get() {
     return map;
   }
 }

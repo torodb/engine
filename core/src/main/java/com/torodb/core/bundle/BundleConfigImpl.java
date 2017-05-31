@@ -30,6 +30,11 @@ public class BundleConfigImpl implements BundleConfig {
     this.essentialInjector = essentialInjector;
     this.supervisor = supervisor;
   }
+  
+  public BundleConfigImpl(BundleConfig other) {
+    this.essentialInjector = other.getEssentialInjector();
+    this.supervisor = other.getSupervisor();
+  }
 
   @Override
   public Injector getEssentialInjector() {

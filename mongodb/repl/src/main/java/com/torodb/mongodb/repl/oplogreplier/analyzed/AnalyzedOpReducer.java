@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
 /**
  *
  */
@@ -54,9 +56,18 @@ public class AnalyzedOpReducer {
   public void analyzeAndReduce(Map<BsonValue<?>, AnalyzedOp> map,
       CollectionOplogOperation op, ApplierContext context) {
     Preconditions.checkArgument(op.getDocId() != null,
-        "Modifications without _id cannot be replicated on parallel");
+        "Modifications without _id cannot be replicated in parallel");
 
     AnalyzedOp oldOp = map.get(op.getDocId());
+    map.put(op.getDocId(), analyze(op, context, oldOp));
+  }
+
+  public AnalyzedOp analyze(CollectionOplogOperation op, ApplierContext context) {
+    return analyze(op, context, null);
+  }
+
+  private AnalyzedOp analyze(CollectionOplogOperation op, ApplierContext context, 
+      @Nullable AnalyzedOp oldOp) {
     if (oldOp == null) {
       KvValue<?> translated = MongoWpConverter.translate(op.getDocId());
       if (onDebug) {
@@ -65,7 +76,6 @@ public class AnalyzedOpReducer {
         oldOp = new NoopAnalyzedOp(translated);
       }
     }
-    AnalyzedOp newAnalyzedOp = oldOp.apply(op, context);
-    map.put(op.getDocId(), newAnalyzedOp);
+    return oldOp.apply(op, context);
   }
 }

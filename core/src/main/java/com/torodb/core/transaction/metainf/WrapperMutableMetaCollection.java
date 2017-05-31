@@ -44,6 +44,11 @@ public class WrapperMutableMetaCollection implements MutableMetaCollection {
   private final Consumer<WrapperMutableMetaCollection> changeConsumer;
   private final Map<String, Tuple2<MutableMetaIndex, MetaElementState>> aliveIndexesMap;
 
+  @SuppressWarnings("checkstyle:WhitespaceAround")
+  public WrapperMutableMetaCollection(ImmutableMetaCollection wrappedCollection) {
+    this(wrappedCollection, (ignored) -> {});
+  }
+
   public WrapperMutableMetaCollection(ImmutableMetaCollection wrappedCollection,
       Consumer<WrapperMutableMetaCollection> changeConsumer) {
     this.wrapped = wrappedCollection;

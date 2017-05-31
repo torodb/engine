@@ -45,18 +45,20 @@ import org.junit.Test;
 public abstract class AbstractMetaDataIntegrationSuite {
 
   private SqlInterface sqlInterface;
+  private TableRefFactory tableRefFactory;
 
   private DatabaseTestContext dbTestContext;
 
   @Before
   public void setUp() throws Exception {
     dbTestContext = getDatabaseTestContext();
+    tableRefFactory = new TableRefFactoryImpl();
     sqlInterface = dbTestContext.getSqlInterface();
     dbTestContext.setupDatabase();
   }
 
   protected abstract DatabaseTestContext getDatabaseTestContext();
-
+  
   @After
   public void tearDown() throws Exception {
     dbTestContext.tearDownDatabase();
@@ -107,7 +109,6 @@ public abstract class AbstractMetaDataIntegrationSuite {
   @Test
   public void metadataDocPartTableCanBeWritten() throws Exception {
     dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
-      TableRefFactory tableRefFactory = new TableRefFactoryImpl();
       TableRef rootTableRef = tableRefFactory.createRoot();
       TableRef childTableRef = tableRefFactory.createChild(rootTableRef, "child");
 

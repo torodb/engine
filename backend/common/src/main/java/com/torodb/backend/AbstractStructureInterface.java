@@ -27,6 +27,7 @@ import com.torodb.core.TableRef;
 import com.torodb.core.backend.IdentifierConstraints;
 import com.torodb.core.exceptions.InvalidDatabaseException;
 import com.torodb.core.exceptions.user.UserException;
+import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
@@ -36,7 +37,7 @@ import org.jooq.DSLContext;
 import org.jooq.Meta;
 import org.jooq.Schema;
 import org.jooq.Table;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -131,14 +132,15 @@ public abstract class AbstractStructureInterface implements StructureInterface {
             .findAny()
             .get();
 
-        String renameIndexStatement = getRenameIndexStatement(fromSchemaName, fromMetaIndex
-            .getIdentifier(), toMetaIndex.getIdentifier());
+        String renameIndexStatement = getRenameIndexStatement(
+            fromSchemaName, toMetaDocPart.getIdentifier(), 
+            fromMetaIndex.getIdentifier(), toMetaIndex.getIdentifier());
         sqlHelper.executeUpdate(dsl, renameIndexStatement, Context.RENAME_INDEX);
       }
 
       if (!fromSchemaName.equals(toSchemaName)) {
-        String setSchemaStatement = getSetTableSchemaStatement(fromSchemaName, fromMetaDocPart
-            .getIdentifier(), toSchemaName);
+        String setSchemaStatement = getSetTableSchemaStatement(fromSchemaName, 
+            toMetaDocPart.getIdentifier(), toSchemaName);
         sqlHelper.executeUpdate(dsl, setSchemaStatement, Context.SET_TABLE_SCHEMA);
       }
     }
@@ -146,19 +148,18 @@ public abstract class AbstractStructureInterface implements StructureInterface {
 
   protected abstract String getRenameTableStatement(String fromSchemaName, String fromTableName,
       String toTableName);
-
-  protected abstract String getRenameIndexStatement(String fromSchemaName, String fromIndexName,
-      String toIndexName);
+  
+  protected abstract String getRenameIndexStatement(String fromSchemaName, String fromTableName, 
+      String fromIndexName, String toIndexName);
 
   protected abstract String getSetTableSchemaStatement(String fromSchemaName, String fromTableName,
       String toSchemaName);
 
   @Override
-  public void createIndex(DSLContext dsl, String dbName, 
-      String indexName, String schemaName, String tableName,
-      List<Tuple2<String, Boolean>> columnList, boolean unique)
+  public void createIndex(DSLContext dsl, String indexName, String schemaName, String tableName,
+      List<Tuple3<String, Boolean, FieldType>> columnList, boolean unique)
       throws UserException {
-    if (!dbBackend.isOnDataInsertMode(dbName)) {
+    if (!dbBackend.isOnDataInsertMode(schemaName)) {
       Preconditions.checkArgument(!columnList.isEmpty(), "Can not create index on 0 columns");
 
       String statement = getCreateIndexStatement(indexName, schemaName, tableName, columnList,
@@ -170,7 +171,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
   }
 
   protected abstract String getCreateIndexStatement(String indexName, String schemaName,
-      String tableName, List<Tuple2<String, Boolean>> columnList, boolean unique);
+      String tableName, List<Tuple3<String, Boolean, FieldType>> columnList, boolean unique);
 
   @Override
   public void dropIndex(DSLContext dsl, String schemaName, String indexName) {
@@ -179,10 +180,24 @@ public abstract class AbstractStructureInterface implements StructureInterface {
     sqlHelper.executeUpdate(dsl, statement, Context.DROP_INDEX);
   }
 
+  /**
+   * Drops the schema or database where ToroDB's meta tables are stored.
+   *
+   * <p>Usually it implies to drop the schema torodb.
+   */
+  protected void dropMetainfoDatabase(DSLContext dsl) {
+    metaDataReadInterface.getMetaTables().forEach(t ->
+        dsl.dropTable(t).execute()
+    );
+
+    String statement = getDropSchemaStatement(TorodbSchema.IDENTIFIER);
+    sqlHelper.executeUpdate(dsl, statement, Context.DROP_SCHEMA);
+  }
+
   @Override
   public void dropAll(DSLContext dsl) {
     dropUserDatabases(dsl, metaDataReadInterface);
-    metaDataReadInterface.getMetaTables().forEach(t -> dsl.dropTable(t).execute());
+    dropMetainfoDatabase(dsl);
   }
 
   @Override
@@ -254,7 +269,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
   }
 
   @Override
-  public void createSchema(DSLContext dsl, String schemaName) {
+  public void createDatabase(DSLContext dsl, String schemaName) {
     String statement = getCreateSchemaStatement(schemaName);
     sqlHelper.executeUpdate(dsl, statement, Context.CREATE_SCHEMA);
   }
@@ -282,9 +297,9 @@ public abstract class AbstractStructureInterface implements StructureInterface {
 
   @Override
   public Stream<Function<DSLContext, String>> streamRootDocPartTableIndexesCreation(
-      String dbName, String schemaName, String tableName, TableRef tableRef) {
+      String schemaName, String tableName, TableRef tableRef) {
     List<Function<DSLContext, String>> result = new ArrayList<>(1);
-    if (!dbBackend.isOnDataInsertMode(dbName)) {
+    if (!dbBackend.isOnDataInsertMode(schemaName)) {
       String primaryKeyStatement = getAddDocPartTablePrimaryKeyStatement(schemaName, tableName,
           metaDataReadInterface.getPrimaryKeyInternalFields(tableRef));
 
@@ -299,10 +314,9 @@ public abstract class AbstractStructureInterface implements StructureInterface {
 
   @Override
   public Stream<Function<DSLContext, String>> streamDocPartTableIndexesCreation(
-      String dbName, String schemaName,
-      String tableName, TableRef tableRef, String foreignTableName) {
+      String schemaName, String tableName, TableRef tableRef, String foreignTableName) {
     List<Function<DSLContext, String>> result = new ArrayList<>(4);
-    if (!dbBackend.isOnDataInsertMode(dbName)) {
+    if (!dbBackend.isOnDataInsertMode(schemaName)) {
       String primaryKeyStatement = getAddDocPartTablePrimaryKeyStatement(schemaName, tableName,
           metaDataReadInterface.getPrimaryKeyInternalFields(tableRef));
       result.add((dsl) -> {
@@ -311,7 +325,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
       });
     }
 
-    if (!dbBackend.isOnDataInsertMode(dbName)) {
+    if (!dbBackend.isOnDataInsertMode(schemaName)) {
       String readIndexStatement = getCreateDocPartTableIndexStatement(schemaName, tableName,
           metaDataReadInterface.getReadInternalFields(tableRef));
       result.add((dsl) -> {
@@ -321,7 +335,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
       });
     }
 
-    if (!dbBackend.isOnDataInsertMode(dbName)) {
+    if (!dbBackend.isOnDataInsertMode(schemaName)) {
       if (dbBackend.includeForeignKeys()) {
         String foreignKeyStatement = getAddDocPartTableForeignKeyStatement(schemaName, tableName,
             metaDataReadInterface.getReferenceInternalFields(tableRef),
@@ -362,8 +376,8 @@ public abstract class AbstractStructureInterface implements StructureInterface {
       Collection<InternalField<?>> referenceFields, String foreignTableName,
       Collection<InternalField<?>> foreignFields);
 
-  protected abstract String getCreateDocPartTableIndexStatement(String schemaName, String tableName,
-      Collection<InternalField<?>> indexedFields);
+  protected abstract String getCreateDocPartTableIndexStatement(
+      String schemaName, String tableName, Collection<InternalField<?>> indexedFields);
 
   @Override
   public void addColumnToDocPartTable(DSLContext dsl, String schemaName, String tableName,

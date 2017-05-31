@@ -18,35 +18,28 @@
 
 package com.torodb.core.backend;
 
-import com.google.common.util.concurrent.Service;
-import com.torodb.common.util.Empty;
-import com.torodb.core.transaction.RollbackException;
-import com.torodb.core.transaction.metainf.MetaSnapshot;
+import com.torodb.core.services.TorodbService;
 
-import java.util.concurrent.CompletableFuture;
-
-public interface BackendService extends Service {
-
-  public BackendConnection openConnection();
+/**
+ * A service that controls the backend, offering a relational abstraction layer.
+ */
+public interface BackendService extends TorodbService {
 
   /**
-   * Disables the data import mode, setting the normal one.
-   *
-   * <p>This method can be quite slow, as it is usual to execute quite expensive low level task like
-   * recreate indexes.
+   * Creates a read only DML transaction.
    */
-  public CompletableFuture<Empty> disableDataImportMode(MetaSnapshot snapshot, String dbName)
-      throws RollbackException;
+  public DmlTransaction openReadTransaction();
 
   /**
-   * Sets the backend on a state where inserts are faster.
-   *
-   * <p/> During this state, only metadata operations and inserts are supported (but it is not
-   * mandatory to throw an exception if other operations are recived). It is expected that each
-   * call to this method is follow by a call to 
-   * {@link #disableDataImportMode(MetaSnapshot, String) },
-   * which will enable the default mode.
+   * Creates a write DML transaction.
    */
-  public CompletableFuture<Empty> enableDataImportMode(String dbName)
-      throws RollbackException;
+  public WriteDmlTransaction openWriteTransaction();
+
+  /**
+   * Returns the DDL operation executor, whose operations should be executed on exclusive mode,
+   * which means that there are no other open {@link DmlTransaction} at the same time.
+   *
+   * <p>It is the caller responsability to enforce the exclusive property.
+   */
+  public DdlOperationExecutor openDdlOperationExecutor();
 }

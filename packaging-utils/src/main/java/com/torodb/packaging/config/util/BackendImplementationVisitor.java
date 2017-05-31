@@ -20,6 +20,7 @@ package com.torodb.packaging.config.util;
 
 import com.torodb.packaging.config.model.backend.BackendImplementation;
 import com.torodb.packaging.config.model.backend.derby.AbstractDerby;
+import com.torodb.packaging.config.model.backend.mysql.AbstractMySql;
 import com.torodb.packaging.config.model.backend.postgres.AbstractPostgres;
 
 /**
@@ -32,5 +33,7 @@ public interface BackendImplementationVisitor<R, A> {
   public R visit(AbstractPostgres value, A arg);
 
   public R visit(AbstractDerby value, A arg);
+
+  public R visit(AbstractMySql value, A arg);
 
 }

@@ -18,7 +18,6 @@
 
 package com.torodb.backend.derby;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.torodb.backend.AbstractStructureInterface;
 import com.torodb.backend.InternalField;
@@ -26,8 +25,13 @@ import com.torodb.backend.SqlBuilder;
 import com.torodb.backend.SqlHelper;
 import com.torodb.backend.converters.jooq.DataTypeForKv;
 import com.torodb.core.backend.IdentifierConstraints;
+import com.torodb.core.d2r.UniqueIdentifierGenerator;
+import com.torodb.core.d2r.UniqueIdentifierGenerator.ChainConverterFactory;
+import com.torodb.core.d2r.UniqueIdentifierGenerator.IdentifierChecker;
+import com.torodb.core.d2r.UniqueIdentifierGenerator.NameChain;
+import com.torodb.core.transaction.metainf.FieldType;
 import org.jooq.DSLContext;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,12 +45,19 @@ import javax.inject.Singleton;
 @Singleton
 public class DerbyStructureInterface extends AbstractStructureInterface {
 
+  private final UniqueIdentifierGenerator uniqueIdentifierGenerator;
+  private final InternalIndexIdentifierChecker internalIndexIdentifierChecker = 
+      new InternalIndexIdentifierChecker();
+  
   @Inject
   public DerbyStructureInterface(DerbyDbBackend dbBackend,
       DerbyMetaDataReadInterface metaDataReadInterface,
       SqlHelper sqlHelper,
-      IdentifierConstraints identifierConstraints) {
+      IdentifierConstraints identifierConstraints,
+      UniqueIdentifierGenerator uniqueIdentifierGenerator) {
     super(dbBackend, metaDataReadInterface, sqlHelper, identifierConstraints);
+    
+    this.uniqueIdentifierGenerator = uniqueIdentifierGenerator;
   }
 
   @Override
@@ -62,8 +73,8 @@ public class DerbyStructureInterface extends AbstractStructureInterface {
   }
 
   @Override
-  protected String getRenameIndexStatement(String fromSchemaName, String fromIndexName,
-      String toIndexName) {
+  protected String getRenameIndexStatement(String fromSchemaName, String fromTableName, 
+      String fromIndexName, String toIndexName) {
     return "SET SCHEMA = \"" + fromSchemaName + "\"; RENAME INDEX \"" + fromIndexName + "\" TO \""
         + toIndexName + "\"";
   }
@@ -81,7 +92,7 @@ public class DerbyStructureInterface extends AbstractStructureInterface {
 
   @Override
   protected String getCreateIndexStatement(String indexName, String schemaName, String tableName,
-      List<Tuple2<String, Boolean>> columnList, boolean unique) {
+      List<Tuple3<String, Boolean, FieldType>> columnList, boolean unique) {
     StringBuilder sb = new StringBuilder()
         .append(unique ? "CREATE UNIQUE INDEX " : "CREATE INDEX ")
         .append("\"").append(indexName).append("\"")
@@ -90,7 +101,7 @@ public class DerbyStructureInterface extends AbstractStructureInterface {
         .append(".")
         .append("\"").append(tableName).append("\"")
         .append(" (");
-    for (Tuple2<String, Boolean> columnEntry : columnList) {
+    for (Tuple3<String, Boolean, FieldType> columnEntry : columnList) {
       sb.append("\"").append(columnEntry.v1()).append("\" ")
           .append(columnEntry.v2() ? "ASC," : "DESC,");
     }
@@ -173,18 +184,34 @@ public class DerbyStructureInterface extends AbstractStructureInterface {
     return sb.toString();
   }
 
+  private static class InternalIndexIdentifierChecker implements IdentifierChecker {
+    @Override
+    public boolean isUnique(String identifier) {
+      return true;
+    }
+
+    @Override
+    public boolean isAllowed(IdentifierConstraints identifierInterface, String identifier) {
+      return identifierInterface.isAllowedIndexIdentifier(identifier);
+    }
+  }
+
   @Override
   protected String getCreateDocPartTableIndexStatement(String schemaName, String tableName,
       Collection<InternalField<?>> indexFields) {
     Preconditions.checkArgument(!indexFields.isEmpty());
     SqlBuilder sb = new SqlBuilder("CREATE INDEX ");
 
-    String fieldPartName = Joiner.on("")
-        .join(indexFields.stream()
-            .map(field -> field.getName()).iterator()
-        );
 
-    sb.quote(tableName + fieldPartName + "_idx");
+    NameChain nameChain = uniqueIdentifierGenerator.createNameChain();
+    nameChain.add(tableName);
+    indexFields.stream()
+      .forEach(indexField -> nameChain.add(indexField.getName()));
+    String indexName = uniqueIdentifierGenerator.generateIdentifier(
+        nameChain, internalIndexIdentifierChecker, "$idx",
+        ChainConverterFactory.random_cut, ChainConverterFactory.random_cut);
+
+    sb.quote(indexName);
     sb.append(" ON ");
     sb.table(schemaName, tableName)
         .append(" (");

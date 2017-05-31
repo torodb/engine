@@ -1,0 +1,26 @@
+{
+    "initialState": {
+        "db1": {
+            "col1": [
+            ]
+        }
+    },
+    "expectedState": {
+        "db1": {
+            "col1": [
+            ]
+        }
+    },
+    "expectedException": "UnexpectedOplogApplierException",
+    "oplog": [
+        {
+            "op": "d",
+            "ns": "db1.col1",
+            "o": {
+                "_id": {
+                    "a": 1
+                }
+            }
+        }
+    ]
+}

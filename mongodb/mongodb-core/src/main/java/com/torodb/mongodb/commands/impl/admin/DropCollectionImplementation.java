@@ -18,42 +18,39 @@
 
 package com.torodb.mongodb.commands.impl.admin;
 
-import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.logging.LoggerFactory;
-import com.torodb.mongodb.commands.impl.WriteTorodbCommandImpl;
-import com.torodb.mongodb.core.WriteMongodTransaction;
-import com.torodb.mongowp.ErrorCode;
+import com.torodb.mongodb.commands.impl.RetrierSchemaCommandImpl;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.impl.CollectionCommandArgument;
 import com.torodb.mongowp.commands.tools.Empty;
-import org.apache.logging.log4j.Logger;
+import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.exception.UnexistentDatabaseException;
 
-import javax.inject.Inject;
 
-public class DropCollectionImplementation implements
-    WriteTorodbCommandImpl<CollectionCommandArgument, Empty> {
+public class DropCollectionImplementation 
+    extends RetrierSchemaCommandImpl<CollectionCommandArgument, Empty> {
 
-  private final Logger logger;
-
-  @Inject
   public DropCollectionImplementation(LoggerFactory loggerFactory) {
-    this.logger = loggerFactory.apply(this.getClass());
+    super(loggerFactory);
   }
 
   @Override
-  public Status<Empty> apply(Request req,
+  public Status<Empty> tryApply(Request req,
       Command<? super CollectionCommandArgument, ? super Empty> command,
-      CollectionCommandArgument arg, WriteMongodTransaction context) {
+      CollectionCommandArgument arg, SchemaOperationExecutor context) {
     try {
       logDropCommand(req, arg);
 
-      context.getTorodTransaction().dropCollection(req.getDatabase(), arg.getCollection());
-    } catch (UserException ex) {
-      //TODO: Improve error reporting
-      return Status.from(ErrorCode.COMMAND_FAILED, ex.getLocalizedMessage());
-    }
+      context.dropCollection(req.getDatabase(), arg.getCollection());
+    } catch (UnexistentDatabaseException ex) {
+      getLogger().debug("Trying to drop {}.{} when database {} doesn't exist",
+          req.getDatabase(),
+          arg.getCollection(),
+          req.getDatabase()
+      );
+    } 
 
     return Status.ok();
   }
@@ -61,7 +58,7 @@ public class DropCollectionImplementation implements
   private void logDropCommand(Request req, CollectionCommandArgument arg) {
     String collection = arg.getCollection();
 
-    logger.info("Drop collection {}.{}", req.getDatabase(), collection);
+    getLogger().info("Drop collection {}.{}", req.getDatabase(), collection);
   }
 
 }

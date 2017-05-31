@@ -23,7 +23,7 @@ import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
 import com.torodb.core.transaction.metainf.MetaSnapshot;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
@@ -50,6 +50,7 @@ public interface IdentifierFactory {
   String toFieldIdentifierForScalar(@Nonnull FieldType fieldType);
 
   @Nonnull
-  String toIndexIdentifier(@Nonnull MetaDatabase metaSnapshot, String tableName,
-      @Nonnull Iterable<Tuple2<String, Boolean>> identifiers);
+  String toIndexIdentifier(@Nonnull MetaDatabase metaSnapshot, @Nonnull String tableName,
+      @Nonnull Iterable<Tuple3<String, Boolean, FieldType>> identifiers);
+
 }

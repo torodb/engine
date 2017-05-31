@@ -23,12 +23,13 @@ import com.torodb.backend.meta.TorodbSchema;
 import com.torodb.core.TableRef;
 import com.torodb.core.exceptions.InvalidDatabaseException;
 import com.torodb.core.exceptions.user.UserException;
+import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import org.jooq.DSLContext;
 import org.jooq.Meta;
 import org.jooq.Schema;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +40,16 @@ import javax.annotation.Nonnull;
 
 public interface StructureInterface {
 
-  void createSchema(@Nonnull DSLContext dsl, @Nonnull String schemaName);
+  /**
+   * Creates the database where metainfo is going to be stored.
+   *
+   * <p>Usually it corresponds to create a schema called torodb that will contain all meta tables
+   */
+  default void createMetainfoDatabase(@Nonnull DSLContext dsl) {
+    createDatabase(dsl, TorodbSchema.IDENTIFIER);
+  }
+
+  void createDatabase(@Nonnull DSLContext dsl, @Nonnull String schemaName);
 
   void dropDatabase(@Nonnull DSLContext dsl, @Nonnull MetaDatabase metaDatabase);
 
@@ -63,14 +73,9 @@ public interface StructureInterface {
    *
    * The returned stream is empty if the backend is not including the internal indexes
    *
-   * @param dbName
-   * @param schemaName
-   * @param tableName
-   * @param tableRef
-   * @return
    * @see DbBackend#includeInternalIndexes()
    */
-  Stream<Function<DSLContext, String>> streamRootDocPartTableIndexesCreation(String dbName,
+  Stream<Function<DSLContext, String>> streamRootDocPartTableIndexesCreation(
       String schemaName, String tableName, TableRef tableRef);
 
   /**
@@ -79,17 +84,10 @@ public interface StructureInterface {
    *
    * The returned stream is empty if the backend is not including the internal indexes
    *
-   * @param dbName
-   * @param schemaName
-   * @param tableName
-   * @param tableRef
-   * @param foreignTableName
-   * @return
    * @see DbBackend#includeInternalIndexes()
    */
   Stream<Function<DSLContext, String>> streamDocPartTableIndexesCreation(
-      String dbName, String schemaName, 
-      String tableName, TableRef tableRef, String foreignTableName);
+      String schemaName, String tableName, TableRef tableRef, String foreignTableName);
 
   void addColumnToDocPartTable(@Nonnull DSLContext dsl, @Nonnull String schemaName,
       @Nonnull String tableName, @Nonnull String columnName, @Nonnull DataTypeForKv<?> dataType);
@@ -104,10 +102,9 @@ public interface StructureInterface {
    */
   public Stream<Function<DSLContext, String>> streamDataInsertFinishTasks(MetaDatabase db);
 
-  void createIndex(@Nonnull DSLContext dsl, 
-      @Nonnull String dbName, @Nonnull String indexName, @Nonnull String tableSchema,
-      @Nonnull String tableName, @Nonnull List<Tuple2<String, Boolean>> columnList, boolean unique)
-      throws UserException;
+  void createIndex(@Nonnull DSLContext dsl, @Nonnull String indexName, @Nonnull String tableSchema,
+      @Nonnull String tableName, @Nonnull List<Tuple3<String, Boolean, FieldType>> columnList, 
+      boolean unique) throws UserException;
 
   void dropIndex(@Nonnull DSLContext dsl, @Nonnull String schemaName, @Nonnull String indexName);
 

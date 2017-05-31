@@ -47,6 +47,14 @@ public class AttributeReference implements Serializable {
     this.keys = ImmutableList.copyOf(keys);
   }
 
+  /**
+   * Creates a new {@link AttributeReference} with a single key.
+   * @param key The key the new attribute reference will contain
+   */
+  public AttributeReference(@Nonnull Key<?> key) {
+    this.keys = ImmutableList.of(key);
+  }
+
   @Nonnull
   public List<Key<?>> getKeys() {
     return keys;

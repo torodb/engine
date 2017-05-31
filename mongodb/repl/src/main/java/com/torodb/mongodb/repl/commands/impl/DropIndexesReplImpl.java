@@ -30,7 +30,7 @@ import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.torod.IndexFieldInfo;
 import com.torodb.torod.IndexInfo;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
@@ -56,13 +56,14 @@ public class DropIndexesReplImpl extends ReplCommandImpl<DropIndexesArgument, Dr
       Request req,
       Command<? super DropIndexesArgument, ? super DropIndexesResult> command,
       DropIndexesArgument arg,
-      SharedWriteTorodTransaction trans) {
+      SchemaOperationExecutor schemaEx) {
 
     if (!filterUtil.testNamespaceFilter(req.getDatabase(), arg.getCollection(), command)) {
       return Status.ok(new DropIndexesResult(0));
     }
     
-    int indexesBefore = (int) trans.getIndexesInfo(req.getDatabase(), arg.getCollection()).count();
+    int indexesBefore = (int) schemaEx.getIndexesInfo(req.getDatabase(), arg.getCollection())
+        .count();
 
     List<String> indexesToDrop;
 
@@ -75,7 +76,8 @@ public class DropIndexesReplImpl extends ReplCommandImpl<DropIndexesArgument, Dr
         }
         indexesToDrop = Arrays.asList(arg.getIndexToDrop());
       } else {
-        indexesToDrop = trans.getIndexesInfo(req.getDatabase(), arg.getCollection())
+        assert arg.getKeys() != null;
+        indexesToDrop = schemaEx.getIndexesInfo(req.getDatabase(), arg.getCollection())
             .filter(index -> indexFieldsMatchKeys(index, arg.getKeys()))
             .map(index -> index.getName())
             .collect(Collectors.toList());
@@ -92,7 +94,7 @@ public class DropIndexesReplImpl extends ReplCommandImpl<DropIndexesArgument, Dr
         }
       }
     } else {
-      indexesToDrop = trans.getIndexesInfo(req.getDatabase(), arg.getCollection())
+      indexesToDrop = schemaEx.getIndexesInfo(req.getDatabase(), arg.getCollection())
           .filter(indexInfo -> !DefaultIdUtils.ID_INDEX.equals(indexInfo.getName()))
           .map(indexInfo -> indexInfo.getName())
           .collect(Collectors.toList());
@@ -102,7 +104,7 @@ public class DropIndexesReplImpl extends ReplCommandImpl<DropIndexesArgument, Dr
       logger.info("Dropping index {} on collection {}.{}", req.getDatabase(), arg.getCollection(),
           indexToDrop);
 
-      boolean dropped = trans.dropIndex(req.getDatabase(), arg.getCollection(), indexToDrop
+      boolean dropped = schemaEx.dropIndex(req.getDatabase(), arg.getCollection(), indexToDrop
       );
       if (!dropped) {
         logger.info("Trying to drop index {}, but it has not been "

@@ -18,10 +18,10 @@
 
 package com.torodb.mongodb.commands.impl.replication;
 
-import com.torodb.mongodb.commands.impl.ConnectionTorodbCommandImpl;
+import com.torodb.mongodb.commands.impl.ServerCommandImpl;
 import com.torodb.mongodb.commands.signatures.repl.IsMasterCommand.IsMasterReply;
 import com.torodb.mongodb.core.MongoLayerConstants;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.core.MongodServerConfig;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
@@ -37,7 +37,7 @@ import javax.inject.Singleton;
  *
  */
 @Singleton
-public class IsMasterImplementation extends ConnectionTorodbCommandImpl<Empty, IsMasterReply> {
+public class IsMasterImplementation extends ServerCommandImpl<Empty, IsMasterReply> {
 
   private final Clock clock;
 
@@ -48,7 +48,7 @@ public class IsMasterImplementation extends ConnectionTorodbCommandImpl<Empty, I
 
   @Override
   public Status<IsMasterReply> apply(Request req,
-      Command<? super Empty, ? super IsMasterReply> command, Empty arg, MongodConnection context) {
+      Command<? super Empty, ? super IsMasterReply> command, Empty arg, MongodServer context) {
     return Status.ok(
         IsMasterReply.Builder.fromStandalone(
             MongoLayerConstants.MAX_BSON_DOCUMENT_SIZE,

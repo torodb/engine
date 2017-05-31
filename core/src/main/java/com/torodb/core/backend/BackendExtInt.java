@@ -20,7 +20,6 @@ package com.torodb.core.backend;
 
 import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.d2r.ReservedIdGenerator;
-import com.torodb.core.dsl.backend.BackendTransactionJobFactory;
 
 /**
  * The external interface associated with {@link BackendBundle backend bundles}.
@@ -28,11 +27,7 @@ import com.torodb.core.dsl.backend.BackendTransactionJobFactory;
 public interface BackendExtInt {
   BackendService getBackendService();
 
-  SnapshotUpdater getSnapshotUpdater();
-
   ReservedIdGenerator getReservedIdGenerator();
 
   IdentifierFactory getIdentifierFactory();
-
-  BackendTransactionJobFactory getBackendTransactionJobFactory();
 }

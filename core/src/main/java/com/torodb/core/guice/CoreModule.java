@@ -26,9 +26,8 @@ import com.torodb.core.TableRefFactory;
 import com.torodb.core.impl.TableRefFactoryImpl;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.core.logging.LoggerFactory;
+import com.torodb.core.retrier.DefaultRetrier;
 import com.torodb.core.retrier.Retrier;
-import com.torodb.core.retrier.SmartRetrier;
-import com.torodb.core.transaction.InternalTransactionManager;
 
 import java.util.concurrent.ThreadFactory;
 
@@ -48,44 +47,17 @@ public class CoreModule extends EssentialToroModule {
   protected void configure() {
     expose(TableRefFactory.class);
     expose(Retrier.class);
-    expose(InternalTransactionManager.class);
     exposeEssential(LoggerFactory.class);
 
     bind(TableRefFactory.class)
         .to(TableRefFactoryImpl.class)
         .asEagerSingleton();
 
-    int maxCriticalAttempts = 100;
-    int maxInfrequentAttempts = 5;
-    int maxFrequentAttempts = 100;
-    int maxDefaultAttempts = 10;
-
     bind(Retrier.class)
-        .toInstance(new SmartRetrier(
-            attempts -> attempts >= maxCriticalAttempts,
-            attempts -> attempts >= maxInfrequentAttempts,
-            attempts -> attempts >= maxFrequentAttempts,
-            attempts -> attempts >= maxDefaultAttempts,
-            CoreModule::millisToWait
-        ));
-
-    bind(InternalTransactionManager.class)
-        .in(Singleton.class);
+        .toInstance(DefaultRetrier.getInstance());
 
     bindEssential(LoggerFactory.class)
         .toInstance(DefaultLoggerFactory.getInstance());
-  }
-
-  private static int millisToWait(int attempts, int millis) {
-    if (millis >= 2000) {
-      return 2000;
-    }
-    int factor = (int) Math.round(millis * (1.5 + Math.random()));
-    if (factor < 2) {
-      assert millis <= 1;
-      factor = 2;
-    }
-    return Math.min(2000, millis * factor);
   }
 
   @Provides

@@ -48,7 +48,7 @@ public class ListIndexesImplementation implements
       ListIndexesArgument arg, MongodTransaction context) {
     return Status.ok(new ListIndexesResult(
         CursorResult.createSingleBatchCursor(req.getDatabase(), arg.getCollection(),
-            context.getTorodTransaction().getIndexesInfo(req.getDatabase(), arg.getCollection())
+            context.getDocTransaction().getIndexesInfo(req.getDatabase(), arg.getCollection())
                 .map(indexInfo ->
                     new IndexOptions(
                         IndexVersion.V1,

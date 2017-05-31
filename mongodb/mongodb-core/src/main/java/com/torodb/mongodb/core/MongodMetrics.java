@@ -26,10 +26,10 @@ import com.torodb.mongowp.commands.Command;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
-@Singleton
+@ThreadSafe
 public class MongodMetrics {
 
   private final ToroMetricRegistry registry;

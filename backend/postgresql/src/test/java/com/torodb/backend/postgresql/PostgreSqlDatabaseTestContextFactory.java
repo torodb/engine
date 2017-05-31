@@ -27,24 +27,25 @@ import com.torodb.backend.tests.common.DatabaseTestContext;
 import com.torodb.backend.tests.common.IntegrationTestBundleConfig;
 import com.torodb.core.backend.IdentifierConstraints;
 import com.torodb.core.bundle.BundleConfig;
+import com.torodb.testing.docker.postgres.PostgresService;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 public class PostgreSqlDatabaseTestContextFactory {
 
-  public DatabaseTestContext createInstance() {
+  public DatabaseTestContext createInstance(PostgresService postgresDockerService) {
     DataTypeProvider provider = new PostgreSqlDataTypeProvider();
     PostgreSqlErrorHandler errorHandler = new PostgreSqlErrorHandler();
     SqlHelper sqlHelper = new SqlHelper(provider, errorHandler);
 
     BundleConfig bundleConfig = new IntegrationTestBundleConfig();
     BackendConfig backendConfig = new BackendConfigImplBuilder(bundleConfig)
-        .setUsername("test")
-        .setPassword("test")
-        .setDbHost("localhost")
-        .setDbName("test")
-        .setDbPort(15430)
+        .setUsername(postgresDockerService.getConfig().getUsername())
+        .setPassword(postgresDockerService.getConfig().getPassword())
+        .setDbName(postgresDockerService.getConfig().getDb())
+        .setDbHost(postgresDockerService.getAddress().getHost())
+        .setDbPort(postgresDockerService.getAddress().getPort())
         .setIncludeForeignKeys(false)
         .build();
 

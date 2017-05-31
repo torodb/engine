@@ -28,10 +28,7 @@ import com.torodb.core.retrier.Retrier.Hint;
 import com.torodb.core.retrier.RetrierAbortException;
 import com.torodb.core.retrier.RetrierGiveUpException;
 import com.torodb.core.transaction.RollbackException;
-import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
-import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.MongodServer;
-import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.OplogOperationApplier;
 import com.torodb.mongodb.repl.oplogreplier.OplogOperationApplier.OplogApplyingException;
@@ -42,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.inject.Inject;
+
 
 /**
  *
@@ -80,49 +78,29 @@ public class SimpleAnalyzedOplogBatchExecutor extends AbstractService
   @Override
   public void execute(OplogOperation op, ApplierContext context)
       throws OplogApplyingException, RollbackException, UserException {
-    try (MongodConnection connection = server.openConnection();
-        ExclusiveWriteMongodTransaction mongoTransaction = connection
-            .openExclusiveWriteTransaction()) {
-
-      oplogOperationApplier.apply(op, mongoTransaction, context);
-      mongoTransaction.commit();
-    }
+    oplogOperationApplier.apply(op, server, context);
   }
 
   @Override
   public void execute(CudAnalyzedOplogBatch cudBatch, ApplierContext context)
       throws RollbackException, UserException, NamespaceJobExecutionException {
-    try (MongodConnection connection = server.openConnection()) {
-
-      Iterator<NamespaceJob> it = cudBatch.streamNamespaceJobs().iterator();
-      while (it.hasNext()) {
-        execute(it.next(), context, connection);
-      }
+    Iterator<NamespaceJob> it = cudBatch.streamNamespaceJobs().iterator();
+    while (it.hasNext()) {
+      execute(it.next(), context);
     }
   }
 
-  protected void execute(NamespaceJob job, ApplierContext applierContext,
-      MongodConnection connection) throws RollbackException, UserException,
-      NamespaceJobExecutionException {
+  protected void execute(NamespaceJob job, ApplierContext applierContext)
+      throws RollbackException, UserException, NamespaceJobExecutionException {
     try (Context timerContext = metrics.getNamespaceBatchTimer().time()) {
       boolean optimisticDeleteAndCreate = applierContext.isReapplying().orElse(true);
       try {
-        execute(job, applierContext, connection, optimisticDeleteAndCreate);
+        namespaceJobExecutor.apply(job, server, optimisticDeleteAndCreate);
       } catch (UniqueIndexViolationException ex) {
         assert optimisticDeleteAndCreate : "Unique index violations should not happen when "
             + "pesimistic delete and create is executed";
-        execute(job, applierContext, connection, false);
+        namespaceJobExecutor.apply(job, server, false);
       }
-    }
-  }
-
-  private void execute(NamespaceJob job, ApplierContext applierContext,
-      MongodConnection connection, boolean optimisticDeleteAndCreate)
-      throws RollbackException, UserException, NamespaceJobExecutionException,
-      UniqueIndexViolationException {
-    try (WriteMongodTransaction mongoTransaction = connection.openWriteTransaction()) {
-      namespaceJobExecutor.apply(job, mongoTransaction, applierContext, optimisticDeleteAndCreate);
-      mongoTransaction.commit();
     }
   }
 

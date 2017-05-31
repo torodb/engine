@@ -20,11 +20,10 @@ package com.torodb.core.guice;
 
 import com.google.inject.AbstractModule;
 import com.torodb.core.bundle.BundleConfig;
-import com.torodb.core.concurrent.guice.ConcurrentModule;
+import com.torodb.core.concurrent.ConcurrentModule;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.metrics.MetricsConfig;
 import com.torodb.core.metrics.MetricsModule;
-import com.torodb.core.transaction.metainf.impl.MetainfModule;
 
 import java.time.Clock;
 
@@ -55,7 +54,6 @@ public class EssentialModule extends AbstractModule {
     install(new CoreModule(lifecycleLoggerFactory));
     install(new ExecutorServicesModule());
     install(new ConcurrentModule(lifecycleLoggerFactory));
-    install(new MetainfModule());
     install(new MetricsModule(metricsConfig));
   }
 

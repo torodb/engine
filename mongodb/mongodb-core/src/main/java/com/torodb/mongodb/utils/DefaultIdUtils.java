@@ -18,6 +18,8 @@
 
 package com.torodb.mongodb.utils;
 
+import com.torodb.kvdocument.values.KvDocument;
+import com.torodb.kvdocument.values.KvValue;
 import com.torodb.mongowp.bson.BsonDocument;
 import com.torodb.mongowp.bson.BsonValue;
 
@@ -31,6 +33,10 @@ public class DefaultIdUtils {
   }
 
   public static BsonValue getIdKey(BsonDocument doc) {
+    return doc.get(ID_KEY);
+  }
+
+  public static KvValue<?> getIdKey(KvDocument doc) {
     return doc.get(ID_KEY);
   }
 }

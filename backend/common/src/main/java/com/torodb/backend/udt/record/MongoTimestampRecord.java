@@ -36,7 +36,7 @@ public class MongoTimestampRecord extends UDTRecordImpl<MongoTimestampRecord> im
   private static final long serialVersionUID = -103355438;
 
   public void setSecs(Integer secs) {
-    setValue(0, secs);
+    set(0, secs);
   }
 
   public Integer getSecs() {
@@ -44,7 +44,7 @@ public class MongoTimestampRecord extends UDTRecordImpl<MongoTimestampRecord> im
   }
 
   public void setCounter(Integer counter) {
-    setValue(1, counter);
+    set(1, counter);
   }
 
   public Integer getCounter() {
@@ -114,7 +114,7 @@ public class MongoTimestampRecord extends UDTRecordImpl<MongoTimestampRecord> im
   public MongoTimestampRecord(Integer secs, Integer counter) {
     super(MongoTimestampUDT.MONGO_TIMESTAMP);
 
-    setValue(0, secs);
-    setValue(1, counter);
+    set(0, secs);
+    set(1, counter);
   }
 }

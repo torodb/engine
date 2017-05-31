@@ -74,7 +74,7 @@ public abstract class AbstractSchemaUpdater implements SchemaUpdater {
   }
 
   protected void createSchema(DSLContext dsl, SqlInterface sqlInterface, SqlHelper sqlHelper) {
-    sqlInterface.getStructureInterface().createSchema(dsl, TorodbSchema.IDENTIFIER);
+    sqlInterface.getStructureInterface().createMetainfoDatabase(dsl);
     sqlInterface.getMetaDataWriteInterface().createMetaDatabaseTable(dsl);
     sqlInterface.getMetaDataWriteInterface().createMetaCollectionTable(dsl);
     sqlInterface.getMetaDataWriteInterface().createMetaDocPartTable(dsl);

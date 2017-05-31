@@ -71,4 +71,9 @@ public interface MutableMetaCollection extends MetaCollection {
 
   public Optional<? extends MetaIdentifiedDocPartIndex> getAnyOrphanDocPartIndex(
       ImmutableMetaCollection oldStructure, MutableMetaIndex changed);
+
+  public default boolean hasChanges() {
+    return streamModifiedMetaDocParts().findAny().isPresent()
+        || streamModifiedMetaIndexes().findAny().isPresent();
+  }
 }

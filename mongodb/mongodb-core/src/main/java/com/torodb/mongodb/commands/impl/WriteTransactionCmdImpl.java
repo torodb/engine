@@ -22,19 +22,9 @@ import com.google.common.collect.ImmutableMap;
 import com.torodb.core.annotations.DoNotChange;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongodb.commands.CmdImplMapSupplier;
-import com.torodb.mongodb.commands.impl.admin.CreateCollectionImplementation;
-import com.torodb.mongodb.commands.impl.admin.CreateIndexesImplementation;
-import com.torodb.mongodb.commands.impl.admin.DropCollectionImplementation;
-import com.torodb.mongodb.commands.impl.admin.DropDatabaseImplementation;
-import com.torodb.mongodb.commands.impl.admin.DropIndexesImplementation;
 import com.torodb.mongodb.commands.impl.general.DeleteImplementation;
 import com.torodb.mongodb.commands.impl.general.InsertImplementation;
 import com.torodb.mongodb.commands.impl.general.UpdateImplementation;
-import com.torodb.mongodb.commands.signatures.admin.CreateCollectionCommand;
-import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand;
-import com.torodb.mongodb.commands.signatures.admin.DropCollectionCommand;
-import com.torodb.mongodb.commands.signatures.admin.DropDatabaseCommand;
-import com.torodb.mongodb.commands.signatures.admin.DropIndexesCommand;
 import com.torodb.mongodb.commands.signatures.general.DeleteCommand;
 import com.torodb.mongodb.commands.signatures.general.InsertCommand;
 import com.torodb.mongodb.commands.signatures.general.UpdateCommand;
@@ -56,11 +46,6 @@ public class WriteTransactionCmdImpl implements CmdImplMapSupplier<WriteMongodTr
   @Inject
   WriteTransactionCmdImpl(LoggerFactory loggerFactory) {
     this.map = ImmutableMap.<Command<?, ?>, CommandImplementation<?, ?, ? super WriteMongodTransaction>>builder()
-        .put(DropDatabaseCommand.INSTANCE, new DropDatabaseImplementation(loggerFactory))
-        .put(DropCollectionCommand.INSTANCE, new DropCollectionImplementation(loggerFactory))
-        .put(CreateCollectionCommand.INSTANCE, new CreateCollectionImplementation())
-        .put(CreateIndexesCommand.INSTANCE, new CreateIndexesImplementation())
-        .put(DropIndexesCommand.INSTANCE, new DropIndexesImplementation())
         .put(InsertCommand.INSTANCE, new InsertImplementation())
         .put(DeleteCommand.INSTANCE, new DeleteImplementation(loggerFactory))
         .put(UpdateCommand.INSTANCE, new UpdateImplementation())

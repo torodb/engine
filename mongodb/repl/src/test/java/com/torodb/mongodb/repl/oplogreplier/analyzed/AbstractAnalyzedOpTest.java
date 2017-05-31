@@ -26,7 +26,7 @@ import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvInteger;
 import com.torodb.kvdocument.values.KvValue;
 import com.torodb.kvdocument.values.heap.StringKvString;
-import com.torodb.mongodb.repl.oplogreplier.OpTimeFactory;
+import com.torodb.mongodb.repl.oplogreplier.utils.OpTimeFactory;
 import com.torodb.mongodb.utils.DefaultIdUtils;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.bson.BsonDocument;

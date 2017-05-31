@@ -20,7 +20,8 @@ package com.torodb.mongodb.core;
 
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.transaction.RollbackException;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.mongodb.language.ObjectIdFactory;
+import com.torodb.torod.WriteDocTransaction;
 
 /**
  *
@@ -28,7 +29,11 @@ import com.torodb.torod.SharedWriteTorodTransaction;
 public interface WriteMongodTransaction extends MongodTransaction {
 
   @Override
-  public SharedWriteTorodTransaction getTorodTransaction();
+  public WriteDocTransaction getDocTransaction();
+
+  public ObjectIdFactory getObjectIdFactory();
+
+  public MongodMetrics getMetrics();
 
   public void commit() throws RollbackException, UserException;
 

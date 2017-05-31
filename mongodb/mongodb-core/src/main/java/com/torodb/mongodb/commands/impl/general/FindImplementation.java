@@ -36,7 +36,7 @@ import com.torodb.mongowp.bson.BsonDocument;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.exceptions.CommandFailed;
-import com.torodb.torod.TorodTransaction;
+import com.torodb.torod.DocTransaction;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
@@ -67,7 +67,7 @@ public class FindImplementation implements ReadTorodbCommandImpl<FindArgument, F
 
     switch (filter.size()) {
       case 0: {
-        cursor = context.getTorodTransaction().findAll(req.getDatabase(), arg.getCollection())
+        cursor = context.getDocTransaction().findAll(req.getDatabase(), arg.getCollection())
             .asDocCursor()
             .transform(t -> t.getRoot())
             .transform(ToBsonDocumentTranslator.getInstance());
@@ -75,7 +75,7 @@ public class FindImplementation implements ReadTorodbCommandImpl<FindArgument, F
       }
       case 1: {
         try {
-          cursor = getByAttributeCursor(context.getTorodTransaction(), req.getDatabase(), arg
+          cursor = getByAttributeCursor(context.getDocTransaction(), req.getDatabase(), arg
               .getCollection(), filter)
               .transform(ToBsonDocumentTranslator.getInstance());
         } catch (CommandFailed ex) {
@@ -103,7 +103,7 @@ public class FindImplementation implements ReadTorodbCommandImpl<FindArgument, F
 
   }
 
-  private Cursor<KvDocument> getByAttributeCursor(TorodTransaction transaction, String db,
+  private Cursor<KvDocument> getByAttributeCursor(DocTransaction transaction, String db,
       String col, BsonDocument filter) throws CommandFailed {
 
     Builder refBuilder = new AttributeReference.Builder();

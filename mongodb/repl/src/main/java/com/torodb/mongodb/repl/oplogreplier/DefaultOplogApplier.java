@@ -24,6 +24,8 @@ import akka.actor.ActorSystem;
 import akka.dispatch.ExecutionContexts;
 import akka.japi.Pair;
 import akka.stream.ActorMaterializer;
+import akka.stream.FlowShape;
+import akka.stream.Graph;
 import akka.stream.KillSwitch;
 import akka.stream.KillSwitches;
 import akka.stream.Materializer;
@@ -35,6 +37,8 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
+import com.torodb.akka.chronicle.queue.ChronicleQueueStreamFactory;
+import com.torodb.akka.chronicle.queue.Excerpt;
 import com.torodb.common.util.Empty;
 import com.torodb.core.Shutdowner;
 import com.torodb.core.concurrent.ConcurrentToolsFactory;
@@ -63,6 +67,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
@@ -78,6 +83,7 @@ public class DefaultOplogApplier implements OplogApplier {
   private final OplogManager oplogManager;
   private final BatchAnalyzerFactory batchAnalyzerFactory;
   private final ActorSystem actorSystem;
+  private final ExecutorService executorService;
   private final OplogApplierMetrics metrics;
   private final OplogBatchFilter batchFilter;
   private final OplogBatchChecker batchChecker;
@@ -92,11 +98,10 @@ public class DefaultOplogApplier implements OplogApplier {
     this.batchLimits = batchLimits;
     this.oplogManager = oplogManager;
     this.batchAnalyzerFactory = batchAnalyzerFactory;
+    this.executorService = concurrentToolsFactory.createExecutorServiceWithMaxThreads(
+        "oplog-applier", 3);
     this.actorSystem = ActorSystem.create("oplog-applier", null, null,
-        ExecutionContexts.fromExecutor(
-            concurrentToolsFactory.createExecutorServiceWithMaxThreads(
-                "oplog-applier", 3)
-        )
+        ExecutionContexts.fromExecutor(executorService)
     );
     this.metrics = metrics;
     this.batchFilter = batchFilter;
@@ -110,6 +115,9 @@ public class DefaultOplogApplier implements OplogApplier {
     Materializer materializer = ActorMaterializer.create(actorSystem);
 
     RunnableGraph<Pair<UniqueKillSwitch, CompletionStage<Done>>> graph = createOplogSource(fetcher)
+        .async()
+        .via(createOffheapBuffer())
+        .map(Excerpt::getElement)
         .async()
         .map(batchFilter)
         .map(batchChecker)
@@ -162,6 +170,13 @@ public class DefaultOplogApplier implements OplogApplier {
     return new DefaultApplyingJob(killSwitch, whenComplete);
   }
 
+  private static Graph<FlowShape<OplogBatch, Excerpt<OplogBatch>>, NotUsed> createOffheapBuffer() {
+    return new ChronicleQueueStreamFactory<>()
+        .withTemporalQueue()
+        .autoManaged()
+        .createBuffer(new OplogBatchMarshaller());
+  }
+
   private static class DefaultApplyingJob extends AbstractApplyingJob {
 
     private final KillSwitch killSwitch;
@@ -183,6 +198,7 @@ public class DefaultOplogApplier implements OplogApplier {
     logger.trace("Waiting until actor system terminates");
     Await.result(actorSystem.terminate(), Duration.Inf());
     logger.trace("Actor system terminated");
+    executorService.shutdown();
   }
 
   private Source<OplogBatch, NotUsed> createOplogSource(OplogFetcher fetcher) {

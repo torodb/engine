@@ -18,11 +18,18 @@
 
 package com.torodb.core.d2r;
 
-public interface CollectionData {
+import java.util.Iterator;
+
+public interface CollectionData extends Iterable<DocPartData> {
 
   /**
    * The {@code Iterable<DocPartData>} returned by this method will be ordered ascending by value of
    * {@code DocPartData.getMetaDocPart().getTableRef().getDepth()}
    */
   public Iterable<DocPartData> orderedDocPartData();
+
+  @Override
+  public default Iterator<DocPartData> iterator() {
+    return orderedDocPartData().iterator();
+  }
 }

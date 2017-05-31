@@ -20,6 +20,7 @@ package com.torodb.mongodb.wp;
 
 import com.codahale.metrics.Timer;
 import com.google.common.collect.Lists;
+import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.retrier.Retrier;
 import com.torodb.core.retrier.RetrierGiveUpException;
 import com.torodb.mongodb.commands.CommandClassifier;
@@ -27,11 +28,10 @@ import com.torodb.mongodb.commands.RequiredTransaction;
 import com.torodb.mongodb.commands.signatures.general.FindCommand;
 import com.torodb.mongodb.commands.signatures.general.FindCommand.FindArgument;
 import com.torodb.mongodb.commands.signatures.general.FindCommand.FindResult;
-import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
-import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.MongodMetrics;
+import com.torodb.mongodb.core.MongodSchemaExecutor;
 import com.torodb.mongodb.core.MongodServer;
-import com.torodb.mongodb.core.ReadOnlyMongodTransaction;
+import com.torodb.mongodb.core.MongodTransaction;
 import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongowp.ErrorCode;
 import com.torodb.mongowp.Status;
@@ -54,37 +54,39 @@ import io.netty.util.AttributeKey;
 import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
 
 @ThreadSafe
-public class TorodbSafeRequestProcessor implements SafeRequestProcessor<MongodConnection> {
+public class TorodbSafeRequestProcessor implements SafeRequestProcessor<MongoDbWpConnection> {
 
   private final Logger logger;
   private final MongodServer server;
-  public static final AttributeKey<MongodConnection> MONGOD_CONNECTION_KEY = AttributeKey
+  public static final AttributeKey<MongoDbWpConnection> MONGOD_CONNECTION_KEY = AttributeKey
       .newInstance("mongod.connection");
   private final Retrier retrier;
   private final CommandLibrary commandLibrary;
   private final CommandClassifier commandClassifier;
   private final MongodMetrics mongodMetrics;
+  private final AtomicInteger conIdGenerator = new AtomicInteger();
 
   @Inject
-  public TorodbSafeRequestProcessor(MongodServer server, Retrier retrier,
-      CommandLibrary commandLibrary, CommandClassifier commandClassifier,
+  public TorodbSafeRequestProcessor(LoggerFactory loggerFactory,MongodServer server,
+      Retrier retrier, CommandLibrary commandLibrary, CommandClassifier commandClassifier,
       MongodMetrics mongodMetrics) {
     this.server = server;
     this.retrier = retrier;
     this.commandLibrary = commandLibrary;
     this.commandClassifier = commandClassifier;
     this.mongodMetrics = mongodMetrics;
-    this.logger = server.getLoggerFactory().apply(this.getClass());
+    this.logger = loggerFactory.apply(this.getClass());
   }
 
   @Override
-  public MongodConnection openConnection() {
-    MongodConnection connection = server.openConnection();
+  public MongoDbWpConnection openConnection() {
+    MongoDbWpConnection connection = new MongoDbWpConnection(conIdGenerator.incrementAndGet());
 
     logger.info("Accepted connection {}", connection.getConnectionId());
 
@@ -93,7 +95,7 @@ public class TorodbSafeRequestProcessor implements SafeRequestProcessor<MongodCo
 
   @Override
   public <A, R> Status<R> execute(Request req, Command<? super A, ? super R> command,
-      A arg, MongodConnection connection) {
+      A arg, MongoDbWpConnection connection) {
     mongodMetrics.getCommands().mark();
     Timer timer = mongodMetrics.getTimer(command);
     try (Timer.Context ctx = timer.time()) {
@@ -102,19 +104,19 @@ public class TorodbSafeRequestProcessor implements SafeRequestProcessor<MongodCo
       switch (commandType) {
         case NO_TRANSACTION:
           callable = () -> {
-            return connection.getCommandsExecutor().execute(req, command, arg, connection);
+            return server.execute(req, command, arg);
           };
           break;
         case READ_TRANSACTION:
           callable = () -> {
-            try (ReadOnlyMongodTransaction trans = connection.openReadOnlyTransaction()) {
+            try (MongodTransaction trans = server.openReadTransaction()) {
               return trans.execute(req, command, arg);
             }
           };
           break;
         case WRITE_TRANSACTION:
           callable = () -> {
-            try (WriteMongodTransaction trans = connection.openWriteTransaction(true)) {
+            try (WriteMongodTransaction trans = server.openWriteTransaction()) {
               Status<R> result = trans.execute(req, command, arg);
               if (result.isOk()) {
                 trans.commit();
@@ -123,15 +125,10 @@ public class TorodbSafeRequestProcessor implements SafeRequestProcessor<MongodCo
             }
           };
           break;
-        case EXCLUSIVE_WRITE_TRANSACTION:
+        case EXCLUSIVE_TRANSACTION:
           callable = () -> {
-            try (ExclusiveWriteMongodTransaction trans = connection.openExclusiveWriteTransaction(
-                true)) {
-              Status<R> result = trans.execute(req, command, arg);
-              if (result.isOk()) {
-                trans.commit();
-              }
-              return result;
+            try (MongodSchemaExecutor schemaEx = server.openSchemaExecutor()) {
+              return schemaEx.execute(req, command, arg);
             }
           };
           break;
@@ -156,7 +153,7 @@ public class TorodbSafeRequestProcessor implements SafeRequestProcessor<MongodCo
   }
 
   @Override
-  public ReplyMessage query(MongodConnection connection, Request req, int requestId,
+  public ReplyMessage query(MongoDbWpConnection connection, Request req, int requestId,
       QueryRequest queryRequest) throws
       MongoException {
 
@@ -189,34 +186,34 @@ public class TorodbSafeRequestProcessor implements SafeRequestProcessor<MongodCo
   }
 
   @Override
-  public ReplyMessage getMore(MongodConnection connection, Request req, int requestId,
+  public ReplyMessage getMore(MongoDbWpConnection connection, Request req, int requestId,
       GetMoreMessage moreMessage)
       throws MongoException {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void killCursors(MongodConnection connection, Request req,
+  public void killCursors(MongoDbWpConnection connection, Request req,
       KillCursorsMessage killCursorsMessage)
       throws MongoException {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void insert(MongodConnection connection, Request req, InsertMessage insertMessage) throws
-      MongoException {
+  public void insert(MongoDbWpConnection connection, Request req, InsertMessage insertMessage)
+      throws MongoException {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void update(MongodConnection connection, Request req, UpdateMessage updateMessage) throws
-      MongoException {
+  public void update(MongoDbWpConnection connection, Request req, UpdateMessage updateMessage)
+      throws MongoException {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void delete(MongodConnection connection, Request req, DeleteMessage deleteMessage) throws
-      MongoException {
+  public void delete(MongoDbWpConnection connection, Request req, DeleteMessage deleteMessage)
+      throws MongoException {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 

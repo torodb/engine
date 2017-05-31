@@ -18,50 +18,41 @@
 
 package com.torodb.mongodb.commands.impl.admin;
 
-import com.google.common.collect.ImmutableList;
-import com.torodb.core.exceptions.user.UserException;
-import com.torodb.core.language.AttributeReference;
-import com.torodb.core.language.AttributeReference.Key;
-import com.torodb.core.language.AttributeReference.ObjectKey;
-import com.torodb.core.transaction.metainf.FieldIndexOrdering;
-import com.torodb.mongodb.commands.impl.WriteTorodbCommandImpl;
+import com.torodb.core.logging.LoggerFactory;
+import com.torodb.mongodb.commands.impl.RetrierSchemaCommandImpl;
 import com.torodb.mongodb.commands.signatures.admin.CreateCollectionCommand.CreateCollectionArgument;
-import com.torodb.mongodb.core.WriteMongodTransaction;
-import com.torodb.mongodb.utils.DefaultIdUtils;
 import com.torodb.mongowp.ErrorCode;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.tools.Empty;
-import com.torodb.torod.IndexFieldInfo;
+import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.exception.UserSchemaException;
 
-import java.util.Arrays;
+import java.util.Collections;
 
-public class CreateCollectionImplementation implements
-    WriteTorodbCommandImpl<CreateCollectionArgument, Empty> {
+
+public class CreateCollectionImplementation
+    extends RetrierSchemaCommandImpl<CreateCollectionArgument, Empty> {
+
+  public CreateCollectionImplementation(LoggerFactory loggerFactory) {
+    super(loggerFactory);
+  }
 
   @Override
-  public Status<Empty> apply(Request req,
+  public Status<Empty> tryApply(Request req,
       Command<? super CreateCollectionArgument, ? super Empty> command,
-      CreateCollectionArgument arg, WriteMongodTransaction context) {
+      CreateCollectionArgument arg, SchemaOperationExecutor context) {
     try {
-      if (!context.getTorodTransaction().existsCollection(req.getDatabase(), arg.getCollection())) {
-        context.getTorodTransaction().createIndex(req.getDatabase(), arg.getCollection(),
-            DefaultIdUtils.ID_INDEX,
-            ImmutableList.<IndexFieldInfo>of(new IndexFieldInfo(
-                new AttributeReference(
-                    Arrays.asList(new Key[] {new ObjectKey(DefaultIdUtils.ID_KEY)})),
-                FieldIndexOrdering.ASC.isAscending())),
-            true);
-      }
+      String dbName = req.getDatabase();
+      String colName = arg.getCollection();
+      context.prepareSchema(dbName, colName, Collections.emptyList());
 
-      context.getTorodTransaction().createCollection(req.getDatabase(), arg.getCollection());
-    } catch (UserException ex) {
+      return Status.ok();
+    } catch (UserSchemaException ex) {
       //TODO: Improve error reporting
-      return Status.from(ErrorCode.COMMAND_FAILED, ex.getLocalizedMessage());
+      return Status.from(ErrorCode.COMMAND_FAILED, ex.getCause().getLocalizedMessage());
     }
-
-    return Status.ok();
   }
 
 }

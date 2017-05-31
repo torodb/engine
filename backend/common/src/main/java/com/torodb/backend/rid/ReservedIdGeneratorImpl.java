@@ -19,26 +19,31 @@
 package com.torodb.backend.rid;
 
 import com.torodb.core.TableRef;
-import com.torodb.core.annotations.TorodbIdleService;
 import com.torodb.core.d2r.ReservedIdGenerator;
-import com.torodb.core.services.IdleTorodbService;
+import com.torodb.core.d2r.ReservedIdGenerator.DocPartRidGenerator;
+import com.torodb.core.transaction.metainf.MetaSnapshot;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadFactory;
 
 import javax.inject.Inject;
 
-public class ReservedIdGeneratorImpl extends IdleTorodbService implements ReservedIdGenerator {
+
+public class ReservedIdGeneratorImpl implements ReservedIdGenerator {
 
   private final Map<String, Map<String, Generator>> generators = new ConcurrentHashMap<>();
   private final ReservedIdInfoFactory factory;
+  private boolean loaded = false;
 
   @Inject
-  public ReservedIdGeneratorImpl(ReservedIdInfoFactory factory,
-      @TorodbIdleService ThreadFactory threadFactory) {
-    super(threadFactory);
+  public ReservedIdGeneratorImpl(ReservedIdInfoFactory factory) {
     this.factory = factory;
+  }
+
+  @Override
+  public void load(MetaSnapshot snapshot) {
+    factory.load(snapshot);
+    loaded = true;
   }
 
   private Generator find(String dbName, String collectionName) {
@@ -50,36 +55,33 @@ public class ReservedIdGeneratorImpl extends IdleTorodbService implements Reserv
 
   @Override
   public int nextRid(String dbName, String collectionName, TableRef tableRef) {
+    if (!loaded) {
+      throw new IllegalStateException("The reserved id generator hasn't been loaded");
+    }
     return getDocPartRidGenerator(dbName, collectionName).nextRid(tableRef);
   }
 
   @Override
   public void setNextRid(String dbName, String collectionName, TableRef tableRef, int nextRid) {
+    if (!loaded) {
+      throw new IllegalStateException("The reserved id generator hasn't been loaded");
+    }
     getDocPartRidGenerator(dbName, collectionName).setNextRid(tableRef, nextRid);
   }
 
   @Override
   public DocPartRidGenerator getDocPartRidGenerator(String dbName, String collectionName) {
+    if (!loaded) {
+      throw new IllegalStateException("The reserved id generator hasn't been loaded");
+    }
     return find(dbName, collectionName);
-  }
-
-  @Override
-  protected void startUp() throws Exception {
-    factory.startAsync();
-    factory.awaitRunning();
-  }
-
-  @Override
-  protected void shutDown() throws Exception {
-    factory.stopAsync();
-    factory.awaitTerminated();
   }
 
   private class Generator implements DocPartRidGenerator {
 
-    private String dbName;
-    private String collectionName;
-    private ConcurrentHashMap<TableRef, ReservedIdInfo> map = new ConcurrentHashMap<>();
+    private final String dbName;
+    private final String collectionName;
+    private final ConcurrentHashMap<TableRef, ReservedIdInfo> map = new ConcurrentHashMap<>();
 
     public Generator(String dbName, String collectionName) {
       this.dbName = dbName;

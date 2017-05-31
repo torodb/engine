@@ -29,9 +29,7 @@ import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.metrics.ToroMetricRegistry;
 import com.torodb.core.retrier.Retrier;
 import com.torodb.core.transaction.RollbackException;
-import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.MongodServer;
-import com.torodb.mongodb.repl.OplogManager.OplogManagerPersistException;
 import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.OplogOperationApplier;
 import com.torodb.mongodb.repl.oplogreplier.analyzed.AnalyzedOp;
@@ -41,7 +39,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -85,16 +82,14 @@ public class ConcurrentOplogBatchExecutor extends SimpleAnalyzedOplogBatchExecut
   @Override
   public void execute(CudAnalyzedOplogBatch cudBatch, ApplierContext context) throws UserException {
     assert isRunning() : "The service is on state " + state() + " instead of RUNNING";
-    List<NamespaceJob> namespaceJobList = cudBatch.streamNamespaceJobs().flatMap(this::split)
+    List<NamespaceJob> namespaceJobList = cudBatch.streamNamespaceJobs()
+        .flatMap(this::split)
         .collect(Collectors.toList());
     concurrentMetrics.getSubBatchSizeMeter().mark(namespaceJobList.size());
     concurrentMetrics.getSubBatchSizeHistogram().update(namespaceJobList.size());
 
     Stream<Callable<Empty>> callables = namespaceJobList.stream()
-        .map((Function<NamespaceJob, Callable<Empty>>) (NamespaceJob namespaceJob) -> () -> {
-          execute(namespaceJob, context);
-          return Empty.getInstance();
-        });
+        .map(namespaceJob -> toCallable(namespaceJob, context));
     try {
       streamExecutor.execute(callables)
           .join();
@@ -109,12 +104,11 @@ public class ConcurrentOplogBatchExecutor extends SimpleAnalyzedOplogBatchExecut
     }
   }
 
-  private void execute(NamespaceJob job, ApplierContext applierContext)
-      throws OplogManagerPersistException, UserException, NamespaceJobExecutionException {
-    assert isRunning() : "The service is not running";
-    try (MongodConnection connection = getServer().openConnection()) {
-      execute(job, applierContext, connection);
-    }
+  private Callable<Empty> toCallable(NamespaceJob namespaceJob, ApplierContext context) {
+    return () -> {
+      execute(namespaceJob, context);
+      return Empty.getInstance();
+    };
   }
 
   private Stream<NamespaceJob> split(NamespaceJob namespaceJob) {

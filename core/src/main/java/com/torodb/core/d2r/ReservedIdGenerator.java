@@ -18,10 +18,17 @@
 
 package com.torodb.core.d2r;
 
-import com.google.common.util.concurrent.Service;
 import com.torodb.core.TableRef;
+import com.torodb.core.transaction.metainf.MetaSnapshot;
 
-public interface ReservedIdGenerator extends Service {
+public interface ReservedIdGenerator {
+
+  /**
+   * Updates the id information with the last information found on the database.
+   *
+   * @param snapshot the knowledge the system has about the metainformation
+   */
+  void load(MetaSnapshot snapshot);
 
   int nextRid(String dbName, String collectionName, TableRef tableRef);
 

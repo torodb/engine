@@ -22,21 +22,17 @@ import com.torodb.core.transaction.RollbackException;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
-import com.torodb.torod.TorodTransaction;
+import com.torodb.torod.DocTransaction;
 
 /**
  *
  */
 public interface MongodTransaction extends AutoCloseable {
 
-  public TorodTransaction getTorodTransaction();
-
-  public MongodConnection getConnection();
+  public DocTransaction getDocTransaction();
 
   public <A, R> Status<R> execute(Request req,
       Command<? super A, ? super R> command, A arg) throws RollbackException;
-
-  public Request getCurrentRequest();
 
   public void rollback();
 

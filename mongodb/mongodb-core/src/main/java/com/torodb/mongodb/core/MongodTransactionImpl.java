@@ -18,64 +18,44 @@
 
 package com.torodb.mongodb.core;
 
-import com.google.common.base.Preconditions;
 import com.torodb.core.transaction.RollbackException;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import org.apache.logging.log4j.Logger;
 
+import java.util.function.Function;
+
 abstract class MongodTransactionImpl implements MongodTransaction {
 
   private final Logger logger;
 
-  private final MongodConnection connection;
-  private Request currentRequest;
   private boolean closed = false;
 
-  MongodTransactionImpl(MongodConnection connection) {
-    this.connection = connection;
-    this.logger = connection.getLoggerFactory().apply(this.getClass());
+  MongodTransactionImpl(Function<Class<?>, Logger> loggerFactory) {
+    this.logger = loggerFactory.apply(this.getClass());
   }
 
   protected abstract <A, R> Status<R> executeProtected(Request req,
       Command<? super A, ? super R> command, A arg);
 
   @Override
-  public MongodConnection getConnection() {
-    return connection;
-  }
-
-  @Override
   public <A, R> Status<R> execute(Request req,
       Command<? super A, ? super R> command, A arg) throws RollbackException {
-    Preconditions.checkState(currentRequest == null,
-        "Another request is currently under execution. Request is " + currentRequest);
-    this.currentRequest = req;
-    try {
-      Status<R> status = executeProtected(req, command, arg);
-      return status;
-    } finally {
-      this.currentRequest = null;
-    }
-  }
-
-  @Override
-  public Request getCurrentRequest() {
-    return currentRequest;
+    Status<R> status = executeProtected(req, command, arg);
+    return status;
   }
 
   @Override
   public void rollback() {
-    getTorodTransaction().rollback();
+    getDocTransaction().rollback();
   }
 
   @Override
   public void close() {
     if (!closed) {
       closed = true;
-      getTorodTransaction().close();
-      connection.onTransactionClosed(this);
+      getDocTransaction().close();
     }
   }
 

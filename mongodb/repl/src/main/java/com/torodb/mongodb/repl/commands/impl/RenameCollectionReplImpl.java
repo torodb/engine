@@ -28,7 +28,10 @@ import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.tools.Empty;
-import com.torodb.torod.ExclusiveWriteTorodTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.exception.AlreadyExistentCollectionException;
+import com.torodb.torod.exception.UnexistentCollectionException;
+import com.torodb.torod.exception.UnexistentDatabaseException;
 import org.apache.logging.log4j.Logger;
 
 public class RenameCollectionReplImpl
@@ -46,7 +49,7 @@ public class RenameCollectionReplImpl
   @Override
   public Status<Empty> apply(Request req,
       Command<? super RenameCollectionArgument, ? super Empty> command,
-      RenameCollectionArgument arg, ExclusiveWriteTorodTransaction trans) {
+      RenameCollectionArgument arg, SchemaOperationExecutor schemaEx) {
     try {
       if (!namespaceFilter.filter(arg.getToDatabase(), arg.getToCollection())) {
         if (!namespaceFilter.filter(arg.getFromDatabase(), arg.getFromCollection())) {
@@ -61,21 +64,21 @@ public class RenameCollectionReplImpl
             + "Dropping source collection {}.{}.",
             arg.getToDatabase(), arg.getToCollection(),
             arg.getFromDatabase(), arg.getFromCollection());
-        if (trans.existsCollection(arg.getFromDatabase(), arg.getFromCollection())) {
-          trans.dropCollection(arg.getFromDatabase(), arg.getFromCollection());
-        } else {
+        try {
+          schemaEx.dropCollection(arg.getFromDatabase(), arg.getFromCollection());
+          return Status.ok();
+        } catch (UnexistentDatabaseException ex) {
           logger.info("Trying to drop collection {}.{} but it has not been found. "
               + "This is normal when reapplying oplog during a recovery. Ignoring operation",
               arg.getFromDatabase(), arg.getFromCollection());
           return Status.ok(Empty.getInstance());
         }
-        return Status.ok();
       }
 
       if (arg.isDropTarget()) {
-        if (trans.existsCollection(arg.getToDatabase(), arg.getToCollection())) {
-          trans.dropCollection(arg.getToDatabase(), arg.getToCollection());
-        } else {
+        try {
+          schemaEx.dropCollection(arg.getToDatabase(), arg.getToCollection());
+        } catch (UnexistentDatabaseException ex) {
           logger.info("Trying to drop collection {}.{} but it has not been found. "
               + "This is normal when reapplying oplog during a recovery. Skipping operation",
               arg.getToDatabase(), arg.getToCollection());
@@ -92,10 +95,16 @@ public class RenameCollectionReplImpl
           .getFromCollection(),
           arg.getToDatabase(), arg.getToCollection());
 
-      trans.renameCollection(arg.getFromDatabase(), arg.getFromCollection(),
+      schemaEx.renameCollection(arg.getFromDatabase(), arg.getFromCollection(),
           arg.getToDatabase(), arg.getToCollection());
     } catch (UserException ex) {
       return Status.from(ErrorCode.COMMAND_FAILED, ex.getLocalizedMessage());
+    } catch (AlreadyExistentCollectionException | UnexistentCollectionException 
+        | UnexistentDatabaseException ex) {
+      logger.info("Trying to rename collection {}.{} to {}.{} but it {} was thrown. This is "
+          + "normal when reapplying oplog during a recovery.",
+          arg.getFromDatabase(), arg.getFromCollection(), arg.getToDatabase(),
+          arg.getToCollection(),ex.getClass().getSimpleName());
     }
 
     return Status.ok();

@@ -20,7 +20,10 @@ package com.torodb.mongodb.commands.pojos;
 
 import com.torodb.mongowp.OpTime;
 import com.torodb.mongowp.bson.BsonDocument;
+import com.torodb.mongowp.bson.BsonInt64;
+import com.torodb.mongowp.bson.BsonTimestamp;
 import com.torodb.mongowp.bson.BsonValue;
+import com.torodb.mongowp.bson.utils.DefaultBsonValues;
 import com.torodb.mongowp.commands.oplog.DbCmdOplogOperation;
 import com.torodb.mongowp.commands.oplog.DbOplogOperation;
 import com.torodb.mongowp.commands.oplog.DeleteOplogOperation;
@@ -33,6 +36,8 @@ import com.torodb.mongowp.commands.oplog.UpdateOplogOperation;
 import com.torodb.mongowp.exceptions.BadValueException;
 import com.torodb.mongowp.exceptions.NoSuchKeyException;
 import com.torodb.mongowp.exceptions.TypesMismatchException;
+import com.torodb.mongowp.fields.LongField;
+import com.torodb.mongowp.fields.TimestampField;
 import com.torodb.mongowp.utils.BsonReaderTool;
 
 import java.util.Locale;
@@ -41,6 +46,10 @@ import java.util.function.Function;
 import javax.annotation.Nonnull;
 
 public class OplogOperationParser {
+
+  private static final TimestampField TIMESTAMP_FIELD = new TimestampField("ts");
+  private static final LongField TERM_FIELD = new LongField("t");
+  private static final BsonInt64 UNINITIALIZED_TERM_BSON = DefaultBsonValues.newLong(-1);
 
   private OplogOperationParser() {
   }
@@ -92,7 +101,7 @@ public class OplogOperationParser {
       collection = ns.substring(firstDotIndex + 1);
     }
 
-    OpTime optime = OpTime.fromOplogEntry(doc);
+    OpTime optime = fromOplogEntry(doc);
     long h = BsonReaderTool.getLong(doc, "h");
     OplogVersion version = OplogVersion.valueOf(BsonReaderTool.getInteger(doc, "v"));
     //Note: Mongodb v3 checks if the key exists or not, but doesn't check the value
@@ -156,6 +165,21 @@ public class OplogOperationParser {
       default:
         throw new AssertionError(OplogOperationParser.class
             + " is not prepared to work with oplog operations of type " + opType);
+    }
+  }
+
+  @Nonnull
+  private static OpTime fromOplogEntry(BsonDocument doc) throws TypesMismatchException,
+      NoSuchKeyException {
+    BsonTimestamp ts = BsonReaderTool.getTimestamp(doc, TIMESTAMP_FIELD);
+    //TODO(gortiz): check precision lost
+    long term = BsonReaderTool.getNumeric(doc, TERM_FIELD, UNINITIALIZED_TERM_BSON)
+        .getValue()
+        .longValue();
+    if (term == UNINITIALIZED_TERM_BSON.longValue()) {
+      return new OpTime(ts);
+    } else {
+      return new OpTime(ts, term);
     }
   }
 

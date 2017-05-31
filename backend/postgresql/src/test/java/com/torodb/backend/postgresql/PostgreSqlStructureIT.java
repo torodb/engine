@@ -18,16 +18,43 @@
 
 package com.torodb.backend.postgresql;
 
+import com.torodb.backend.DataTypeProvider;
+import com.torodb.backend.ErrorHandler;
+import com.torodb.backend.SqlHelper;
+import com.torodb.backend.SqlInterface;
+import com.torodb.backend.ddl.DefaultReadStructure;
 import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
 import com.torodb.backend.tests.common.DatabaseTestContext;
+import com.torodb.core.TableRefFactory;
 import com.torodb.core.transaction.metainf.FieldType;
+import com.torodb.testing.docker.postgres.EnumVersion;
+import com.torodb.testing.docker.postgres.PostgresService;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class PostgreSqlStructureIT extends AbstractStructureIntegrationSuite {
 
+  private static PostgresService postgresDockerService;
+
   private Map<FieldType, String> typesDictionary = new HashMap<>();
+
+  @BeforeClass
+  public static void beforeAll() {
+    postgresDockerService = PostgresService.defaultService(EnumVersion.LATEST);
+    postgresDockerService.startAsync();
+    postgresDockerService.awaitRunning();
+  }
+
+  @AfterClass
+  public static void afterAll() {
+    if (postgresDockerService != null && postgresDockerService.isRunning()) {
+      postgresDockerService.stopAsync();
+      postgresDockerService.awaitTerminated();
+    }
+  }
 
   public PostgreSqlStructureIT() {
     typesDictionary.put(FieldType.STRING, "varchar");
@@ -56,7 +83,23 @@ public class PostgreSqlStructureIT extends AbstractStructureIntegrationSuite {
 
   @Override
   protected DatabaseTestContext getDatabaseTestContext() {
-    return new PostgreSqlDatabaseTestContextFactory().createInstance();
+    return new PostgreSqlDatabaseTestContextFactory().createInstance(postgresDockerService);
+  }
+
+  @Override
+  protected DataTypeProvider getDataTypeProvider() {
+    return new PostgreSqlDataTypeProvider();
+  }
+
+  @Override
+  protected ErrorHandler getErrorHandler() {
+    return new PostgreSqlErrorHandler();
+  }
+
+  @Override
+  protected DefaultReadStructure getDefaultReadStructure(SqlInterface sqlInterface, SqlHelper sqlHelper,
+      TableRefFactory tableRefFactory) {
+    return new DefaultReadStructure(sqlInterface, sqlHelper, tableRefFactory);
   }
 
   @Override

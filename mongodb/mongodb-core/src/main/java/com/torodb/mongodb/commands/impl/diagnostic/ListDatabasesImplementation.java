@@ -44,13 +44,13 @@ public class ListDatabasesImplementation
   public Status<ListDatabasesReply> apply(Request req,
       Command<? super Empty, ? super ListDatabasesReply> command,
       Empty arg, MongodTransaction context) {
-    List<String> databases = context.getTorodTransaction().getDatabases();
+    List<String> databases = context.getDocTransaction().getDatabases();
 
     long totalSize = 0;
     List<DatabaseEntry> databaseEntries = Lists.newArrayListWithCapacity(databases.size());
 
     for (String databaseName : databases) {
-      long databaseSize = context.getTorodTransaction().getDatabaseSize(databaseName);
+      long databaseSize = context.getDocTransaction().getDatabaseSize(databaseName);
       databaseEntries.add(
           new DatabaseEntry(
               databaseName,

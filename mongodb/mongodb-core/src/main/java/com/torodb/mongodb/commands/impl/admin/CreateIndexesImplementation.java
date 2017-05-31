@@ -18,13 +18,11 @@
 
 package com.torodb.mongodb.commands.impl.admin;
 
-import com.google.common.collect.ImmutableList;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.language.AttributeReference;
-import com.torodb.core.language.AttributeReference.Key;
-import com.torodb.core.language.AttributeReference.ObjectKey;
+import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.transaction.metainf.FieldIndexOrdering;
-import com.torodb.mongodb.commands.impl.WriteTorodbCommandImpl;
+import com.torodb.mongodb.commands.impl.RetrierSchemaCommandImpl;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions.KnownType;
 import com.torodb.mongodb.commands.pojos.index.type.AscIndexType;
@@ -33,47 +31,45 @@ import com.torodb.mongodb.commands.pojos.index.type.DescIndexType;
 import com.torodb.mongodb.commands.pojos.index.type.IndexType;
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand.CreateIndexesArgument;
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand.CreateIndexesResult;
-import com.torodb.mongodb.core.WriteMongodTransaction;
-import com.torodb.mongodb.utils.DefaultIdUtils;
 import com.torodb.mongowp.ErrorCode;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.exceptions.CommandFailed;
 import com.torodb.torod.IndexFieldInfo;
+import com.torodb.torod.SchemaOperationExecutor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class CreateIndexesImplementation implements
-    WriteTorodbCommandImpl<CreateIndexesArgument, CreateIndexesResult> {
+public class CreateIndexesImplementation extends
+    RetrierSchemaCommandImpl<CreateIndexesArgument, CreateIndexesResult> {
 
   @SuppressWarnings("checkstyle:LineLength")
-  private static final FieldIndexOrderingConverterIndexTypeVisitor filedIndexOrderingConverterVisitor =
+  private static final FieldIndexOrderingConverterIndexTypeVisitor fieldIndexOrderingConverterVisitor =
       new FieldIndexOrderingConverterIndexTypeVisitor();
 
+  public CreateIndexesImplementation(LoggerFactory loggerFactory) {
+    super(loggerFactory);
+  }
+
+
   @Override
-  public Status<CreateIndexesResult> apply(Request req,
+  public Status<CreateIndexesResult> tryApply(Request req,
       Command<? super CreateIndexesArgument, ? super CreateIndexesResult> command,
-      CreateIndexesArgument arg, WriteMongodTransaction context) {
-    int indexesBefore = (int) context.getTorodTransaction().getIndexesInfo(req.getDatabase(), arg
-        .getCollection()).count();
+      CreateIndexesArgument arg, SchemaOperationExecutor context) {
+    int indexesBefore = (int) context.getIndexesInfo(req.getDatabase(), arg.getCollection())
+        .count();
     int indexesAfter = indexesBefore;
 
     try {
-      boolean existsCollection = context.getTorodTransaction().existsCollection(req.getDatabase(),
-          arg.getCollection());
-      if (!existsCollection) {
-        context.getTorodTransaction().createIndex(req.getDatabase(), arg.getCollection(),
-            DefaultIdUtils.ID_INDEX,
-            ImmutableList.<IndexFieldInfo>of(new IndexFieldInfo(new AttributeReference(Arrays
-                .asList(new Key[]{new ObjectKey(DefaultIdUtils.ID_KEY)})), FieldIndexOrdering.ASC
-                .isAscending())), true);
-      }
-
-      boolean createdCollectionAutomatically = !existsCollection;
+      boolean createdCollectionAutomatically = context.prepareSchema(
+          req.getDatabase(),
+          arg.getCollection(),
+          Collections.emptyList()
+      );
 
       for (IndexOptions indexOptions : arg.getIndexesToCreate()) {
         if (indexOptions.getKeys().size() < 1) {
@@ -106,7 +102,7 @@ public class CreateIndexesImplementation implements
           }
 
           Optional<FieldIndexOrdering> ordering = indexType.accept(
-              filedIndexOrderingConverterVisitor, null);
+              fieldIndexOrderingConverterVisitor, null);
           if (!ordering.isPresent()) {
             throw new CommandFailed("createIndexes",
                 "Index of type " + indexType.getName() + " is not supported right now");
@@ -115,7 +111,7 @@ public class CreateIndexesImplementation implements
           fields.add(new IndexFieldInfo(attRefBuilder.build(), ordering.get().isAscending()));
         }
 
-        if (context.getTorodTransaction().createIndex(req.getDatabase(), arg.getCollection(),
+        if (context.createIndex(req.getDatabase(), arg.getCollection(),
             indexOptions.getName(), fields, indexOptions.isUnique())) {
           indexesAfter++;
         }
