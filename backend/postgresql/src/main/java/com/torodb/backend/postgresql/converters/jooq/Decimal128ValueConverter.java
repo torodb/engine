@@ -44,7 +44,6 @@ public class Decimal128ValueConverter
 
   @Override
   public KvDecimal128 from(Decimal128Record value) {
-
     if (value.getInfinity()) {
       return KvDecimal128.getInfinity();
     }

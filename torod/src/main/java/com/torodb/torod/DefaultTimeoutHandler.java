@@ -18,7 +18,6 @@
 
 package com.torodb.torod;
 
-
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;

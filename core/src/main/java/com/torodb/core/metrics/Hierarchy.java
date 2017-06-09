@@ -18,7 +18,6 @@
 
 package com.torodb.core.metrics;
 
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 

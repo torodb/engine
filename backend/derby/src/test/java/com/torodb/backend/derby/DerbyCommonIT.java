@@ -19,13 +19,13 @@
 package com.torodb.backend.derby;
 
 import com.torodb.backend.tests.common.AbstractCommonIntegrationSuite;
-import com.torodb.backend.tests.common.DatabaseTestContext;
+import com.torodb.backend.tests.common.BackendTestContextFactory;
 
 public class DerbyCommonIT extends AbstractCommonIntegrationSuite {
 
   @Override
-  protected DatabaseTestContext getDatabaseTestContext() {
-    return new DerbyDatabaseTestContextFactory().createInstance();
+  protected BackendTestContextFactory getBackendTestContextFactory() {
+    return new DerbyTestContextFactory();
   }
 
 }

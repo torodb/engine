@@ -132,10 +132,12 @@ public abstract class AbstractStructureInterface implements StructureInterface {
             .findAny()
             .get();
 
-        String renameIndexStatement = getRenameIndexStatement(
-            fromSchemaName, toMetaDocPart.getIdentifier(), 
-            fromMetaIndex.getIdentifier(), toMetaIndex.getIdentifier());
-        sqlHelper.executeUpdate(dsl, renameIndexStatement, Context.RENAME_INDEX);
+        if (!fromMetaIndex.getIdentifier().equals(toMetaIndex.getIdentifier())) {
+          String renameIndexStatement = getRenameIndexStatement(
+              fromSchemaName, toMetaDocPart.getIdentifier(), 
+              fromMetaIndex.getIdentifier(), toMetaIndex.getIdentifier());
+          sqlHelper.executeUpdate(dsl, renameIndexStatement, Context.RENAME_INDEX);
+        }
       }
 
       if (!fromSchemaName.equals(toSchemaName)) {
@@ -174,8 +176,8 @@ public abstract class AbstractStructureInterface implements StructureInterface {
       String tableName, List<Tuple3<String, Boolean, FieldType>> columnList, boolean unique);
 
   @Override
-  public void dropIndex(DSLContext dsl, String schemaName, String indexName) {
-    String statement = getDropIndexStatement(schemaName, indexName);
+  public void dropIndex(DSLContext dsl, String schemaName, String tableName, String indexName) {
+    String statement = getDropIndexStatement(schemaName, tableName, indexName);
 
     sqlHelper.executeUpdate(dsl, statement, Context.DROP_INDEX);
   }
@@ -258,15 +260,8 @@ public abstract class AbstractStructureInterface implements StructureInterface {
 
   }
 
-  protected String getDropIndexStatement(String schemaName, String indexName) {
-    StringBuilder sb = new StringBuilder()
-        .append("DROP INDEX ")
-        .append("\"").append(schemaName).append("\"")
-        .append(".")
-        .append("\"").append(indexName).append("\"");
-    String statement = sb.toString();
-    return statement;
-  }
+  protected abstract String getDropIndexStatement(String schemaName, 
+      String tableName, String indexName);
 
   @Override
   public void createDatabase(DSLContext dsl, String schemaName) {

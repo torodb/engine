@@ -26,8 +26,6 @@ import com.torodb.kvdocument.types.Decimal128Type;
 import com.torodb.kvdocument.types.KvType;
 import com.torodb.kvdocument.values.KvDecimal128;
 
-import java.math.BigDecimal;
-
 import javax.json.Json;
 import javax.json.JsonObject;
 
@@ -37,7 +35,7 @@ public class Decimal128ValueConverter
   private static final long serialVersionUID = 1L;
 
   public static final DataTypeForKv<KvDecimal128> TYPE = DataTypeForKv.from(
-          JsonObjectConverter.TYPE, new Decimal128ValueConverter());
+          JsonConverter.JSON, new Decimal128ValueConverter());
 
   @Override
   public KvType getErasuredType() {
@@ -46,8 +44,7 @@ public class Decimal128ValueConverter
 
   @Override
   public KvDecimal128 from(JsonObject value) {
-
-    if (value.getBoolean("infinite")) {
+    if (value.getBoolean("infinity")) {
       return KvDecimal128.getInfinity();
     }
 
@@ -55,11 +52,11 @@ public class Decimal128ValueConverter
       return KvDecimal128.getNan();
     }
 
-    if (value.getBoolean("negzero")) {
+    if (value.getBoolean("negativeZero")) {
       return KvDecimal128.getNegativeZero();
     }
 
-    return KvDecimal128.of(new BigDecimal(value.getString("value")));
+    return KvDecimal128.of(value.getJsonNumber("value").bigDecimalValue());
   }
 
   @Override
@@ -67,9 +64,9 @@ public class Decimal128ValueConverter
 
     return Json.createObjectBuilder()
         .add("value", userObject.getBigDecimal())
-        .add("infinite", userObject.isInfinite() && !userObject.isNaN())
+        .add("infinity", userObject.isInfinite() && !userObject.isNaN())
         .add("nan", userObject.isNaN())
-        .add("negzero", userObject.isNegativeZero())
+        .add("negativeZero", userObject.isNegativeZero())
         .build();
   }
 

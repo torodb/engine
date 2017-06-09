@@ -22,14 +22,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.util.Calendar;
 
 public class TimeSqlBinding implements SqlBinding<Time> {
+
+  private static final Calendar CALENDAR = Calendar.getInstance();
 
   public static final TimeSqlBinding INSTANCE = new TimeSqlBinding();
 
   @Override
   public Time get(ResultSet resultSet, int columnIndex) throws SQLException {
-    Time value = resultSet.getTime(columnIndex);
+    Time value = resultSet.getTime(columnIndex, CALENDAR);
     if (resultSet.wasNull()) {
       return null;
     }
@@ -39,6 +42,6 @@ public class TimeSqlBinding implements SqlBinding<Time> {
   @Override
   public void set(PreparedStatement preparedStatement, int parameterIndex, Time value) throws
       SQLException {
-    preparedStatement.setTime(parameterIndex, value);
+    preparedStatement.setTime(parameterIndex, value, CALENDAR);
   }
 }

@@ -18,7 +18,6 @@
 
 package com.torodb.backend;
 
-
 import org.jooq.BetweenAndStep;
 import org.jooq.Binding;
 import org.jooq.Comparator;

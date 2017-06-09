@@ -18,7 +18,6 @@
 
 package com.torodb.core.transaction.metainf;
 
-
 import java.util.Iterator;
 import java.util.stream.Stream;
 

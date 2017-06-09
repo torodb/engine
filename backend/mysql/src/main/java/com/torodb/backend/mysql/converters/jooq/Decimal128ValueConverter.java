@@ -26,25 +26,18 @@ import com.torodb.kvdocument.types.JavascriptWithScopeType;
 import com.torodb.kvdocument.types.KvType;
 import com.torodb.kvdocument.values.KvDecimal128;
 
-import java.io.StringReader;
-import java.math.BigDecimal;
 import java.sql.Types;
-import java.text.DecimalFormat;
-import java.text.ParseException;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 
-public class Decimal128ValueConverter implements KvValueConverter<String, String, KvDecimal128> {
+public class Decimal128ValueConverter 
+    implements KvValueConverter<JsonObject, String, KvDecimal128> {
 
   private static final long serialVersionUID = 1L;
 
-  public static final Decimal128ValueConverter CONVERTER =
-      new Decimal128ValueConverter();
-
   public static final DataTypeForKv<KvDecimal128> TYPE =
-      DataTypeForKv.from(StringValueConverter.TEXT, CONVERTER, Types.LONGVARCHAR);
+      DataTypeForKv.from(JsonConverter.JSON, new Decimal128ValueConverter(), Types.LONGVARCHAR);
 
   @Override
   public KvType getErasuredType() {
@@ -52,43 +45,35 @@ public class Decimal128ValueConverter implements KvValueConverter<String, String
   }
 
   @Override
-  public KvDecimal128 from(String databaseObject) {
-    final JsonReader reader = Json.createReader(new StringReader(databaseObject));
-    JsonObject object = reader.readObject();
-
-    if (object.getBoolean("infinity")) {
+  public KvDecimal128 from(JsonObject databaseObject) {
+    if (databaseObject.getBoolean("infinity")) {
       return KvDecimal128.getInfinity();
     }
 
-    if (object.getBoolean("NaN")) {
+    if (databaseObject.getBoolean("nan")) {
       return KvDecimal128.getNan();
     }
 
-    if (object.getBoolean("negativeZero")) {
+    if (databaseObject.getBoolean("negativeZero")) {
       return KvDecimal128.getNegativeZero();
     }
 
-    try {
-      return KvDecimal128.of((BigDecimal) DecimalFormat.getNumberInstance()
-          .parse(object.getString("value")));
-    } catch (ParseException ex) {
-      throw new IllegalArgumentException(ex);
-    }
+    return KvDecimal128.of(databaseObject.getJsonNumber("value").bigDecimalValue());
   }
 
   @Override
-  public String to(KvDecimal128 userObject) {
+  public JsonObject to(KvDecimal128 userObject) {
     return Json.createObjectBuilder()
-        .add("infinity", userObject.isInfinite())
-        .add("NaN", userObject.isNaN())
+        .add("infinity", userObject.isInfinite() && !userObject.isNaN())
+        .add("nan", userObject.isNaN())
         .add("negativeZero", userObject.isNegativeZero())
         .add("value", userObject.getBigDecimal())
-        .build().toString();
+        .build();
   }
 
   @Override
-  public Class<String> fromType() {
-    return String.class;
+  public Class<JsonObject> fromType() {
+    return JsonObject.class;
   }
 
   @Override

@@ -18,7 +18,6 @@
 
 package com.torodb.backend.ddl;
 
-
 import com.google.common.collect.Lists;
 
 import java.util.List;
