@@ -18,7 +18,6 @@
 
 package com.torodb.core.concurrent.akka;
 
-
 import akka.stream.Attributes;
 import akka.stream.FlowShape;
 import akka.stream.Inlet;

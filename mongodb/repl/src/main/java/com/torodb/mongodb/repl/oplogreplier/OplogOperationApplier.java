@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.transaction.RollbackException;
