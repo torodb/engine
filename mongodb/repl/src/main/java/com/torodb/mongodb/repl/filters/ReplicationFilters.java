@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.repl.filters;
 
-
 import com.torodb.mongodb.filters.DatabaseFilter;
 import com.torodb.mongodb.filters.FilterResult;
 import com.torodb.mongodb.filters.IndexFilter;

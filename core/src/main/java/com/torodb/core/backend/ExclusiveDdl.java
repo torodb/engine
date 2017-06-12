@@ -18,7 +18,6 @@
 
 package com.torodb.core.backend;
 
-
 import static java.lang.annotation.ElementType.METHOD;
 
 import java.lang.annotation.Documented;

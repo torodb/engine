@@ -18,7 +18,6 @@
 
 package com.torodb.torod;
 
-
 import com.torodb.core.services.TorodbService;
 
 import java.util.concurrent.TimeUnit;

@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.filters;
 
-
 import org.apache.logging.log4j.util.Supplier;
 
 import java.util.Optional;
