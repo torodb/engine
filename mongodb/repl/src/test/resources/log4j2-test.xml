@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
-    <Appenders>
+   <Appenders>
         <Console name="CONSOLE" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{yyyy-MM-dd'T'hh:mm:ss.SSS} %level '%t' %logger{1.} %msg%n%throwable{none}"/>
         </Console>
