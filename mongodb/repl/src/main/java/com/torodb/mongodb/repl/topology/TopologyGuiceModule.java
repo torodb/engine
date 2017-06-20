@@ -18,10 +18,12 @@
 
 package com.torodb.mongodb.repl.topology;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Exposed;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
+import com.google.inject.TypeLiteral;
 import com.torodb.core.concurrent.ConcurrentToolsFactory;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
@@ -102,9 +104,9 @@ public class TopologyGuiceModule extends PrivateModule {
   }
 
   private void bindConfig() {
-    bind(HostAndPort.class)
+    bind(new RemoteSeedLiteral())
         .annotatedWith(RemoteSeed.class)
-        .toInstance(config.getSeed());
+        .toInstance(config.getSeeds());
 
     bind(String.class)
         .annotatedWith(ReplSetName.class)
@@ -116,5 +118,9 @@ public class TopologyGuiceModule extends PrivateModule {
     bind(Supervisor.class)
         .annotatedWith(MongoDbRepl.class)
         .toInstance(config.getSupervisor());
+  }
+  
+  private static final class RemoteSeedLiteral 
+      extends TypeLiteral<ImmutableList<HostAndPort>> {
   }
 }

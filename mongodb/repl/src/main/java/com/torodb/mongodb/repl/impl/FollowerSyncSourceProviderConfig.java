@@ -18,22 +18,23 @@
 
 package com.torodb.mongodb.repl.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Injector;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.core.supervision.Supervisor;
 
 public class FollowerSyncSourceProviderConfig implements BundleConfig {
-  private final HostAndPort seed;
+  private final ImmutableList<HostAndPort> seeds;
   private final BundleConfig delegate;
 
-  public FollowerSyncSourceProviderConfig(HostAndPort seed, BundleConfig delegate) {
-    this.seed = seed;
+  public FollowerSyncSourceProviderConfig(ImmutableList<HostAndPort> seeds, BundleConfig delegate) {
+    this.seeds = seeds;
     this.delegate = delegate;
   }
 
-  public HostAndPort getSeed() {
-    return seed;
+  public ImmutableList<HostAndPort> getSeeds() {
+    return seeds;
   }
 
   @Override

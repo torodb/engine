@@ -16,38 +16,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.mongodb.repl.impl;
+package com.torodb.packaging.config.validation;
 
-import com.google.common.annotations.Beta;
-import com.google.common.net.HostAndPort;
-import com.torodb.mongodb.repl.SyncSourceProvider;
+import com.torodb.packaging.config.model.common.ListOfStringWithDefault;
 
-import java.util.Optional;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-import javax.annotation.Nonnull;
+public class NotEmptyListOfSrtingWithDefaultValidator implements 
+    ConstraintValidator<NotEmptyListOfSrtingWithDefault, ListOfStringWithDefault> {
 
-@Beta
-public class FollowerSyncSourceProvider implements SyncSourceProvider {
-
-  private final HostAndPort syncSources;
-
-  public FollowerSyncSourceProvider(@Nonnull HostAndPort syncSources) {
-    this.syncSources = syncSources;
+  @Override
+  public void initialize(NotEmptyListOfSrtingWithDefault constraintAnnotation) {
   }
 
   @Override
-  public HostAndPort newSyncSource() {
-    return syncSources;
+  public boolean isValid(ListOfStringWithDefault value, ConstraintValidatorContext context) {
+    return value != null && value.value() != null && !value.value().isEmpty() 
+        && value.value().stream().noneMatch(element -> element.isEmpty());
   }
-
-  @Override
-  public Optional<HostAndPort> getLastUsedSyncSource() {
-    return Optional.of(syncSources);
-  }
-
-  @Override
-  public boolean shouldChangeSyncSource() {
-    return false;
-  }
-
 }

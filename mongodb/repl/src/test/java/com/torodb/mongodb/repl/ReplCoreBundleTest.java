@@ -26,7 +26,7 @@ import com.torodb.core.bundle.BundleConfig;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ToroDbReplicationFilters;
 import com.torodb.mongodb.repl.guice.ReplEssentialOverrideModule;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 import org.junit.Before;
 
 import java.util.List;
@@ -75,7 +75,7 @@ public class ReplCoreBundleTest extends AbstractReplBundleTest<ReplCoreBundle>{
     );
 
     return new ReplCoreBundle(new ReplCoreConfig(
-        MongoClientConfiguration.unsecure(seed),
+        MongoClientConfigurationProperties.unsecure(),
         new ToroDbReplicationFilters(),
         mongoDbCoreBundle,
         essentialOverrideModule,

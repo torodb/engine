@@ -32,11 +32,11 @@ import javax.validation.ReportAsSingleViolation;
 
 @Target({FIELD, METHOD, PARAMETER})
 @Retention(RUNTIME)
-@Constraint(validatedBy = NotEmptySrtingWithDefaultValidator.class)
+@Constraint(validatedBy = NotEmptyListOfSrtingWithDefaultValidator.class)
 @ReportAsSingleViolation
-public @interface NotEmptySrtingWithDefault {
+public @interface NotEmptyListOfSrtingWithDefault {
 
-  String message() default "{config.validation.NotEmptyString.message}";
+  String message() default "{config.validation.NotEmptyListOfString.message}";
 
   Class<?>[] groups() default {};
 

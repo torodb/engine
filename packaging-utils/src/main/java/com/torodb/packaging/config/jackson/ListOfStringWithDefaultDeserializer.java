@@ -16,38 +16,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.mongodb.repl.impl;
+package com.torodb.packaging.config.jackson;
 
-import com.google.common.annotations.Beta;
-import com.google.common.net.HostAndPort;
-import com.torodb.mongodb.repl.SyncSourceProvider;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.torodb.packaging.config.model.common.ListOfStringWithDefault;
 
-import java.util.Optional;
+import java.util.List;
 
-import javax.annotation.Nonnull;
+public class ListOfStringWithDefaultDeserializer
+    extends ListOfScalarWithDefaultDeserializer<String> {
 
-@Beta
-public class FollowerSyncSourceProvider implements SyncSourceProvider {
-
-  private final HostAndPort syncSources;
-
-  public FollowerSyncSourceProvider(@Nonnull HostAndPort syncSources) {
-    this.syncSources = syncSources;
+  public ListOfStringWithDefaultDeserializer() {
+    super(ListOfStringWithDefault.class, String.class, new TypeReference<List<String>>() { });
   }
-
-  @Override
-  public HostAndPort newSyncSource() {
-    return syncSources;
-  }
-
-  @Override
-  public Optional<HostAndPort> getLastUsedSyncSource() {
-    return Optional.of(syncSources);
-  }
-
-  @Override
-  public boolean shouldChangeSyncSource() {
-    return false;
-  }
-
 }
