@@ -131,42 +131,36 @@ public abstract class BddOplogTest implements OplogApplierTest {
 
   protected void then(MongodTransaction trans, Exception error) throws Exception {
     checkError(error);
+    checkData(trans);
+  }
 
+  private void checkError(Exception error) throws Exception {
+    Class<? extends Throwable> expectedThrowableClass = getExpectedExceptionClass();
+    if (error == null) { //no error found on the test
+      if (expectedThrowableClass == null) { //no error was expected
+        return; //everything is fine
+      } else {
+        Assert.fail("The execution completed successfully, but a "
+            + expectedThrowableClass.getSimpleName() + " was expected to be thrown");
+      }
+    } else {
+      if (expectedThrowableClass == null) {
+        throw error;
+      } else {
+        if (expectedThrowableClass.isAssignableFrom(error.getClass())) {
+          throw new AssertionError("It was expected that the execution throws a "
+              + expectedThrowableClass.getName() + " but " + error + " was found", error);
+        }
+      }
+    }
+  }
+
+  private void checkData(MongodTransaction trans) {
     Collection<DatabaseState> expectedState = getExpectedState();
 
     try (DocTransaction torodTrans = trans.getDocTransaction()) {
       for (DatabaseState db : expectedState) {
-        String dbName = db.getName();
-        for (CollectionState col : db.getCollections()) {
-          String colName = col.getName();
-
-          Map<KvValue<?>, KvDocument> storedDocs = torodTrans
-              .findAll(dbName, colName)
-              .asDocCursor()
-              .transform(toroDoc -> toroDoc.getRoot())
-              .getRemaining()
-              .stream()
-              .collect(Collectors.toMap(
-                  doc -> doc.get("_id"),
-                  doc -> doc)
-              );
-
-          for (KvDocument expectedDoc : col.getDocs()) {
-            KvValue<?> id = expectedDoc.get("_id");
-            assert id != null : "The test is incorrect, as " + expectedDoc + " does not have _id";
-
-            KvDocument storedDoc = storedDocs.get(id);
-            assertTrue("It was expected that " + db.getName() + "." + col.getName() + " contains a "
-                + "document with _id " + id, storedDoc != null);
-            assertTrue("The document on " + db.getName() + "." + col.getName() + " whose id is "
-                + id + " is different than expected. Expected: <" + expectedDoc + "> but was: <"
-                + storedDoc + ">", UnorderedDocEquals.equals(expectedDoc, storedDoc));
-          }
-
-          assertEquals("Unexpected size on " + dbName + "." + colName,
-              col.getDocs().size(),
-              storedDocs.size());
-        }
+        checkDatabase(torodTrans, db);
       }
 
       Set<String> foundNs = torodTrans.getDatabases().stream()
@@ -197,25 +191,42 @@ public abstract class BddOplogTest implements OplogApplierTest {
     }
   }
 
-  private void checkError(Exception error) throws Exception {
-    Class<? extends Throwable> expectedThrowableClass = getExpectedExceptionClass();
-    if (error == null) { //no error found on the test
-      if (expectedThrowableClass == null) { //no error was expected
-        return; //everything is fine
-      } else {
-        Assert.fail("The execution completed successfully, but a "
-            + expectedThrowableClass.getSimpleName() + " was expected to be thrown");
-      }
-    } else {
-      if (expectedThrowableClass == null) {
-        throw error;
-      } else {
-        if (expectedThrowableClass.isAssignableFrom(error.getClass())) {
-          throw new AssertionError("It was expected that the execution throws a "
-              + expectedThrowableClass.getName() + " but " + error + " was found", error);
-        }
-      }
+  private void checkDatabase(DocTransaction torodTrans, DatabaseState db) {
+    for (CollectionState col : db.getCollections()) {
+      checkCollection(torodTrans, db, col);
     }
+  }
+
+  private void checkCollection(DocTransaction torodTrans, DatabaseState db, CollectionState col) {
+    String dbName = db.getName();
+    String colName = col.getName();
+
+    Map<KvValue<?>, KvDocument> storedDocs = torodTrans
+        .findAll(dbName, colName)
+        .asDocCursor()
+        .transform(toroDoc -> toroDoc.getRoot())
+        .getRemaining()
+        .stream()
+        .collect(Collectors.toMap(
+            doc -> doc.get("_id"),
+            doc -> doc)
+        );
+
+    for (KvDocument expectedDoc : col.getDocs()) {
+      KvValue<?> id = expectedDoc.get("_id");
+      assert id != null : "The test is incorrect, as " + expectedDoc + " does not have _id";
+
+      KvDocument storedDoc = storedDocs.get(id);
+      assertTrue("It was expected that " + db.getName() + "." + col.getName() + " contains a "
+          + "document with _id " + id, storedDoc != null);
+      assertTrue("The document on " + db.getName() + "." + col.getName() + " whose id is "
+          + id + " is different than expected. Expected: <" + expectedDoc + "> but was: <"
+          + storedDoc + ">", UnorderedDocEquals.equals(expectedDoc, storedDoc));
+    }
+
+    assertEquals("Unexpected size on " + dbName + "." + colName,
+        col.getDocs().size(),
+        storedDocs.size());
   }
 
   public static class DatabaseState {
