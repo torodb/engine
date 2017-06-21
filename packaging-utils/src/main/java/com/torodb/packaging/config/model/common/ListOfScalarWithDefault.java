@@ -25,6 +25,9 @@ import java.util.List;
 
 public abstract class ListOfScalarWithDefault<T> {
 
+  private final List<T> value;
+  private final boolean isDefault;
+
   public static <S extends ListOfScalarWithDefault<?>> S merge(S specific, S common) {
     if (specific.isDefault()) {
       return common;
@@ -32,9 +35,6 @@ public abstract class ListOfScalarWithDefault<T> {
     
     return specific;
   }
-
-  private final List<T> value;
-  private final boolean isDefault;
   
   public ListOfScalarWithDefault(List<T> value, boolean isDefault) {
     super();
