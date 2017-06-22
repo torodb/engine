@@ -21,47 +21,45 @@ package com.torodb.packaging.config.jackson;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.torodb.packaging.config.model.common.ScalarWithDefault;
+import com.torodb.packaging.config.model.common.ListOfScalarWithDefault;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.List;
 
-public abstract class ScalarWithDefaultDeserializer<T>
-    extends JsonDeserializer<ScalarWithDefault<T>> {
+public abstract class ListOfScalarWithDefaultDeserializer<T>
+    extends JsonDeserializer<ListOfScalarWithDefault<T>> {
 
-  private final Class<? extends ScalarWithDefault<T>> scalarWithDefaultImplementationClass;
-  private final Class<T> scalarImplementationClass;
-  private final Class<?> scalarArgumentClass;
+  private final Class<? extends ListOfScalarWithDefault<T>> listOfScalarWithDefaulClass;
+  private final Class<T> listOfScalarImplementationClass;
+  private final TypeReference<List<T>> listOfScalarTypeReference;
   
-  public <SWC extends ScalarWithDefault<T>> ScalarWithDefaultDeserializer(
+  public <SWC extends ListOfScalarWithDefault<T>> ListOfScalarWithDefaultDeserializer(
       Class<SWC> scalarWithDefaultImplementationClass,
-      Class<T> scalarImplementationClass) {
-    this.scalarWithDefaultImplementationClass = scalarWithDefaultImplementationClass;
-    this.scalarImplementationClass = scalarImplementationClass;
-    Class<?> scalarArgumentClass = scalarImplementationClass;
-    while (scalarArgumentClass.getSuperclass() != Object.class) {
-      scalarArgumentClass = scalarArgumentClass.getSuperclass();
-    }
-    this.scalarArgumentClass = scalarArgumentClass;
+      Class<T> scalarImplementationClass, TypeReference<List<T>> listOfScalarTypeReference) {
+    this.listOfScalarWithDefaulClass = scalarWithDefaultImplementationClass;
+    this.listOfScalarImplementationClass = scalarImplementationClass;
+    this.listOfScalarTypeReference = listOfScalarTypeReference;
   }
   
   @Override
-  public ScalarWithDefault<T> deserialize(JsonParser jp, DeserializationContext ctxt) 
+  public ListOfScalarWithDefault<T> deserialize(JsonParser jp, DeserializationContext ctxt) 
       throws IOException, JsonProcessingException {
     try {
-      Constructor<? extends ScalarWithDefault<T>> scalarWithDefaultConstructor = 
-          scalarWithDefaultImplementationClass.getConstructor(
-              scalarArgumentClass, boolean.class);
+      Constructor<? extends ListOfScalarWithDefault<T>> scalarWithDefaultConstructor = 
+          listOfScalarWithDefaulClass.getConstructor(
+              List.class, boolean.class);
       
       return scalarWithDefaultConstructor.newInstance(
-          jp.getCodec().readValue(jp, scalarImplementationClass), false);
+          jp.getCodec().readValue(jp, listOfScalarTypeReference), false);
     } catch (JsonParseException exception) {
       throw exception;
     } catch (Exception exception) {
-      throw new JsonParseException("Error while parsing scalar with value for scalar type " 
-          + scalarImplementationClass.getSimpleName(), jp.getCurrentLocation(), exception);
+      throw new JsonParseException("Error while parsing list of scalar with value for scalar type " 
+          + listOfScalarImplementationClass.getSimpleName(), jp.getCurrentLocation(), exception);
     }
   }
 

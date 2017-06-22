@@ -18,27 +18,21 @@
 
 package com.torodb.packaging.config.validation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import com.torodb.packaging.config.model.common.ListOfStringWithDefault;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
-import javax.validation.ReportAsSingleViolation;
+public class NotEmptyListOfSrtingWithDefaultValidator implements 
+    ConstraintValidator<NotEmptyListOfSrtingWithDefault, ListOfStringWithDefault> {
 
-@Target({FIELD, METHOD, PARAMETER})
-@Retention(RUNTIME)
-@Constraint(validatedBy = NotEmptySrtingWithDefaultValidator.class)
-@ReportAsSingleViolation
-public @interface NotEmptySrtingWithDefault {
+  @Override
+  public void initialize(NotEmptyListOfSrtingWithDefault constraintAnnotation) {
+  }
 
-  String message() default "{config.validation.NotEmptyString.message}";
-
-  Class<?>[] groups() default {};
-
-  Class<? extends Payload>[] payload() default {};
+  @Override
+  public boolean isValid(ListOfStringWithDefault value, ConstraintValidatorContext context) {
+    return value != null && value.value() != null && !value.value().isEmpty() 
+        && value.value().stream().noneMatch(element -> element.isEmpty());
+  }
 }

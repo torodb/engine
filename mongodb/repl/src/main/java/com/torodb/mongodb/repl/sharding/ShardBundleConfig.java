@@ -18,32 +18,38 @@
 
 package com.torodb.mongodb.repl.sharding;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.net.HostAndPort;
 import com.google.inject.Injector;
 import com.torodb.core.bundle.BundleConfigImpl;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.ConsistencyHandler;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 import com.torodb.torod.TorodBundle;
 
 public class ShardBundleConfig extends BundleConfigImpl {
   private final String shardId;
   private final TorodBundle torodBundle;
-  private final MongoClientConfiguration clientConfig;
+  private final ImmutableList<HostAndPort> seeds;
+  private final MongoClientConfigurationProperties clientConfigProperties;
   private final String replSetName;
   private final ReplicationFilters userReplFilter;
   private final ConsistencyHandler consistencyHandler;
   private final LoggerFactory lifecycleLoggingFactory;
 
   public ShardBundleConfig(String shardId, TorodBundle torodBundle,
-      MongoClientConfiguration clientConfig, String replSetName, ReplicationFilters userReplFilter,
+      ImmutableList<HostAndPort> seeds,
+      MongoClientConfigurationProperties clientConfigProperties, 
+      String replSetName, ReplicationFilters userReplFilter,
       ConsistencyHandler consistencyHandler, LoggerFactory lifecycleLoggingFactory,
       Injector essentialInjector, Supervisor supervisor) {
     super(essentialInjector, supervisor);
     this.shardId = shardId;
     this.torodBundle = torodBundle;
-    this.clientConfig = clientConfig;
+    this.seeds = seeds;
+    this.clientConfigProperties = clientConfigProperties;
     this.replSetName = replSetName;
     this.userReplFilter = userReplFilter;
     this.consistencyHandler = consistencyHandler;
@@ -58,8 +64,12 @@ public class ShardBundleConfig extends BundleConfigImpl {
     return torodBundle;
   }
 
-  public MongoClientConfiguration getClientConfig() {
-    return clientConfig;
+  public ImmutableList<HostAndPort> getSeeds() {
+    return seeds;
+  }
+
+  public MongoClientConfigurationProperties getClientConfigProperties() {
+    return clientConfigProperties;
   }
 
   public ConsistencyHandler getConsistencyHandler() {
