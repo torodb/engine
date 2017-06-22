@@ -23,8 +23,8 @@ import com.torodb.core.bundle.BundleConfig;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
 import com.torodb.torod.TorodBundle;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +40,7 @@ class MultipleShardConfigBuilder extends MongoDbShardingConfigBuilder {
   protected MultipleShardConfigBuilder(Injector essentialInjector, Supervisor supervisor) {
     super(essentialInjector, supervisor);
   }
-  
+
   @Override
   public MongoDbShardingConfigBuilder addShard(MongoDbShardingConfig.ShardConfig config) {
     if (shardConfigs.containsKey(config.getShardId())) {
@@ -53,7 +53,8 @@ class MultipleShardConfigBuilder extends MongoDbShardingConfigBuilder {
 
   @Override
   protected MongoDbShardingConfig build(TorodBundle torodBundle, ReplicationFilters userReplFilter,
-      LoggerFactory lifecycleLoggerFactory, BundleConfig generalConfig) {
+      LoggerFactory lifecycleLoggerFactory, BundleConfig generalConfig,
+      BufferOffHeapConfig bufferOffHeapConfig) {
     if (shardConfigs.isEmpty()) {
       throw new IllegalArgumentException("At least one shard is required");
     }
@@ -63,7 +64,8 @@ class MultipleShardConfigBuilder extends MongoDbShardingConfigBuilder {
         new ArrayList<>(shardConfigs.values()),
         userReplFilter,
         lifecycleLoggerFactory,
-        generalConfig
+        generalConfig,
+        bufferOffHeapConfig
     );
   }
 

@@ -117,6 +117,7 @@ public class MultiShardBundle extends ShardBundle {
         .setReplicationFilters(config.getUserReplFilter())
         .setMetricRegistry(shardMetricRegistry)
         .setLoggerFactory(new ComponentLoggerFactory("REPL-" + config.getShardId()))
+        .setBufferOffHeapConfig(config.getBufferOffHeapConfig())
         .build();
   }
 

@@ -29,14 +29,14 @@ import com.torodb.mongodb.repl.ReplCoreBundleTest;
 import com.torodb.mongodb.repl.TestBundleConfig;
 import com.torodb.mongodb.repl.oplogreplier.DefaultOplogApplierBundle;
 import com.torodb.mongodb.repl.oplogreplier.OplogApplier;
-
+import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
 import java.util.List;
 import java.util.function.Function;
 
 /**
  *
  */
-public class DefaultOplogApplierBundleFactory 
+public class DefaultOplogApplierBundleFactory
     implements Function<MongoDbCoreBundle, Bundle<OplogApplier>> {
 
   @Override
@@ -88,6 +88,6 @@ public class DefaultOplogApplierBundleFactory
       return oplogApplierBundle.getExternalInterface().getOplogApplier();
     }
 
-    
+
   }
 }

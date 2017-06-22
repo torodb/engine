@@ -24,8 +24,6 @@ import akka.actor.ActorSystem;
 import akka.dispatch.ExecutionContexts;
 import akka.japi.Pair;
 import akka.stream.ActorMaterializer;
-import akka.stream.FlowShape;
-import akka.stream.Graph;
 import akka.stream.KillSwitch;
 import akka.stream.KillSwitches;
 import akka.stream.Materializer;
@@ -54,13 +52,11 @@ import com.torodb.mongodb.repl.oplogreplier.batch.BatchAnalyzer.BatchAnalyzerFac
 import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatch;
 import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatchChecker;
 import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatchFilter;
+import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
+import com.torodb.mongodb.repl.oplogreplier.config.BufferRollCycle;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.OplogFetcher;
 import com.torodb.mongowp.commands.oplog.OplogOperation;
-import org.apache.logging.log4j.Logger;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
-
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
@@ -72,8 +68,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
-
 import javax.inject.Inject;
+import net.openhft.chronicle.queue.RollCycles;
+import net.openhft.chronicle.queue.impl.StoreFileListener;
+import net.openhft.chronicle.queue.impl.single.SingleChronicleQueue;
+import net.openhft.chronicle.queue.impl.single.SingleChronicleQueueBuilder;
+import org.apache.logging.log4j.Logger;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
 
 public class DefaultOplogApplier implements OplogApplier {
 
@@ -87,12 +90,14 @@ public class DefaultOplogApplier implements OplogApplier {
   private final OplogApplierMetrics metrics;
   private final OplogBatchFilter batchFilter;
   private final OplogBatchChecker batchChecker;
+  private final BufferOffHeapConfig offHeapConfig;
 
   @Inject
   public DefaultOplogApplier(BatchLimits batchLimits, OplogManager oplogManager,
       AnalyzedOplogBatchExecutor batchExecutor, BatchAnalyzerFactory batchAnalyzerFactory,
       ConcurrentToolsFactory concurrentToolsFactory, Shutdowner shutdowner, LoggerFactory lf,
-      OplogApplierMetrics metrics, OplogBatchFilter batchFilter, OplogBatchChecker batchChecker) {
+      OplogApplierMetrics metrics, OplogBatchFilter batchFilter, OplogBatchChecker batchChecker,
+      BufferOffHeapConfig offHeapConfig) {
     this.logger = lf.apply(this.getClass());
     this.batchExecutor = batchExecutor;
     this.batchLimits = batchLimits;
@@ -106,6 +111,7 @@ public class DefaultOplogApplier implements OplogApplier {
     this.metrics = metrics;
     this.batchFilter = batchFilter;
     this.batchChecker = batchChecker;
+    this.offHeapConfig = offHeapConfig;
     shutdowner.addCloseShutdownListener(this);
   }
 
@@ -117,7 +123,6 @@ public class DefaultOplogApplier implements OplogApplier {
     RunnableGraph<Pair<UniqueKillSwitch, CompletionStage<Done>>> graph = createOplogSource(fetcher)
         .async()
         .via(createOffheapBuffer())
-        .map(Excerpt::getElement)
         .async()
         .map(batchFilter)
         .map(batchChecker)
@@ -170,26 +175,44 @@ public class DefaultOplogApplier implements OplogApplier {
     return new DefaultApplyingJob(killSwitch, whenComplete);
   }
 
-  private static Graph<FlowShape<OplogBatch, Excerpt<OplogBatch>>, NotUsed> createOffheapBuffer() {
-    return new ChronicleQueueStreamFactory<>()
-        .withTemporalQueue()
-        .autoManaged()
-        .createBuffer(new OplogBatchMarshaller());
+  private Flow<OplogBatch, OplogBatch, NotUsed> createOffheapBuffer() {
+    if (offHeapConfig.getEnabled()) {
+
+      SingleChronicleQueue scq = getSingleChronicleQueue();
+
+      return Flow.of(OplogBatch.class)
+          .via(new ChronicleQueueStreamFactory<>()
+              .withQueue(scq)
+              .autoManaged()
+              .createBuffer(new OplogBatchMarshaller())
+          )
+          .map(Excerpt::getElement);
+    } else {
+      return Flow.of(OplogBatch.class);
+    }
   }
 
-  private static class DefaultApplyingJob extends AbstractApplyingJob {
+  private SingleChronicleQueue getSingleChronicleQueue() {
 
-    private final KillSwitch killSwitch;
+    StoreFileListener sl = (i, file) -> file.delete();
 
-    public DefaultApplyingJob(KillSwitch killSwitch,
-        CompletableFuture<Empty> onFinish) {
-      super(onFinish);
-      this.killSwitch = killSwitch;
-    }
+    return SingleChronicleQueueBuilder
+        .binary(offHeapConfig.getPath())
+        .rollCycle(getRollCycles(offHeapConfig.getRollCycle()))
+        .storeFileListener(sl)
+        .build();
+  }
 
-    @Override
-    public void cancel() {
-      killSwitch.shutdown();
+  private RollCycles getRollCycles(BufferRollCycle bufferRollCycle) {
+    switch (bufferRollCycle) {
+      case MINUTELY:
+        return RollCycles.MINUTELY;
+      case HOURLY:
+        return RollCycles.HOURLY;
+      case DAILY:
+        return RollCycles.DAILY;
+      default:
+        return RollCycles.DAILY;
     }
   }
 
@@ -220,7 +243,6 @@ public class DefaultOplogApplier implements OplogApplier {
    * <li>Or a maximum time has happen since the last emit</li>
    * <li>Or the recived job is not {@link AnalyzedOplogBatch#isReadyForMore()}</li>
    * </ul>
-   *
    */
   private Flow<OplogBatch, AnalyzedStreamElement, NotUsed> createBatcherFlow(
       ApplierContext context) {
@@ -276,6 +298,22 @@ public class DefaultOplogApplier implements OplogApplier {
     }
     metrics.getMaxDelay().update(batchExecutionMillis);
     metrics.getApplicationCost().update((1000L * batchExecutionMillis) / rawBatchSize);
+  }
+
+  private static class DefaultApplyingJob extends AbstractApplyingJob {
+
+    private final KillSwitch killSwitch;
+
+    public DefaultApplyingJob(KillSwitch killSwitch,
+        CompletableFuture<Empty> onFinish) {
+      super(onFinish);
+      this.killSwitch = killSwitch;
+    }
+
+    @Override
+    public void cancel() {
+      killSwitch.shutdown();
+    }
   }
 
   public static class BatchLimits {

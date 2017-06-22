@@ -26,6 +26,7 @@ import com.torodb.mongodb.repl.ReplCoreBundle;
 import com.torodb.mongodb.repl.commands.ReplCommandExecutor;
 import com.torodb.mongodb.repl.commands.ReplCommandLibrary;
 import com.torodb.mongodb.repl.guice.ReplEssentialOverrideModule;
+import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
 
 public class DefaultOplogApplierBundleConfig implements BundleConfig {
 
@@ -35,17 +36,19 @@ public class DefaultOplogApplierBundleConfig implements BundleConfig {
   private final ReplCommandExecutor replCommandsExecutor;
   private final ReplEssentialOverrideModule essentialOverrideModule;
   private final BundleConfig delegate;
+  private final BufferOffHeapConfig bufferOffHeapConfig;
 
   public DefaultOplogApplierBundleConfig(ReplCoreBundle replCoreBundle,
       MongoDbCoreBundle mongoDbCorebundle, ReplCommandLibrary replCommandsLibrary,
       ReplCommandExecutor replCommandsExecutor, ReplEssentialOverrideModule essentialOverrideModule,
-      BundleConfig delegate) {
+      BundleConfig delegate, BufferOffHeapConfig bufferOffHeapConfig) {
     this.replCoreBundle = replCoreBundle;
     this.mongoDbCorebundle = mongoDbCorebundle;
     this.replCommandsLibrary = replCommandsLibrary;
     this.replCommandsExecutor = replCommandsExecutor;
     this.essentialOverrideModule = essentialOverrideModule;
     this.delegate = delegate;
+    this.bufferOffHeapConfig = bufferOffHeapConfig;
   }
 
   public ReplCoreBundle getReplCoreBundle() {
@@ -66,6 +69,10 @@ public class DefaultOplogApplierBundleConfig implements BundleConfig {
 
   public ReplEssentialOverrideModule getEssentialOverrideModule() {
     return essentialOverrideModule;
+  }
+
+  public BufferOffHeapConfig getBufferOffHeapConfig() {
+    return bufferOffHeapConfig;
   }
 
   @Override

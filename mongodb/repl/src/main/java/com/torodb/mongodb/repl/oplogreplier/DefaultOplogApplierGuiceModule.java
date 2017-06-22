@@ -39,6 +39,7 @@ import com.torodb.mongodb.repl.oplogreplier.batch.NamespaceJobExecutor;
 import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatchChecker;
 import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatchFilter;
 
+import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
 import java.time.Duration;
 
 public class DefaultOplogApplierGuiceModule extends PrivateModule {
@@ -65,6 +66,8 @@ public class DefaultOplogApplierGuiceModule extends PrivateModule {
         .toInstance(new DefaultOplogApplier.BatchLimits(1000, Duration.ofSeconds(2)));
     bind(OplogApplierMetrics.class)
         .in(Singleton.class);
+    bind(BufferOffHeapConfig.class)
+        .toInstance(config.getBufferOffHeapConfig());
 
     bind(ConcurrentOplogBatchExecutor.class)
         .in(javax.inject.Singleton.class);

@@ -26,8 +26,8 @@ import com.torodb.core.metrics.ToroMetricRegistry;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
 import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
-
 import java.util.Optional;
 import java.util.concurrent.ThreadFactory;
 
@@ -35,6 +35,7 @@ import java.util.concurrent.ThreadFactory;
  * The configuration used by {@link MongoDbReplBundle}.
  */
 public class MongoDbReplConfig implements BundleConfig {
+
   private final MongoDbCoreBundle coreBundle;
   private final MongoClientConfiguration mongoClientConfiguration;
   private final ReplicationFilters userReplFilter;
@@ -43,12 +44,14 @@ public class MongoDbReplConfig implements BundleConfig {
   private final Optional<ToroMetricRegistry> metricRegistry;
   private final LoggerFactory loggerFactory;
   private final BundleConfig generalConfig;
+  private final BufferOffHeapConfig bufferOffHeapConfig;
 
   public MongoDbReplConfig(MongoDbCoreBundle coreBundle,
       MongoClientConfiguration mongoClientConfiguration, ReplicationFilters userReplFilter,
-      String replSetName, ConsistencyHandler consistencyHandler, 
+      String replSetName, ConsistencyHandler consistencyHandler,
       Optional<ToroMetricRegistry> metricRegistry,
-      LoggerFactory loggerFactory, BundleConfig generalConfig) {
+      LoggerFactory loggerFactory, BundleConfig generalConfig,
+      BufferOffHeapConfig bufferOffHeapConfig) {
     this.coreBundle = coreBundle;
     this.mongoClientConfiguration = mongoClientConfiguration;
     this.userReplFilter = userReplFilter;
@@ -57,6 +60,7 @@ public class MongoDbReplConfig implements BundleConfig {
     this.metricRegistry = metricRegistry;
     this.loggerFactory = loggerFactory;
     this.generalConfig = generalConfig;
+    this.bufferOffHeapConfig = bufferOffHeapConfig;
   }
 
   public MongoDbCoreBundle getMongoDbCoreBundle() {
@@ -105,4 +109,9 @@ public class MongoDbReplConfig implements BundleConfig {
   public HostAndPort getSyncSourceSeed() {
     return getMongoClientConfiguration().getHostAndPort();
   }
+
+  public BufferOffHeapConfig getBufferOffHeapConfig() {
+    return bufferOffHeapConfig;
+  }
+
 }

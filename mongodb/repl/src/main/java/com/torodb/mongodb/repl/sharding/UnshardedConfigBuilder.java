@@ -23,6 +23,7 @@ import com.torodb.core.bundle.BundleConfig;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
 import com.torodb.torod.TorodBundle;
 
 
@@ -53,7 +54,8 @@ class UnshardedConfigBuilder extends MongoDbShardingConfigBuilder {
 
   @Override
   protected MongoDbShardingConfig build(TorodBundle torodBundle, ReplicationFilters userReplFilter,
-      LoggerFactory lifecycleLoggerFactory, BundleConfig generalConfig) {
+      LoggerFactory lifecycleLoggerFactory, BundleConfig generalConfig,
+      BufferOffHeapConfig bufferOffHeapConfig) {
     if (shardConfig == null) {
       throw new IllegalArgumentException("At least one shard is required");
     }
@@ -63,7 +65,8 @@ class UnshardedConfigBuilder extends MongoDbShardingConfigBuilder {
         shardConfig,
         userReplFilter,
         lifecycleLoggerFactory,
-        generalConfig
+        generalConfig,
+        bufferOffHeapConfig
     );
   }
 

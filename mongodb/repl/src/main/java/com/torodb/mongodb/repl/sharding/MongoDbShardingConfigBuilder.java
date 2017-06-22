@@ -24,17 +24,18 @@ import com.torodb.core.bundle.BundleConfigImpl;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
 import com.torodb.mongodb.repl.sharding.MongoDbShardingConfig.ShardConfig;
 import com.torodb.torod.TorodBundle;
-
 import java.util.Objects;
 
 public abstract class MongoDbShardingConfigBuilder {
 
+  private final BundleConfig generalConfig;
+  private BufferOffHeapConfig bufferOffHeapConfig;
   private TorodBundle torodBundle;
   private ReplicationFilters userReplFilter;
   private LoggerFactory lifecycleLoggerFactory;
-  private final BundleConfig generalConfig;
 
   protected MongoDbShardingConfigBuilder(BundleConfig generalConfig) {
     this.generalConfig = generalConfig;
@@ -51,7 +52,7 @@ public abstract class MongoDbShardingConfigBuilder {
   public static MongoDbShardingConfigBuilder createUnshardedBuilder(BundleConfig generalConfig) {
     return new UnshardedConfigBuilder(generalConfig);
   }
-  
+
   public MongoDbShardingConfigBuilder setTorodBundle(TorodBundle torodBundle) {
     this.torodBundle = torodBundle;
     return this;
@@ -68,19 +69,28 @@ public abstract class MongoDbShardingConfigBuilder {
     return this;
   }
 
+  public MongoDbShardingConfigBuilder setBufferOffHeapConfig(
+      BufferOffHeapConfig bufferOffHeapConfig) {
+    this.bufferOffHeapConfig = bufferOffHeapConfig;
+    return this;
+  }
+
   public abstract MongoDbShardingConfigBuilder addShard(ShardConfig config);
 
   protected abstract MongoDbShardingConfig build(TorodBundle torodBundle,
       ReplicationFilters userReplFilter,
       LoggerFactory lifecycleLoggerFactory,
-      BundleConfig generalConfig);
+      BundleConfig generalConfig,
+      BufferOffHeapConfig bufferOffHeapConfig);
 
   public MongoDbShardingConfig build() {
     Objects.requireNonNull(torodBundle, "The torod bundle must be not null");
     Objects.requireNonNull(userReplFilter, "The user filter must be not null");
     Objects.requireNonNull(lifecycleLoggerFactory, "The lifecycle logger factory must be not null");
+    Objects.requireNonNull(bufferOffHeapConfig, "The buffer OffHeap config must be not null");
 
-    return build(torodBundle, userReplFilter, lifecycleLoggerFactory, generalConfig);
+    return build(torodBundle, userReplFilter, lifecycleLoggerFactory, generalConfig,
+        bufferOffHeapConfig);
   }
 
 }

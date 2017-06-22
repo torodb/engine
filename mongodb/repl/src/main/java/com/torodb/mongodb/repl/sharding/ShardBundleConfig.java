@@ -24,10 +24,12 @@ import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.ConsistencyHandler;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
 import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
 import com.torodb.torod.TorodBundle;
 
 public class ShardBundleConfig extends BundleConfigImpl {
+
   private final String shardId;
   private final TorodBundle torodBundle;
   private final MongoClientConfiguration clientConfig;
@@ -35,11 +37,12 @@ public class ShardBundleConfig extends BundleConfigImpl {
   private final ReplicationFilters userReplFilter;
   private final ConsistencyHandler consistencyHandler;
   private final LoggerFactory lifecycleLoggingFactory;
+  private final BufferOffHeapConfig bufferOffHeapConfig;
 
   public ShardBundleConfig(String shardId, TorodBundle torodBundle,
       MongoClientConfiguration clientConfig, String replSetName, ReplicationFilters userReplFilter,
       ConsistencyHandler consistencyHandler, LoggerFactory lifecycleLoggingFactory,
-      Injector essentialInjector, Supervisor supervisor) {
+      Injector essentialInjector, Supervisor supervisor, BufferOffHeapConfig bufferOffHeapConfig) {
     super(essentialInjector, supervisor);
     this.shardId = shardId;
     this.torodBundle = torodBundle;
@@ -48,6 +51,7 @@ public class ShardBundleConfig extends BundleConfigImpl {
     this.userReplFilter = userReplFilter;
     this.consistencyHandler = consistencyHandler;
     this.lifecycleLoggingFactory = lifecycleLoggingFactory;
+    this.bufferOffHeapConfig = bufferOffHeapConfig;
   }
 
   public String getShardId() {
@@ -78,5 +82,7 @@ public class ShardBundleConfig extends BundleConfigImpl {
     return lifecycleLoggingFactory;
   }
 
-
+  public BufferOffHeapConfig getBufferOffHeapConfig() {
+    return bufferOffHeapConfig;
+  }
 }
