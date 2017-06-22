@@ -32,7 +32,7 @@ import com.torodb.mongodb.repl.impl.MongoOplogReaderProvider;
 import com.torodb.mongowp.client.core.CachedMongoClientFactory;
 import com.torodb.mongowp.client.core.GuavaCachedMongoClientFactory;
 import com.torodb.mongowp.client.core.MongoClientFactory;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 import com.torodb.mongowp.client.wrapper.MongoClientWrapperFactory;
 
 import java.time.Duration;
@@ -69,8 +69,8 @@ public class ReplCoreModule extends PrivateModule {
     bind(ReplMetrics.class)
         .in(Singleton.class);
 
-    bind(MongoClientConfiguration.class)
-        .toInstance(config.getMongoClientConfig());
+    bind(MongoClientConfigurationProperties.class)
+        .toInstance(config.getMongoClientConfigProperties());
     bind(MongoClientWrapperFactory.class)
         .in(Singleton.class);
     bind(MongoClientFactory.class)

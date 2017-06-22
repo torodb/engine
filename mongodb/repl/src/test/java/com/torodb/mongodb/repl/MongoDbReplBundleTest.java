@@ -19,6 +19,7 @@
 package com.torodb.mongodb.repl;
 
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -32,7 +33,7 @@ import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.core.MongoDbCoreConfig;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
 import com.torodb.mongodb.repl.impl.AlwaysConsistentConsistencyHandler;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 import com.torodb.torod.impl.memory.MemoryTorodBundle;
 import org.junit.After;
 import org.junit.Before;
@@ -94,7 +95,8 @@ public class MongoDbReplBundleTest {
     //This is why this test only checks that the bundle can be created, but not that it can start
     MongoDbReplBundle replBundle = new MongoDbReplBundle(new MongoDbReplConfigBuilder(generalConfig)
         .setConsistencyHandler(new AlwaysConsistentConsistencyHandler())
-        .setMongoClientConfiguration(createMongoClientConfiguration())
+        .setSeeds(ImmutableList.of(HostAndPort.fromParts("localhost", 27017)))
+        .setMongoClientConfigurationProperties(createMongoClientConfigurationProperties())
         .setReplSetName("replTest")
         .setReplicationFilters(createReplicationFilters())
         .setCoreBundle(coreBundle)
@@ -105,8 +107,8 @@ public class MongoDbReplBundleTest {
     assert !replBundle.isRunning();
   }
 
-  private MongoClientConfiguration createMongoClientConfiguration() {
-    return MongoClientConfiguration.unsecure(HostAndPort.fromParts("localhost", 27017));
+  private MongoClientConfigurationProperties createMongoClientConfigurationProperties() {
+    return MongoClientConfigurationProperties.unsecure();
   }
 
   private ReplicationFilters createReplicationFilters() {

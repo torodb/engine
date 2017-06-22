@@ -21,12 +21,14 @@ package com.torodb.packaging.config.model.common;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public abstract class ScalarWithDefault<T> {
+import java.util.List;
 
-  private final T value;
+public abstract class ListOfScalarWithDefault<T> {
+
+  private final List<T> value;
   private final boolean isDefault;
 
-  public static <S extends ScalarWithDefault<?>> S merge(S specific, S common) {
+  public static <S extends ListOfScalarWithDefault<?>> S merge(S specific, S common) {
     if (specific.isDefault()) {
       return common;
     }
@@ -34,14 +36,14 @@ public abstract class ScalarWithDefault<T> {
     return specific;
   }
   
-  public ScalarWithDefault(T value, boolean isDefault) {
+  public ListOfScalarWithDefault(List<T> value, boolean isDefault) {
     super();
     this.value = value;
     this.isDefault = isDefault;
   }
   
   @JsonProperty(value = "value")
-  public T value() {
+  public List<T> value() {
     return value;
   }
 
@@ -51,7 +53,7 @@ public abstract class ScalarWithDefault<T> {
   }
   
   @JsonIgnore
-  public T mergeValue(ScalarWithDefault<T> common) {
+  public List<T> mergeValue(ListOfScalarWithDefault<T> common) {
     if (isDefault()) {
       return common.value();
     }
@@ -89,7 +91,7 @@ public abstract class ScalarWithDefault<T> {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    ScalarWithDefault<?> other = (ScalarWithDefault<?>) obj;
+    ListOfScalarWithDefault<?> other = (ListOfScalarWithDefault<?>) obj;
     if (isDefault != other.isDefault) {
       return false;
     }
