@@ -160,7 +160,9 @@ public abstract class AbstractDataIntegrationSuite extends AbstractBackendIntegr
             ),
           new Tuple2<>(
               "InstantZero",
-              new LongKvInstant(-2000L * 365 * 24 * 60 * 60 * 1000)
+              new InstantKvInstant(
+                  LocalDateTime.of(0, Month.JANUARY, 1, 0, 0, 0)
+                      .toInstant(ZoneOffset.UTC))
             ),
           new Tuple2<>(
               "InstantLow",

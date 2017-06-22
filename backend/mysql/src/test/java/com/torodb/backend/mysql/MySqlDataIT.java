@@ -21,10 +21,17 @@ package com.torodb.backend.mysql;
 
 import com.torodb.backend.tests.common.AbstractDataIntegrationSuite;
 import com.torodb.backend.tests.common.BackendTestContextFactory;
+import com.torodb.kvdocument.values.KvValue;
 import com.torodb.testing.docker.mysql.EnumVersion;
 import com.torodb.testing.docker.mysql.MysqlService;
+import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.Arrays;
 
 public class MySqlDataIT extends AbstractDataIntegrationSuite {
 
@@ -48,6 +55,18 @@ public class MySqlDataIT extends AbstractDataIntegrationSuite {
   @Override
   protected BackendTestContextFactory getBackendTestContextFactory() {
     return new MySqlTestContextFactory(mysqlService);
+  }
+
+  @Override
+  @ParameterizedTest
+  @MethodSource(names = "values")
+  public void shouldWriteAndReadData(
+      Tuple2<String, KvValue<?>> labeledValue) throws Exception {
+    Assumptions.assumeFalse(Arrays.asList(
+        "InstantZero",
+        "InstantLow"
+        ).contains(labeledValue.v1));
+    super.shouldWriteAndReadData(labeledValue);
   }
 
 }
