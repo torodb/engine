@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.backend.derby.converters.jooq;
+package com.torodb.backend.mysql.converters.jooq;
 
 import org.jooq.Converter;
 import org.jooq.DataType;
@@ -29,12 +29,12 @@ import javax.json.JsonObject;
 /**
  *
  */
-public class JsonObjectConverter implements Converter<String, JsonObject> {
+public class JsonConverter implements Converter<String, JsonObject> {
 
   private static final long serialVersionUID = 1L;
 
-  public static final DataType<JsonObject> TYPE = StringValueConverter.VARCHAR_TYPE
-      .asConvertedDataType(new JsonObjectConverter());
+  public static final DataType<JsonObject> JSON = StringValueConverter.TEXT
+      .asConvertedDataType(new JsonConverter());
 
   @Override
   public JsonObject from(String databaseObject) {

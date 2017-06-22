@@ -106,7 +106,8 @@ public interface StructureInterface {
       @Nonnull String tableName, @Nonnull List<Tuple3<String, Boolean, FieldType>> columnList, 
       boolean unique) throws UserException;
 
-  void dropIndex(@Nonnull DSLContext dsl, @Nonnull String schemaName, @Nonnull String indexName);
+  void dropIndex(@Nonnull DSLContext dsl, @Nonnull String schemaName, @Nonnull String tableName, 
+      @Nonnull String indexName);
 
   /**
    * Drops all torodb elements from the backend, including metatables and their content.

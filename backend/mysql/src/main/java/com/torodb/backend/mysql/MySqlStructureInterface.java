@@ -25,7 +25,6 @@ import com.torodb.backend.InternalField;
 import com.torodb.backend.SqlBuilder;
 import com.torodb.backend.SqlHelper;
 import com.torodb.backend.converters.jooq.DataTypeForKv;
-import com.torodb.backend.mysql.converters.jooq.StringValueConverter;
 import com.torodb.core.backend.IdentifierConstraints;
 import com.torodb.core.d2r.UniqueIdentifierGenerator;
 import com.torodb.core.d2r.UniqueIdentifierGenerator.ChainConverterFactory;
@@ -35,7 +34,6 @@ import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
-import com.torodb.kvdocument.values.KvInstant;
 import org.jooq.DSLContext;
 import org.jooq.lambda.tuple.Tuple3;
 
@@ -125,10 +123,14 @@ public class MySqlStructureInterface extends AbstractStructureInterface {
         .append(" (");
     for (Tuple3<String, Boolean, FieldType> columnEntry : columnList) {
       sb.append("`").append(columnEntry.v1()).append("`");
-      if (StringValueConverter.TEXT.getTypeName().equals(dataTypeProvider
-          .getDataType(columnEntry.v3()).getSQLDataType().getTypeName())) {
+      
+      DataTypeForKv<?> dataType = dataTypeProvider.getDataType(columnEntry.v3());
+      
+      if (dataType.getCastTypeName().equals("BLOB")
+          || dataType.getCastTypeName().equals("TEXT")) {
         sb.append("(3072)");
       }
+      
       sb.append(columnEntry.v2() ? " ASC," : " DESC,");
     }
     sb.setCharAt(sb.length() - 1, ')');
@@ -137,12 +139,14 @@ public class MySqlStructureInterface extends AbstractStructureInterface {
   }
 
   @Override
-  protected String getDropIndexStatement(String schemaName, String indexName) {
+  protected String getDropIndexStatement(String schemaName, String tableName, String indexName) {
     StringBuilder sb = new StringBuilder()
         .append("DROP INDEX `")
+        .append(indexName)
+        .append("` ON `")
         .append(schemaName)
         .append("`.`")
-        .append(indexName)
+        .append(tableName)
         .append("`");
     String statement = sb.toString();
     return statement;
@@ -254,17 +258,21 @@ public class MySqlStructureInterface extends AbstractStructureInterface {
       DataTypeForKv<?> dataType) {
     String castDataTypeName = dataType.getCastTypeName();
     
-    if (dataType.getType() == KvInstant.class) {
-      castDataTypeName += "(" + dataType.length() + ")";
-    }
-    
     SqlBuilder sb = new MySqlBuilder("ALTER TABLE ")
         .table(schemaName, tableName)
         .append(" ADD COLUMN ")
         .quote(columnName)
         .append(" ")
-        .append(castDataTypeName)
-        .append(" NULL");
+        .append(castDataTypeName);
+    
+    if (dataType.getCastTypeName().equals("TIMESTAMP")) {
+      sb.append("(")
+        .append(String.valueOf(dataType.length()))
+        .append(")");
+    }
+
+    sb.append(" NULL");
+    
     return sb.toString();
   }
 

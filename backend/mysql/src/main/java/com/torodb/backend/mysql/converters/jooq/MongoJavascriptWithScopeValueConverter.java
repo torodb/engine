@@ -26,24 +26,20 @@ import com.torodb.kvdocument.types.JavascriptWithScopeType;
 import com.torodb.kvdocument.types.KvType;
 import com.torodb.kvdocument.values.KvMongoJavascriptWithScope;
 
-import java.io.StringReader;
 import java.sql.Types;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 
 /** */
 public class MongoJavascriptWithScopeValueConverter
-    implements KvValueConverter<String, String, KvMongoJavascriptWithScope> {
+    implements KvValueConverter<JsonObject, String, KvMongoJavascriptWithScope> {
 
   private static final long serialVersionUID = 1L;
 
-  public static final MongoJavascriptWithScopeValueConverter CONVERTER =
-      new MongoJavascriptWithScopeValueConverter();
-
   public static final DataTypeForKv<KvMongoJavascriptWithScope> TYPE =
-      DataTypeForKv.from(StringValueConverter.TEXT, CONVERTER, Types.LONGVARCHAR);
+      DataTypeForKv.from(JsonConverter.JSON, new MongoJavascriptWithScopeValueConverter(), 
+          Types.LONGVARCHAR);
 
   @Override
   public KvType getErasuredType() {
@@ -51,28 +47,23 @@ public class MongoJavascriptWithScopeValueConverter
   }
 
   @Override
-  public KvMongoJavascriptWithScope from(String databaseObject) {
-
-    final JsonReader reader =
-        Json.createReader(new StringReader(databaseObject));
-    JsonObject object = reader.readObject();
-
+  public KvMongoJavascriptWithScope from(JsonObject databaseObject) {
     //need to discuss implementation of scope
-    return KvMongoJavascriptWithScope.of(object.getString("js"), object.getString("scope"));
+    return KvMongoJavascriptWithScope.of(databaseObject.getString("js"), 
+        databaseObject.getString("scope"));
   }
 
   @Override
-  public String to(KvMongoJavascriptWithScope userObject) {
+  public JsonObject to(KvMongoJavascriptWithScope userObject) {
     return Json.createObjectBuilder()
         .add("js", userObject.getJs())
         .add("scope", userObject.getScope())
-        .build()
-        .toString();
+        .build();
   }
 
   @Override
-  public Class<String> fromType() {
-    return String.class;
+  public Class<JsonObject> fromType() {
+    return JsonObject.class;
   }
 
   @Override

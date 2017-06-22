@@ -16,32 +16,34 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.backend.derby;
+package com.torodb.backend.postgresql;
 
-import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
-import com.torodb.backend.tests.common.BackendTestContextFactory;
-import org.junit.jupiter.api.Disabled;
+import com.google.inject.Injector;
+import com.torodb.backend.BackendConfig;
+import com.torodb.backend.tests.common.BackendTestBundle;
+import com.torodb.core.d2r.impl.D2RModule;
 
-public class DerbyStructureIT extends AbstractStructureIntegrationSuite {
+public abstract class PostgreSqlBackendTestBundle extends PostgreSqlBackendBundle implements BackendTestBundle {
 
-  @Override
-  protected BackendTestContextFactory getBackendTestContextFactory() {
-    return new DerbyTestContextFactory();
+  private BackendTestExt ext;
+  
+  public PostgreSqlBackendTestBundle(BackendConfig config) {
+    super(config);
   }
 
   @Override
-  @Disabled
-  public void shouldDeleteAll() throws Exception {
-  }
+  protected Injector createInjector(BackendConfig config) {
+    Injector injector = config.getEssentialInjector().createChildInjector(
+        getBackendModule(config), new D2RModule());
 
-  @Override
-  @Disabled
-  public void shouldDeleteUserData() throws Exception {
+    ext = new BackendTestExt(injector);
+    
+    return injector;
   }
-
+  
   @Override
-  @Disabled
-  public void shouldMoveCollection() throws Exception {
+  public BackendTestExt getExternalTestInterface() {
+    return ext;
   }
   
 }

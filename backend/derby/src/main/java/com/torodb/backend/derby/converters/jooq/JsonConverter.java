@@ -16,32 +16,44 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.backend.derby;
+package com.torodb.backend.derby.converters.jooq;
 
-import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
-import com.torodb.backend.tests.common.BackendTestContextFactory;
-import org.junit.jupiter.api.Disabled;
+import org.jooq.Converter;
+import org.jooq.DataType;
 
-public class DerbyStructureIT extends AbstractStructureIntegrationSuite {
+import java.io.StringReader;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+
+/**
+ *
+ */
+public class JsonConverter implements Converter<String, JsonObject> {
+
+  private static final long serialVersionUID = 1L;
+
+  public static final DataType<JsonObject> JSON = StringValueConverter.VARCHAR_TYPE
+      .asConvertedDataType(new JsonConverter());
 
   @Override
-  protected BackendTestContextFactory getBackendTestContextFactory() {
-    return new DerbyTestContextFactory();
+  public JsonObject from(String databaseObject) {
+    return Json.createReader(new StringReader(databaseObject)).readObject();
   }
 
   @Override
-  @Disabled
-  public void shouldDeleteAll() throws Exception {
+  public String to(JsonObject userObject) {
+    return userObject.toString();
   }
 
   @Override
-  @Disabled
-  public void shouldDeleteUserData() throws Exception {
+  public Class<String> fromType() {
+    return String.class;
   }
 
   @Override
-  @Disabled
-  public void shouldMoveCollection() throws Exception {
+  public Class<JsonObject> toType() {
+    return JsonObject.class;
   }
-  
+
 }

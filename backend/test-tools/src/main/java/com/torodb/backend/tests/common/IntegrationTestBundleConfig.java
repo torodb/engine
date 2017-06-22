@@ -22,14 +22,23 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Stage;
 import com.torodb.core.bundle.BundleConfig;
+import com.torodb.core.guice.EssentialModule;
+import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.core.supervision.SupervisorDecision;
+
+import java.time.Clock;
 
 public class IntegrationTestBundleConfig implements BundleConfig {
 
   private final Supervisor supervisor = new TestSupervisor();
 
-  private final Injector essentialInjector = Guice.createInjector(Stage.PRODUCTION);
+  private final Injector essentialInjector = Guice.createInjector(
+      Stage.PRODUCTION, new EssentialModule(
+          DefaultLoggerFactory.getInstance(),
+          () -> true,
+          Clock.systemUTC()
+      ));
 
   @Override
   public Injector getEssentialInjector() {

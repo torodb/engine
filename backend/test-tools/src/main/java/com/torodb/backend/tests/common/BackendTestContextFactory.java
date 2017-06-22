@@ -15,38 +15,31 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.torodb.backend.tests.common;
 
+import com.google.inject.PrivateModule;
 import com.torodb.backend.DslContextFactory;
 import com.torodb.backend.SqlInterface;
-import org.jooq.DSLContext;
+import com.torodb.backend.ddl.DdlOps;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.function.Consumer;
 
-public interface DatabaseTestContext {
+public abstract class BackendTestContextFactory {
 
-  public void setupDatabase() throws SQLException;
-
-  public void tearDownDatabase();
-
-  public SqlInterface getSqlInterface();
-
-  public DslContextFactory getDslContextFactory();
-
-  public default void executeOnDbConnectionWithDslContext(Consumer<DSLContext> consumer)
-      throws SQLException {
-
-    try (Connection connection = getSqlInterface().getDbBackend().createWriteConnection()) {
-      DSLContext dslContext = getDslContextFactory().createDslContext(connection);
-
-      consumer.accept(dslContext);
-
-      connection.commit();
-    }
+  public abstract BackendTestContext<?> get();
+  
+  protected static void exposeTestInstances(Consumer<Class<?>> exposer) {
+    exposer.accept(SqlInterface.class);
+    exposer.accept(DdlOps.class);
+    exposer.accept(DslContextFactory.class);
   }
 
+  public static PrivateModule getTestModule() {
+    return new PrivateModule() {
+      @Override
+      protected void configure() {
+        exposeTestInstances(clazz -> expose(clazz));
+      }
+    };
+  }
 }
-

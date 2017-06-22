@@ -39,7 +39,7 @@ public class MongoRegexValueConverter
 
   public static final DataTypeForKv<KvMongoRegex> TYPE =
           DataTypeForKv.from(
-                  JsonObjectConverter.TYPE,
+                  JsonConverter.JSON,
                   new MongoRegexValueConverter()
           );
 

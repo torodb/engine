@@ -92,7 +92,7 @@ public class DefaultDropIndexDdlOp implements DropIndexDdlOp {
     );
 
     sqlInterface.getStructureInterface().dropIndex(
-        dsl, db.getIdentifier(), docPartIndex.getIdentifier());
+        dsl, db.getIdentifier(), docPart.getIdentifier(), docPartIndex.getIdentifier());
   }
 
   @Override

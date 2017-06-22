@@ -48,7 +48,12 @@ public abstract class KvMongoJavascriptWithScope extends KvValue<KvMongoJavascri
     if (!(obj instanceof KvMongoJavascriptWithScope)) {
       return false;
     }
-    return this.getValue().equals(((KvMongoJavascriptWithScope) obj).getValue());
+
+    KvMongoJavascriptWithScope that = (KvMongoJavascriptWithScope) obj;
+    if (getJs() != null ? !getJs().equals(that.getJs()) : that.getJs() != null) {
+      return false;
+    }
+    return getScope() != null ? getScope().equals(that.getScope()) : that.getScope() == null;
   }
 
   public static KvMongoJavascriptWithScope of(String js, KvDocument scope) {

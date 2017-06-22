@@ -42,12 +42,16 @@ public class MySqlBackendBundle extends AbstractBackendBundle {
   @SuppressWarnings("checkstyle:JavadocMethod")
   public MySqlBackendBundle(BackendConfig config) {
     super(config);
-    Injector injector = config.getEssentialInjector().createChildInjector(
-        new MySqlBackendModule(config));
+    Injector injector = createInjector(config);
     this.lowLevelService = injector.getInstance(DbBackendService.class);
     this.backendService = injector.getInstance(BackendService.class);
     this.reservedIdGenerator = injector.getInstance(ReservedIdGenerator.class);
     this.identifierFactory = injector.getInstance(IdentifierFactory.class);
+  }
+
+  protected Injector createInjector(BackendConfig config) {
+    return config.getEssentialInjector().createChildInjector(
+        new MySqlBackendModule(config));
   }
 
   @Override

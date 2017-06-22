@@ -18,7 +18,6 @@
 
 package com.torodb.kvdocument.values;
 
-import com.torodb.kvdocument.types.JavascriptWithScopeType;
 import com.torodb.kvdocument.types.KvType;
 import com.torodb.kvdocument.types.MongoDbPointerType;
 
@@ -44,7 +43,14 @@ public abstract class KvMongoDbPointer extends KvValue<KvMongoDbPointer> {
     if (!(obj instanceof KvMongoDbPointer)) {
       return false;
     }
-    return this.getValue().equals(((KvMongoDbPointer) obj).getValue());
+
+    DefaultKvMongoDbPointer that = (DefaultKvMongoDbPointer) obj;
+
+    if (getNamespace() != null ? !getNamespace().equals(
+        that.getNamespace()) : that.getNamespace() != null) {
+      return false;
+    }
+    return getId() != null ? getId().equals(that.getId()) : that.getId() == null;
   }
 
   public static KvMongoDbPointer of(String namespace, KvMongoObjectId id) {

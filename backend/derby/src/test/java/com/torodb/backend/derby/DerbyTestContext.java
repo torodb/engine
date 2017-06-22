@@ -18,30 +18,23 @@
 
 package com.torodb.backend.derby;
 
-import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
-import com.torodb.backend.tests.common.BackendTestContextFactory;
-import org.junit.jupiter.api.Disabled;
+import com.torodb.backend.tests.common.BackendTestContext;
 
-public class DerbyStructureIT extends AbstractStructureIntegrationSuite {
+public class DerbyTestContext extends BackendTestContext<DerbyBackendTestBundle> {
 
-  @Override
-  protected BackendTestContextFactory getBackendTestContextFactory() {
-    return new DerbyTestContextFactory();
+  public DerbyTestContext(DerbyBackendTestBundle bundle) {
+    super(bundle);
   }
 
   @Override
-  @Disabled
-  public void shouldDeleteAll() throws Exception {
+  protected String getDropSchemaStatement(String schemaName) {
+    return "DROP SCHEMA " + getQuoteChar() + schemaName + getQuoteChar() + " RESTRICT";
   }
 
   @Override
-  @Disabled
-  public void shouldDeleteUserData() throws Exception {
+  protected boolean canDropFullSchema() {
+    return false;
   }
 
-  @Override
-  @Disabled
-  public void shouldMoveCollection() throws Exception {
-  }
-  
 }
+

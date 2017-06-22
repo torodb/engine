@@ -18,11 +18,15 @@
 
 package com.torodb.backend.derby;
 
-import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
+import com.torodb.backend.tests.common.AbstractDataIntegrationSuite;
 import com.torodb.backend.tests.common.BackendTestContextFactory;
-import org.junit.jupiter.api.Disabled;
+import com.torodb.kvdocument.values.KvValue;
+import org.jooq.lambda.tuple.Tuple2;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-public class DerbyStructureIT extends AbstractStructureIntegrationSuite {
+public class DerbyDataIT extends AbstractDataIntegrationSuite {
 
   @Override
   protected BackendTestContextFactory getBackendTestContextFactory() {
@@ -30,18 +34,12 @@ public class DerbyStructureIT extends AbstractStructureIntegrationSuite {
   }
 
   @Override
-  @Disabled
-  public void shouldDeleteAll() throws Exception {
+  @ParameterizedTest
+  @MethodSource(names = "values")
+  public void shouldWriteAndReadData(
+      Tuple2<String, KvValue<?>> labeledValue) throws Exception {
+    Assumptions.assumeFalse("InstantZero".equals(labeledValue.v1));
+    super.shouldWriteAndReadData(labeledValue);
   }
 
-  @Override
-  @Disabled
-  public void shouldDeleteUserData() throws Exception {
-  }
-
-  @Override
-  @Disabled
-  public void shouldMoveCollection() throws Exception {
-  }
-  
 }

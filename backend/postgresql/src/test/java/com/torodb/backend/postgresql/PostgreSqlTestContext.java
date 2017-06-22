@@ -16,32 +16,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.backend.derby;
+package com.torodb.backend.postgresql;
 
-import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
-import com.torodb.backend.tests.common.BackendTestContextFactory;
-import org.junit.jupiter.api.Disabled;
+import com.torodb.backend.tests.common.BackendTestContext;
 
-public class DerbyStructureIT extends AbstractStructureIntegrationSuite {
+public class PostgreSqlTestContext extends BackendTestContext<PostgreSqlBackendTestBundle> {
 
-  @Override
-  protected BackendTestContextFactory getBackendTestContextFactory() {
-    return new DerbyTestContextFactory();
+  public PostgreSqlTestContext(PostgreSqlBackendTestBundle bundle) {
+    super(bundle);
   }
 
-  @Override
-  @Disabled
-  public void shouldDeleteAll() throws Exception {
-  }
-
-  @Override
-  @Disabled
-  public void shouldDeleteUserData() throws Exception {
-  }
-
-  @Override
-  @Disabled
-  public void shouldMoveCollection() throws Exception {
-  }
-  
 }
+

@@ -26,7 +26,11 @@ import com.torodb.backend.TransactionIsolationLevel;
 import com.torodb.backend.postgresql.driver.PostgreSqlDriverProvider;
 import com.torodb.core.annotations.TorodbIdleService;
 import org.apache.logging.log4j.Logger;
+import org.postgresql.PGConnection;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.concurrent.ThreadFactory;
 
 import javax.annotation.Nonnull;
@@ -76,5 +80,15 @@ public class PostgreSqlDbBackend extends AbstractDbBackendService<BackendConfig>
   @Nonnull
   protected TransactionIsolationLevel getGlobalCursorTransactionIsolation() {
     return TransactionIsolationLevel.TRANSACTION_REPEATABLE_READ;
+  }
+  
+  @Override
+  protected void postConsume(Connection connection, boolean readOnly) throws SQLException {
+    super.postConsume(connection, readOnly);
+    try (Statement statement = connection.createStatement()) {
+      //Force the PostgreSQL driver to returning types with 
+      // schema when calling connection.getMetaData().getColumns(...)
+      statement.execute("SET search_path = pg_catalog, public");
+    }
   }
 }
