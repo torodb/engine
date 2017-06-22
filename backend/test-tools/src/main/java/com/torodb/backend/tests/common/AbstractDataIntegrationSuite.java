@@ -53,9 +53,10 @@ import com.torodb.kvdocument.values.heap.DefaultKvMongoTimestamp;
 import com.torodb.kvdocument.values.heap.InstantKvInstant;
 import com.torodb.kvdocument.values.heap.LocalDateKvDate;
 import com.torodb.kvdocument.values.heap.LocalTimeKvTime;
+import com.torodb.kvdocument.values.heap.LongKvInstant;
 import com.torodb.kvdocument.values.heap.MapKvDocument;
 import com.torodb.kvdocument.values.heap.StringKvString;
-import org.jooq.lambda.tuple.Tuple3;
+import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -73,7 +74,7 @@ public abstract class AbstractDataIntegrationSuite extends AbstractBackendIntegr
   @ParameterizedTest
   @MethodSource(names = "values")
   public void shouldWriteAndReadData(
-      Tuple3<String, KvValue<?>, String> labeledValue) throws Exception {
+      Tuple2<String, KvValue<?>> labeledValue) throws Exception {
     context.executeOnDbConnectionWithDslContext(dslContext -> {
       /* Given */
       FieldType fieldType = FieldType.from(labeledValue.v2.getType());
@@ -113,89 +114,90 @@ public abstract class AbstractDataIntegrationSuite extends AbstractBackendIntegr
     });
   }
   
-  public static List<Tuple3<String, KvValue<?>, String>> values() {
-    return ImmutableList.<Tuple3<String,KvValue<?>,String>>of(
-          new Tuple3<>("TrueBoolean", KvBoolean.TRUE, "true"),
-          new Tuple3<>("FalseBoolean", KvBoolean.FALSE, "false"),
-          new Tuple3<>("Null", KvNull.getInstance(), "true"),
-          new Tuple3<>("ZeroInteger", KvInteger.of(0), "0"),
-          new Tuple3<>("PositiveInteger", KvInteger.of(123), "123"),
-          new Tuple3<>("NegativeInteger", KvInteger.of(-3421), "-3421"),
-          new Tuple3<>("ZeroDouble", KvDouble.of(0), "0.0"),
-          new Tuple3<>("PositiveDouble", KvDouble.of(4.5), "4.5"),
-          new Tuple3<>("NegativeDouble", KvDouble.of(-4.5), "-4.5"),
-          new Tuple3<>("NormalString", new StringKvString("simple string"), "simple string"),
-          new Tuple3<>(
+  public static List<Tuple2<String, KvValue<?>>> values() {
+    return ImmutableList.<Tuple2<String,KvValue<?>>>of(
+          new Tuple2<>("TrueBoolean", KvBoolean.TRUE),
+          new Tuple2<>("FalseBoolean", KvBoolean.FALSE),
+          new Tuple2<>("Null", KvNull.getInstance()),
+          new Tuple2<>("ZeroInteger", KvInteger.of(0)),
+          new Tuple2<>("PositiveInteger", KvInteger.of(123)),
+          new Tuple2<>("NegativeInteger", KvInteger.of(-3421)),
+          new Tuple2<>("ZeroDouble", KvDouble.of(0)),
+          new Tuple2<>("PositiveDouble", KvDouble.of(4.5)),
+          new Tuple2<>("NegativeDouble", KvDouble.of(-4.5)),
+          new Tuple2<>("NormalString", new StringKvString("simple string")),
+          new Tuple2<>(
             "StringWithTab",
-            new StringKvString("a string with a \t"),
-            "a string with a \\\t"
+            new StringKvString("a string with a \t")
           ),
-          new Tuple3<>(
+          new Tuple2<>(
             "StringWithNewLine",
-            new StringKvString("a string with a \n"),
-            "a string with a \\\n"
+            new StringKvString("a string with a \n")
           ),
-          new Tuple3<>(
+          new Tuple2<>(
             "StringWithBackSlash",
-            new StringKvString("a string with a \\"),
-            "a string with a \\\\"
+            new StringKvString("a string with a \\")
           ),
-          new Tuple3<>(
+          new Tuple2<>(
             "StringWithSpecials",
             new StringKvString(
-                "a string with a \\b, \\f, \\n, \\r, \\t, \\v, \\1, \\12, \\123, \\xa, \\xff"),
-                "a string with a \\\\b, \\\\f, \\\\n, \\\\r, \\\\t, \\\\v, \\\\1, \\\\12, "
-                + "\\\\123, \\\\xa, \\\\xff"
+                "a string with a \\b, \\f, \\n, \\r, \\t, \\v, \\1, \\12, \\123, \\xa, \\xff")
           ),
-          new Tuple3<>(
+          new Tuple2<>(
             "StringNull",
-            new StringKvString("a string with a \\N and null literal"),
-            "a string with a \\\\N and null literal"
+            new StringKvString("a string with a \\N and null literal")
           ),
-          new Tuple3<>(
+          new Tuple2<>(
             "MongoObjectId",
             new ByteArrayKvMongoObjectId(
-                new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 0xa, 0xb, 0xc}),
-            "\\\\x0102030405060708090A0B0C"
+                new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 0xa, 0xb, 0xc})
           ),
-          new Tuple3<>(
-            "DateTime",
-            new InstantKvInstant(
-                LocalDateTime.of(2015, Month.JANUARY, 18, 2, 43, 26)
-                    .toInstant(ZoneOffset.UTC)),
-            "'2015-01-18T02:43:26Z'"
-          ),
-          new Tuple3<>(
+          new Tuple2<>(
+              "Instant",
+              new InstantKvInstant(
+                  LocalDateTime.of(2015, Month.JANUARY, 18, 2, 43, 26)
+                      .toInstant(ZoneOffset.UTC))
+            ),
+          new Tuple2<>(
+              "InstantZero",
+              new LongKvInstant(-2000L * 365 * 24 * 60 * 60 * 1000)
+            ),
+          new Tuple2<>(
+              "InstantLow",
+              new LongKvInstant(Integer.MIN_VALUE)
+            ),
+          new Tuple2<>(
+              "InstantHigh",
+              new LongKvInstant(Integer.MAX_VALUE)
+            ),
+          new Tuple2<>(
             "Date",
-            new LocalDateKvDate(LocalDate.of(2015, Month.JANUARY, 18)),
-            "'2015-01-18'"
+            new LocalDateKvDate(LocalDate.of(2015, Month.JANUARY, 18))
           ),
-          new Tuple3<>("Time", new LocalTimeKvTime(LocalTime.of(2, 43, 26)), "'02:43:26'"),
-          new Tuple3<>(
+          new Tuple2<>("Time", new LocalTimeKvTime(LocalTime.of(2, 43, 26))),
+          new Tuple2<>(
               "Binary",
               new ByteSourceKvBinary(
                   KvBinary.KvBinarySubtype.MONGO_GENERIC,
                   Byte.parseByte("1", 2),
-                  ByteSource.wrap(new byte[] {0x12, 0x34, 0x56, 0x78, (byte) 0x9a})),
-              "\\\\x123456789A"
+                  ByteSource.wrap(new byte[] {0x12, 0x34, 0x56, 0x78, (byte) 0x9a}))
             ),
-          /*new Tuple3<>(
+          /*new Tuple2<>(
               "BinaryUserDefined",
               new ByteSourceKvBinary(
                   KvBinary.KvBinarySubtype.MONGO_USER_DEFINED,
                   Byte.parseByte("1", 2),
-                  ByteSource.wrap(new byte[] {0x12, 0x34, 0x56, 0x78, (byte) 0x9a})),
-              "\\\\x123456789A"
+                  ByteSource.wrap(new byte[] {0x12, 0x34, 0x56, 0x78, (byte) 0x9a}))
             ),*/
-          new Tuple3<>("ZeroLong", KvLong.of(0), "0"),
-          new Tuple3<>("PositiveLong", KvLong.of(123456789L), "123456789"),
-          new Tuple3<>("NegativeLong", KvLong.of(-123456789L), "-123456789"),
-          new Tuple3<>("MinKey", KvMinKey.getInstance(), "false"),
-          new Tuple3<>("MaxKey", KvMaxKey.getInstance(), "true"),
-          new Tuple3<>("Undefined", KvUndefined.getInstance(), "true"),
-          new Tuple3<>("Deprecated", KvDeprecated.of("deprecate me"), "deprecate me"),
-          new Tuple3<>("Javascript", KvMongoJavascript.of("alert('hello');"), "alert('hello');"),
-          new Tuple3<>(
+          new Tuple2<>("ZeroLong", KvLong.of(0)),
+          new Tuple2<>("PositiveLong", KvLong.of(123456789L)),
+          new Tuple2<>("NegativeLong", KvLong.of(-123456789L)),
+          new Tuple2<>("MinKey", KvMinKey.getInstance()),
+          new Tuple2<>("MaxKey", KvMaxKey.getInstance()),
+          new Tuple2<>("Undefined", KvUndefined.getInstance()),
+          new Tuple2<>("Deprecated", KvDeprecated.of("deprecate me")),
+          new Tuple2<>("Javascript", KvMongoJavascript.of("alert('hello');")),
+          new Tuple2<>(
             "JavascriptWithScope",
             KvMongoJavascriptWithScope.of(
                 "alert('hello');",
@@ -204,40 +206,30 @@ public abstract class AbstractDataIntegrationSuite extends AbstractBackendIntegr
                         ImmutableMap.<String, KvValue<?>>builder()
                             .put("a", KvInteger.of(123))
                             .put("b", KvLong.of(0))
-                            .build()))),
-            "(\"js\":\"alert('hello');\",\"scope\":\"(a : 123, b : 0)\")"
+                            .build())))
           ),
-          new Tuple3<>("ZeroDecimal128", KvDecimal128.of(0, 0), "0." + String.format("%6176s", "")
-            .replace(' ', '0')),
-          new Tuple3<>("NaNDecimal128", KvDecimal128.of(0x7c00000000000000L, 0), "0." 
-            + String.format("%6176s", "").replace(' ', '0')),
-          new Tuple3<>("InfiniteDecimal128", KvDecimal128.of(0x7800000000000000L, 0), "0." 
-            + String.format("%6176s", "").replace(' ', '0')),
-          new Tuple3<>(
+          new Tuple2<>("ZeroDecimal128", KvDecimal128.of(0, 0)),
+          new Tuple2<>("NaNDecimal128", KvDecimal128.of(0x7c00000000000000L, 0)),
+          new Tuple2<>("InfiniteDecimal128", KvDecimal128.of(0x7800000000000000L, 0)),
+          new Tuple2<>(
             "HighDecimal128",
-            KvDecimal128.of(new BigDecimal("1000000000000000000000")),
-            "(1000000000000000000000,false,false,false)"
+            KvDecimal128.of(new BigDecimal("1000000000000000000000"))
           ),
-          new Tuple3<>(
+          new Tuple2<>(
             "NegativeDecimal128",
-            KvDecimal128.of(new BigDecimal("-1000000000000000000")),
-            "(-1000000000000000000,false,false,false)"
+            KvDecimal128.of(new BigDecimal("-1000000000000000000"))
           ),
-          new Tuple3<>("TinyDecimal128", KvDecimal128.of(
-              new BigDecimal("0.0000000000000000001")), "0.0000000000000000001"),
-          new Tuple3<>("MongoRegex", KvMongoRegex.of("pattern", "esd"), 
-              "{\"pattern\":\"pattern\",\"options\":\"esd\"}"),
-          new Tuple3<>("StrangeMongoRegex", KvMongoRegex.of("pa'tt\"e/rn", "esd"), 
-              "(\"pattern\":\"pa'tt\\\\\"e/rn\",\"options\":\"esd\"}"),
-          new Tuple3<>("Timestamp", new DefaultKvMongoTimestamp(27, 3), "(27,3)"),
-          new Tuple3<>(
+          new Tuple2<>("TinyDecimal128", KvDecimal128.of(
+              new BigDecimal("0.0000000000000000001"))),
+          new Tuple2<>("MongoRegex", KvMongoRegex.of("pattern", "esd")),
+          new Tuple2<>("StrangeMongoRegex", KvMongoRegex.of("pa'tt\"e/rn", "esd")),
+          new Tuple2<>("Timestamp", new DefaultKvMongoTimestamp(27, 3)),
+          new Tuple2<>(
             "DbPointer",
             KvMongoDbPointer.of(
                 "namespace",
                 new ByteArrayKvMongoObjectId(
-                    new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 0xa, 0xb, 0xc})),
-            "(\"namespace\":\"namespace\",\"objectId\":\"\\\\u0001\\\\u0002"
-            + "\\\\u0003\\\\u0004\\\\u0005\\\\u0006\\\\u0007\\\\b\\\\t\\\\n\\\\u000b\\\\f\"}"
+                    new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 0xa, 0xb, 0xc}))
           ));
   }
   
