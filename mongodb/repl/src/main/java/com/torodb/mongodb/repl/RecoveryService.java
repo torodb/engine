@@ -165,13 +165,18 @@ public class RecoveryService extends RunnableTorodbService {
 
   private boolean initialSync() throws TryAgainException, FatalErrorException {
     /*
-     * 1. store that data is inconsistent 2. decide a sync source 3. lastRemoteOptime1 = get the
-     * last optime of the sync source 4. clone all databases except local 5. lastRemoteOptime2 = get
-     * the last optime of the sync source 6. apply remote oplog from lastRemoteOptime1 to
-     * lastRemoteOptime2 7. lastRemoteOptime3 = get the last optime of the sync source 8. apply
-     * remote oplog from lastRemoteOptime2 to lastRemoteOptime3 9. rebuild indexes 10. store
-     * lastRemoteOptime3 as the last applied operation optime 11. store that data is consistent 12.
-     * change replication state to SECONDARY
+     * 1. store that data is inconsistent
+     * 2. decide a sync source
+     * 3. lastRemoteOptime1 = get the last optime of the sync source
+     * 4. clone all databases except local
+     * 5. lastRemoteOptime2 = get the last optime of the sync source
+     * 6. apply remote oplog from lastRemoteOptime1 to lastRemoteOptime2
+     * 7. lastRemoteOptime3 = get the last optime of the sync source
+     * 8. apply remote oplog from lastRemoteOptime2 to lastRemoteOptime3
+     * 9. rebuild indexes
+     * 10. store lastRemoteOptime3 as the last applied operation optime
+     * 11. store that data is consistent
+     * 12. change replication state to SECONDARY
      */
 
     //TODO: Support fastsync (used to restore a node by copying the data from other up-to-date node)
@@ -384,7 +389,7 @@ public class RecoveryService extends RunnableTorodbService {
       lastAppliedOptime = oplogTrans.getLastAppliedOptime();
     }
     if (!lastAppliedOptime.equals(to)) {
-      logger.warn("Unexpected optime for last operation to apply. "
+      logger.debug("Unexpected optime for last operation to apply. "
           + "Expected " + to + ", but " + lastAppliedOptime
           + " found");
     }
