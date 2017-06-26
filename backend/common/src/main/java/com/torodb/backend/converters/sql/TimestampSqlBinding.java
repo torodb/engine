@@ -22,17 +22,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Calendar;
 
 public class TimestampSqlBinding implements SqlBinding<Timestamp> {
-
-  private static final Calendar CALENDAR = Calendar.getInstance();
 
   public static final TimestampSqlBinding INSTANCE = new TimestampSqlBinding();
 
   @Override
   public Timestamp get(ResultSet resultSet, int columnIndex) throws SQLException {
-    Timestamp value = resultSet.getTimestamp(columnIndex, CALENDAR);
+    Timestamp value = resultSet.getTimestamp(columnIndex);
     if (resultSet.wasNull()) {
       return null;
     }
@@ -42,6 +39,6 @@ public class TimestampSqlBinding implements SqlBinding<Timestamp> {
   @Override
   public void set(PreparedStatement preparedStatement, int parameterIndex, Timestamp value) throws
       SQLException {
-    preparedStatement.setTimestamp(parameterIndex, value, CALENDAR);
+    preparedStatement.setTimestamp(parameterIndex, value);
   }
 }
