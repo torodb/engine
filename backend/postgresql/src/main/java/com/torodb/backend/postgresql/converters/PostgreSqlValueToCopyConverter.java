@@ -22,6 +22,7 @@ import com.torodb.backend.postgresql.converters.jooq.MongoDbPointerValueConverte
 import com.torodb.backend.postgresql.converters.jooq.MongoJavascriptWithScopeValueConverter;
 import com.torodb.backend.postgresql.converters.jooq.MongoRegexValueConverter;
 import com.torodb.backend.postgresql.converters.util.CopyEscaper;
+import com.torodb.backend.postgresql.converters.util.InstantUtils;
 import com.torodb.common.util.HexUtils;
 import com.torodb.common.util.TextEscaper;
 import com.torodb.kvdocument.values.KvArray;
@@ -124,9 +125,8 @@ public class PostgreSqlValueToCopyConverter implements KvValueVisitor<Void, Stri
 
   @Override
   public Void visit(KvInstant value, StringBuilder arg) {
-    arg.append('\'')
-        //this prints the value on ISO-8601, which is the recommended format on PostgreSQL
-        .append(value.getValue().toString())
+     arg.append('\'')
+        .append(InstantUtils.toString(value.getMillisFromUnix()))
         .append('\'');
     return null;
   }

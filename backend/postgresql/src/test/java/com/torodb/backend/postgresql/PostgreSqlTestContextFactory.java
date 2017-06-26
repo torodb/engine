@@ -42,6 +42,9 @@ public class PostgreSqlTestContextFactory extends BackendTestContextFactory {
         .setDbName(postgresService.getConfig().getDb())
         .setDbHost(postgresService.getAddress().getHost())
         .setDbPort(postgresService.getAddress().getPort())
+        .setConnectionPoolTimeout(100_000L)
+        .setConnectionPoolSize(10)
+        .setReservedReadPoolSize(5)
         .setIncludeForeignKeys(false)
         .build();
     return new PostgreSqlTestContext(new PostgreSqlBackendTestBundle(config) {
