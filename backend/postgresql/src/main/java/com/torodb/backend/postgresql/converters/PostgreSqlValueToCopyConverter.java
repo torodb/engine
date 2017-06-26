@@ -125,7 +125,7 @@ public class PostgreSqlValueToCopyConverter implements KvValueVisitor<Void, Stri
 
   @Override
   public Void visit(KvInstant value, StringBuilder arg) {
-     arg.append('\'')
+    arg.append('\'')
         .append(InstantUtils.toString(value.getMillisFromUnix()))
         .append('\'');
     return null;

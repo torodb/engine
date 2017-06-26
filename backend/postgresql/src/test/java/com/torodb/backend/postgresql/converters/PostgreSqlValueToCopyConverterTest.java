@@ -46,6 +46,8 @@ import com.torodb.kvdocument.values.heap.LocalDateKvDate;
 import com.torodb.kvdocument.values.heap.LocalTimeKvTime;
 import com.torodb.kvdocument.values.heap.MapKvDocument;
 import com.torodb.kvdocument.values.heap.StringKvString;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,6 +62,7 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 /** @author gortiz */
@@ -69,6 +72,7 @@ public class PostgreSqlValueToCopyConverterTest {
   private static final PostgreSqlValueToCopyConverter visitor =
       PostgreSqlValueToCopyConverter.INSTANCE;
   private StringBuilder sb = new StringBuilder();
+  private TimeZone currentTimeZone;
 
   @Parameterized.Parameter(0)
   public String label;
@@ -84,8 +88,15 @@ public class PostgreSqlValueToCopyConverterTest {
   }
 
   @Before
-  public void clean() {
+  public void setUp() {
     sb.delete(0, sb.length());
+    currentTimeZone = TimeZone.getDefault();
+    TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+  }
+
+  @After
+  public void tearDown() {
+    TimeZone.setDefault(currentTimeZone);
   }
 
   @Parameterized.Parameters(name = "{index} - {0}")
@@ -141,7 +152,7 @@ public class PostgreSqlValueToCopyConverterTest {
                     new InstantKvInstant(
                         LocalDateTime.of(2015, Month.JANUARY, 18, 2, 43, 26)
                             .toInstant(ZoneOffset.UTC)),
-                    "'2015-01-18T02:43:26Z'"
+                    "'2015-01-18 02:43:26+00'"
                   },
                   {
                     "Date",
