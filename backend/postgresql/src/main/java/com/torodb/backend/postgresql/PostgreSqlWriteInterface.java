@@ -58,6 +58,7 @@ import javax.inject.Singleton;
 public class PostgreSqlWriteInterface extends AbstractWriteInterface {
 
   private static final Logger LOGGER = BackendLoggerFactory.get(PostgreSqlWriteInterface.class);
+  public static final int MAX_CAPPED_SIZE = 10;
 
   private final PostgreSqlMetaDataReadInterface postgreSqlMetaDataReadInterface;
   private final ErrorHandler errorHandler;
@@ -109,7 +110,7 @@ public class PostgreSqlWriteInterface extends AbstractWriteInterface {
 
     try (Timer.Context ctx = metrics.getInsertDocPartDataTimer().time()) {
 
-      int maxCappedSize = 10;
+      int maxCappedSize = MAX_CAPPED_SIZE;
       int cappedSize = Math.min(docPartData.rowCount(), maxCappedSize);
 
       if (cappedSize < maxCappedSize) { //there are not enough elements on the insert => fallback
