@@ -35,6 +35,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.TimeZone;
 
 import javax.sql.DataSource;
 
@@ -65,18 +66,18 @@ public class OfficialMySqlDriver implements MySqlDriverProvider {
     dataSource.setDatabaseName(configuration.getDbName());
     ModifiableBooleanProperty useSsl = 
         (ModifiableBooleanProperty) PropertyDefinitions.PROPERTY_NAME_TO_PROPERTY_DEFINITION
-        .get("useSSL").createRuntimeProperty();
+        .get(PropertyDefinitions.PNAME_useSSL).createRuntimeProperty();
     useSsl.setValue(configuration.getSslEnabled());
     dataSource.addProperty(useSsl);
     ModifiableStringProperty connectionAttributes = 
         (ModifiableStringProperty) PropertyDefinitions.PROPERTY_NAME_TO_PROPERTY_DEFINITION
-        .get("connectionAttributes").createRuntimeProperty();
+        .get(PropertyDefinitions.PNAME_connectionAttributes).createRuntimeProperty();
     connectionAttributes.setValue("applicationName=torodb-" + poolName);
     dataSource.addProperty(connectionAttributes);
     ModifiableStringProperty serverTimezone =
             (ModifiableStringProperty) PropertyDefinitions.PROPERTY_NAME_TO_PROPERTY_DEFINITION
-                    .get("serverTimezone").createRuntimeProperty();
-    serverTimezone.setValue("UTC");
+                    .get(PropertyDefinitions.PNAME_serverTimezone).createRuntimeProperty();
+    serverTimezone.setValue(TimeZone.getDefault().getID());
     dataSource.addProperty(serverTimezone);
 
     try {
