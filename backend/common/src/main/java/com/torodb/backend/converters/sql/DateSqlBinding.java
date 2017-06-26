@@ -22,17 +22,14 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Calendar;
 
 public class DateSqlBinding implements SqlBinding<Date> {
-
-  private static final Calendar CALENDAR = Calendar.getInstance();
 
   public static final DateSqlBinding INSTANCE = new DateSqlBinding();
 
   @Override
   public Date get(ResultSet resultSet, int columnIndex) throws SQLException {
-    Date value = resultSet.getDate(columnIndex, CALENDAR);
+    Date value = resultSet.getDate(columnIndex);
     if (resultSet.wasNull()) {
       return null;
     }
@@ -42,6 +39,6 @@ public class DateSqlBinding implements SqlBinding<Date> {
   @Override
   public void set(PreparedStatement preparedStatement, int parameterIndex, Date value) throws
       SQLException {
-    preparedStatement.setDate(parameterIndex, value, CALENDAR);
+    preparedStatement.setDate(parameterIndex, value);
   }
 }
