@@ -19,10 +19,8 @@
 package com.torodb.mongodb.repl.topology;
 
 import com.google.common.net.HostAndPort;
-import com.torodb.common.util.Empty;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.services.IdleTorodbService;
-import com.torodb.mongodb.commands.pojos.ReplicaSetConfig;
 import com.torodb.mongowp.OpTime;
 import org.apache.logging.log4j.Logger;
 
@@ -53,13 +51,6 @@ class TopologyService extends IdleTorodbService {
     this.executor = executor;
     this.clock = clock;
     this.logger = lf.apply(this.getClass());
-  }
-
-  public CompletableFuture<Empty> initiate(ReplicaSetConfig rsConfig) {
-    return executor.onAnyVersion().mapAsync(coord -> {
-      coord.updateConfig(rsConfig, clock.instant());
-      return Empty.getInstance();
-    });
   }
 
   public CompletableFuture<Optional<HostAndPort>> getLastUsedSyncSource() {
