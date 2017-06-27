@@ -18,6 +18,8 @@
 
 package com.torodb.mongodb.repl.sharding;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.net.HostAndPort;
 import com.google.inject.Injector;
 import com.torodb.core.annotations.DoNotChange;
 import com.torodb.core.bundle.BundleConfig;
@@ -26,8 +28,9 @@ import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.ConsistencyHandler;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
 import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 import com.torodb.torod.TorodBundle;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -104,14 +107,17 @@ public class MongoDbShardingConfig implements BundleConfig {
   public static class ShardConfig {
 
     private final String shardId;
-    private final MongoClientConfiguration clientConfig;
+    private final ImmutableList<HostAndPort> seeds;
+    private final MongoClientConfigurationProperties clientConfigProperties;
     private final String replSetName;
     private final ConsistencyHandler consistencyHandler;
 
-    public ShardConfig(String shardId, MongoClientConfiguration clientConfig, String replSetName,
+    public ShardConfig(String shardId, ImmutableList<HostAndPort> seeds,
+        MongoClientConfigurationProperties clientConfigProperties, String replSetName,
         ConsistencyHandler consistencyHandler) {
       this.shardId = shardId;
-      this.clientConfig = clientConfig;
+      this.seeds = seeds;
+      this.clientConfigProperties = clientConfigProperties;
       this.replSetName = replSetName;
       this.consistencyHandler = consistencyHandler;
     }
@@ -120,8 +126,12 @@ public class MongoDbShardingConfig implements BundleConfig {
       return shardId;
     }
 
-    public MongoClientConfiguration getClientConfig() {
-      return clientConfig;
+    public ImmutableList<HostAndPort> getSeeds() {
+      return seeds;
+    }
+
+    public MongoClientConfigurationProperties getClientConfigProperties() {
+      return clientConfigProperties;
     }
 
     public String getReplSetName() {

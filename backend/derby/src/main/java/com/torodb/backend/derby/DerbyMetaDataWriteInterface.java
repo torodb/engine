@@ -218,7 +218,7 @@ public class DerbyMetaDataWriteInterface extends AbstractMetaDataWriteInterface 
         .quote(MetaDocPartIndexColumnTable.TableFields.INDEX_IDENTIFIER).append(
         " varchar(128)     NOT NULL ,")
         .quote(MetaDocPartIndexColumnTable.TableFields.POSITION).append(
-        " varchar(32672)     NOT NULL ,")
+        " integer     NOT NULL ,")
         .quote(MetaDocPartIndexColumnTable.TableFields.COLLECTION).append(
         " varchar(32672)     NOT NULL ,")
         .quote(MetaDocPartIndexColumnTable.TableFields.TABLE_REF).append(

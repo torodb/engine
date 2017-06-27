@@ -106,12 +106,13 @@ public class ConfigUtils {
   }
 
   private static void configMapper(ObjectMapper objectMapper, boolean excludeDefaults) {
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
-    objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, true);
-    objectMapper.configure(Feature.ALLOW_COMMENTS, true);
-    objectMapper.configure(Feature.ALLOW_YAML_COMMENTS, true);
-    objectMapper.setSerializationInclusion(Include.NON_EMPTY);
+    objectMapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    objectMapper.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
+    objectMapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
     objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+    objectMapper.setSerializationInclusion(Include.NON_EMPTY);
+    objectMapper.enable(Feature.ALLOW_COMMENTS);
+    objectMapper.enable(Feature.ALLOW_YAML_COMMENTS);
     if (excludeDefaults) {
       objectMapper.setSerializationInclusion(Include.NON_DEFAULT);
     }
@@ -174,7 +175,8 @@ public class ConfigUtils {
     ObjectMapper objectMapper = mapper(true);
     XmlMapper xmlMapper = xmlMapper(true);
 
-    JsonNode configNode = xmlMapper.readTree(xmlString);
+    JsonNode configNode = xmlMapper.valueToTree(
+        xmlMapper.readValue(xmlString, configClass));
 
     T config = objectMapper.treeToValue(configNode, configClass);
 

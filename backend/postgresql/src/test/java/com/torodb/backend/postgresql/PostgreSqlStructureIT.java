@@ -18,96 +18,35 @@
 
 package com.torodb.backend.postgresql;
 
-import com.torodb.backend.DataTypeProvider;
-import com.torodb.backend.ErrorHandler;
-import com.torodb.backend.SqlHelper;
-import com.torodb.backend.SqlInterface;
-import com.torodb.backend.ddl.DefaultReadStructure;
 import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
-import com.torodb.backend.tests.common.DatabaseTestContext;
-import com.torodb.core.TableRefFactory;
-import com.torodb.core.transaction.metainf.FieldType;
+import com.torodb.backend.tests.common.BackendTestContextFactory;
 import com.torodb.testing.docker.postgres.EnumVersion;
 import com.torodb.testing.docker.postgres.PostgresService;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 public class PostgreSqlStructureIT extends AbstractStructureIntegrationSuite {
 
-  private static PostgresService postgresDockerService;
+  private static PostgresService postgresService;
 
-  private Map<FieldType, String> typesDictionary = new HashMap<>();
-
-  @BeforeClass
+  @BeforeAll
   public static void beforeAll() {
-    postgresDockerService = PostgresService.defaultService(EnumVersion.LATEST);
-    postgresDockerService.startAsync();
-    postgresDockerService.awaitRunning();
+    postgresService = PostgresService.defaultService(EnumVersion.LATEST);
+    postgresService.startAsync();
+    postgresService.awaitRunning();
   }
 
-  @AfterClass
+  @AfterAll
   public static void afterAll() {
-    if (postgresDockerService != null && postgresDockerService.isRunning()) {
-      postgresDockerService.stopAsync();
-      postgresDockerService.awaitTerminated();
+    if (postgresService != null && postgresService.isRunning()) {
+      postgresService.stopAsync();
+      postgresService.awaitTerminated();
     }
   }
 
-  public PostgreSqlStructureIT() {
-    typesDictionary.put(FieldType.STRING, "varchar");
-    typesDictionary.put(FieldType.BINARY, "bytea");
-    typesDictionary.put(FieldType.BOOLEAN, "bool");
-    typesDictionary.put(FieldType.DATE, "date");
-    typesDictionary.put(FieldType.DOUBLE, "float8");
-    typesDictionary.put(FieldType.INSTANT, "timestamptz");
-    typesDictionary.put(FieldType.INTEGER, "int4");
-    typesDictionary.put(FieldType.LONG, "int8");
-    typesDictionary.put(FieldType.MONGO_OBJECT_ID, "bytea");
-    typesDictionary.put(FieldType.MONGO_TIME_STAMP, "\"torodb\".\"mongo_timestamp\"");
-    typesDictionary.put(FieldType.NULL, "bool");
-    typesDictionary.put(FieldType.TIME, "time");
-    typesDictionary.put(FieldType.CHILD, "bool");
-    typesDictionary.put(FieldType.DECIMAL128, "\"torodb\".\"decimal_128\"");
-    typesDictionary.put(FieldType.JAVASCRIPT, "varchar");
-    typesDictionary.put(FieldType.JAVASCRIPT_WITH_SCOPE, "jsonb");
-    typesDictionary.put(FieldType.MIN_KEY, "bool");
-    typesDictionary.put(FieldType.MAX_KEY, "bool");
-    typesDictionary.put(FieldType.UNDEFINED, "bool");
-    typesDictionary.put(FieldType.MONGO_REGEX, "jsonb");
-    typesDictionary.put(FieldType.MONGO_DB_POINTER, "jsonb");
-    typesDictionary.put(FieldType.DEPRECATED, "varchar");
-  }
-
   @Override
-  protected DatabaseTestContext getDatabaseTestContext() {
-    return new PostgreSqlDatabaseTestContextFactory().createInstance(postgresDockerService);
-  }
-
-  @Override
-  protected DataTypeProvider getDataTypeProvider() {
-    return new PostgreSqlDataTypeProvider();
-  }
-
-  @Override
-  protected ErrorHandler getErrorHandler() {
-    return new PostgreSqlErrorHandler();
-  }
-
-  @Override
-  protected DefaultReadStructure getDefaultReadStructure(SqlInterface sqlInterface, SqlHelper sqlHelper,
-      TableRefFactory tableRefFactory) {
-    return new DefaultReadStructure(sqlInterface, sqlHelper, tableRefFactory);
-  }
-
-  @Override
-  protected String getSqlTypeOf(FieldType fieldType) {
-    if (!typesDictionary.containsKey(fieldType))
-      throw new RuntimeException("Unsupported type " + fieldType.name());
-
-    return typesDictionary.get(fieldType);
+  protected BackendTestContextFactory getBackendTestContextFactory() {
+    return new PostgreSqlTestContextFactory(postgresService);
   }
 
 }

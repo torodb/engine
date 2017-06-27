@@ -36,7 +36,7 @@ import javax.validation.ReportAsSingleViolation;
 @ReportAsSingleViolation
 public @interface NotEmptySrtingWithDefault {
 
-  String message() default "{org.hibernate.validator.constraints.NotEmpty.message}";
+  String message() default "{config.validation.NotEmptyString.message}";
 
   Class<?>[] groups() default {};
 

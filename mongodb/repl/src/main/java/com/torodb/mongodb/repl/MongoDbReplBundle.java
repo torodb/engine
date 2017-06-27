@@ -19,12 +19,14 @@
 package com.torodb.mongodb.repl;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Provides;
+import com.google.inject.TypeLiteral;
 import com.torodb.core.bundle.AbstractBundle;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.core.bundle.BundleConfigImpl;
@@ -49,7 +51,7 @@ import com.torodb.mongodb.repl.topology.TopologyBundle;
 import com.torodb.mongodb.repl.topology.TopologyBundleConfig;
 import com.torodb.mongodb.utils.DbCloner;
 import com.torodb.mongowp.client.core.MongoClientFactory;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
@@ -170,7 +172,7 @@ public class MongoDbReplBundle extends AbstractBundle<MongoDbReplExtInt> {
   private ReplCoreConfig createReplCoreConfig(BundleConfig replBundleConfig,
       ReplEssentialOverrideModule essentialOverrideModule) {
     return new ReplCoreConfig(
-        config.getMongoClientConfiguration(),
+        config.getMongoClientConfigurationProperties(),
         toroDbReplicationFilters,
         config.getMongoDbCoreBundle(),
         essentialOverrideModule,
@@ -184,7 +186,7 @@ public class MongoDbReplBundle extends AbstractBundle<MongoDbReplExtInt> {
     return new TopologyBundleConfig(
         replCoreBundle.getExternalInterface().getMongoClientFactory(),
         config.getReplSetName(),
-        config.getSyncSourceSeed(),
+        config.getSeeds(),
         essentialOverrideModule,
         replBundleConfig
     );
@@ -279,14 +281,14 @@ public class MongoDbReplBundle extends AbstractBundle<MongoDbReplExtInt> {
           .toInstance(config.getMongoDbCoreBundle().getExternalInterface().getMongodServer());
       bind(ConsistencyHandler.class)
           .toInstance(config.getConsistencyHandler());
-      bind(MongoClientConfiguration.class)
-          .toInstance(config.getMongoClientConfiguration());
+      bind(MongoClientConfigurationProperties.class)
+          .toInstance(config.getMongoClientConfigurationProperties());
       bind(String.class)
           .annotatedWith(ReplSetName.class)
           .toInstance(config.getReplSetName());
-      bind(HostAndPort.class)
-          .annotatedWith(RemoteSeed.class)
-          .toInstance(config.getMongoClientConfiguration().getHostAndPort());
+      bind(new TypeLiteral<ImmutableList<HostAndPort>>() {})
+        .annotatedWith(RemoteSeed.class)
+        .toInstance(config.getSeeds());
     }
 
     @Provides

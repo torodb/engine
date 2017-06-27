@@ -19,6 +19,7 @@
 package com.torodb.mongodb.repl.topology;
 
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.Service;
@@ -84,7 +85,7 @@ public class TopologyBundleTest extends AbstractReplBundleTest<TopologyBundle> {
     return new TopologyBundle(new TopologyBundleConfig(
         replCoreBundle.getExternalInterface().getMongoClientFactory(),
         "replSetName1",
-        seed,
+        ImmutableList.of(seed),
         essentialOverrideModule,
         generalConfig)
     );

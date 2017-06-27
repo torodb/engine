@@ -42,10 +42,8 @@ public class PostgresDefaultOplogApplierIT extends AbstractOplogApplierTest {
   @BeforeAll
   static void beforeAll() {
     postgresDockerService = PostgresService.defaultService(EnumVersion.LATEST);
-    System.out.println("Starting postgres docker");
     postgresDockerService.startAsync();
     postgresDockerService.awaitRunning();
-    System.out.println("Postgres docker started");
   }
 
   @AfterAll

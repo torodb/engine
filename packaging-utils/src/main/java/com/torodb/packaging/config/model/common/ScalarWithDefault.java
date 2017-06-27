@@ -23,6 +23,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public abstract class ScalarWithDefault<T> {
 
+  private final T value;
+  private final boolean isDefault;
+
   public static <S extends ScalarWithDefault<?>> S merge(S specific, S common) {
     if (specific.isDefault()) {
       return common;
@@ -30,9 +33,6 @@ public abstract class ScalarWithDefault<T> {
     
     return specific;
   }
-
-  private final T value;
-  private final boolean isDefault;
   
   public ScalarWithDefault(T value, boolean isDefault) {
     super();

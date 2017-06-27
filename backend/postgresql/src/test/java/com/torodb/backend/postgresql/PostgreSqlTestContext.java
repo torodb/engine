@@ -16,38 +16,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.torodb.mongodb.repl.impl;
+package com.torodb.backend.postgresql;
 
-import com.google.common.annotations.Beta;
-import com.google.common.net.HostAndPort;
-import com.torodb.mongodb.repl.SyncSourceProvider;
+import com.torodb.backend.tests.common.BackendTestContext;
 
-import java.util.Optional;
+public class PostgreSqlTestContext extends BackendTestContext<PostgreSqlBackendTestBundle> {
 
-import javax.annotation.Nonnull;
-
-@Beta
-public class FollowerSyncSourceProvider implements SyncSourceProvider {
-
-  private final HostAndPort syncSource;
-
-  public FollowerSyncSourceProvider(@Nonnull HostAndPort syncSource) {
-    this.syncSource = syncSource;
-  }
-
-  @Override
-  public HostAndPort newSyncSource() {
-    return syncSource;
-  }
-
-  @Override
-  public Optional<HostAndPort> getLastUsedSyncSource() {
-    return Optional.of(syncSource);
-  }
-
-  @Override
-  public boolean shouldChangeSyncSource() {
-    return false;
+  public PostgreSqlTestContext(PostgreSqlBackendTestBundle bundle) {
+    super(bundle);
   }
 
 }
+

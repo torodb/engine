@@ -20,34 +20,34 @@ package com.torodb.backend.mysql;
 
 
 import com.torodb.backend.tests.common.AbstractMetaDataIntegrationSuite;
-import com.torodb.backend.tests.common.DatabaseTestContext;
+import com.torodb.backend.tests.common.BackendTestContextFactory;
 import com.torodb.testing.docker.mysql.EnumVersion;
 import com.torodb.testing.docker.mysql.MysqlService;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 public class MySqlMetadataIT extends AbstractMetaDataIntegrationSuite {
 
-  private static MysqlService mysqlDockerService;
+  private static MysqlService mysqlService;
 
-  @BeforeClass
+  @BeforeAll
   public static void beforeAll() {
-    mysqlDockerService = MysqlService.defaultService(EnumVersion.LATEST);
-    mysqlDockerService.startAsync();
-    mysqlDockerService.awaitRunning();
+    mysqlService = MysqlService.defaultService(EnumVersion.LATEST);
+    mysqlService.startAsync();
+    mysqlService.awaitRunning();
   }
 
-  @AfterClass
+  @AfterAll
   public static void afterAll() {
-    if (mysqlDockerService != null && mysqlDockerService.isRunning()) {
-      mysqlDockerService.stopAsync();
-      mysqlDockerService.awaitTerminated();
+    if (mysqlService != null && mysqlService.isRunning()) {
+      mysqlService.stopAsync();
+      mysqlService.awaitTerminated();
     }
   }
 
   @Override
-  protected DatabaseTestContext getDatabaseTestContext() {
-    return new MySqlDatabaseTestContextFactory().createInstance(mysqlDockerService);
+  protected BackendTestContextFactory getBackendTestContextFactory() {
+    return new MySqlTestContextFactory(mysqlService);
   }
 
 }

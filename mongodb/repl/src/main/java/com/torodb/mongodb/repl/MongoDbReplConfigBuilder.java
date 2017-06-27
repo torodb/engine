@@ -19,20 +19,24 @@
 package com.torodb.mongodb.repl;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.net.HostAndPort;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.metrics.ToroMetricRegistry;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
 import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
+
 import java.util.Optional;
 
 public class MongoDbReplConfigBuilder {
 
   private final BundleConfig generalConfig;
   private MongoDbCoreBundle coreBundle;
-  private MongoClientConfiguration mongoClientConfiguration;
+  private ImmutableList<HostAndPort> seeds;
+  private MongoClientConfigurationProperties mongoClientConfigurationProperties;
   private ReplicationFilters replicationFilters;
   private String replSetName;
   private ConsistencyHandler consistencyHandler;
@@ -49,9 +53,14 @@ public class MongoDbReplConfigBuilder {
     return this;
   }
 
-  public MongoDbReplConfigBuilder setMongoClientConfiguration(
-      MongoClientConfiguration mongoClientConfiguration) {
-    this.mongoClientConfiguration = mongoClientConfiguration;
+  public MongoDbReplConfigBuilder setSeeds(ImmutableList<HostAndPort> seeds) {
+    this.seeds = seeds;
+    return this;
+  }
+
+  public MongoDbReplConfigBuilder setMongoClientConfigurationProperties(
+      MongoClientConfigurationProperties mongoClientConfigurationProperties) {
+    this.mongoClientConfigurationProperties = mongoClientConfigurationProperties;
     return this;
   }
 
@@ -88,8 +97,9 @@ public class MongoDbReplConfigBuilder {
 
   public MongoDbReplConfig build() {
     Preconditions.checkNotNull(coreBundle, "core bundle must be not null");
-    Preconditions.checkNotNull(mongoClientConfiguration, "mongo client configuration must be not "
-        + "null");
+    Preconditions.checkNotNull(seeds, "seeds must be not null");
+    Preconditions.checkNotNull(mongoClientConfigurationProperties, "mongo client configuration"
+        + " properties must be not null");
     Preconditions.checkNotNull(replicationFilters, "replication filters must be not null");
     Preconditions.checkNotNull(replSetName, "replSetName must be not null");
     Preconditions.checkNotNull(consistencyHandler, "consistency handler must be not null");
@@ -98,7 +108,8 @@ public class MongoDbReplConfigBuilder {
     Preconditions.checkNotNull(loggerFactory, "logger factory must be not null");
     Preconditions.checkNotNull(bufferOffHeapConfig, "buffer offheap config must be not null");
 
-    return new MongoDbReplConfig(coreBundle, mongoClientConfiguration, replicationFilters,
+    return new MongoDbReplConfig(coreBundle, seeds,
+        mongoClientConfigurationProperties, replicationFilters,
         replSetName, consistencyHandler, metricRegistry, loggerFactory, generalConfig,
         bufferOffHeapConfig);
   }

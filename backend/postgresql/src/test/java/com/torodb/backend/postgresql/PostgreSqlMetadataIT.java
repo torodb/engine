@@ -20,34 +20,34 @@ package com.torodb.backend.postgresql;
 
 
 import com.torodb.backend.tests.common.AbstractMetaDataIntegrationSuite;
-import com.torodb.backend.tests.common.DatabaseTestContext;
+import com.torodb.backend.tests.common.BackendTestContextFactory;
 import com.torodb.testing.docker.postgres.EnumVersion;
 import com.torodb.testing.docker.postgres.PostgresService;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 public class PostgreSqlMetadataIT extends AbstractMetaDataIntegrationSuite {
 
-  private static PostgresService postgresDockerService;
+  private static PostgresService postgresService;
 
-  @BeforeClass
+  @BeforeAll
   public static void beforeAll() {
-    postgresDockerService = PostgresService.defaultService(EnumVersion.LATEST);
-    postgresDockerService.startAsync();
-    postgresDockerService.awaitRunning();
+    postgresService = PostgresService.defaultService(EnumVersion.LATEST);
+    postgresService.startAsync();
+    postgresService.awaitRunning();
   }
 
-  @AfterClass
+  @AfterAll
   public static void afterAll() {
-    if (postgresDockerService != null && postgresDockerService.isRunning()) {
-      postgresDockerService.stopAsync();
-      postgresDockerService.awaitTerminated();
+    if (postgresService != null && postgresService.isRunning()) {
+      postgresService.stopAsync();
+      postgresService.awaitTerminated();
     }
   }
 
   @Override
-  protected DatabaseTestContext getDatabaseTestContext() {
-    return new PostgreSqlDatabaseTestContextFactory().createInstance(postgresDockerService);
+  protected BackendTestContextFactory getBackendTestContextFactory() {
+    return new PostgreSqlTestContextFactory(postgresService);
   }
 
 }

@@ -20,7 +20,6 @@ package com.torodb.backend.rid;
 
 import com.torodb.core.TableRef;
 import com.torodb.core.d2r.ReservedIdGenerator;
-import com.torodb.core.d2r.ReservedIdGenerator.DocPartRidGenerator;
 import com.torodb.core.transaction.metainf.MetaSnapshot;
 
 import java.util.Map;

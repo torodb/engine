@@ -22,30 +22,27 @@ import com.torodb.backend.converters.jooq.DataTypeForKv;
 import com.torodb.backend.converters.jooq.KvValueConverter;
 import com.torodb.backend.converters.sql.SqlBinding;
 import com.torodb.backend.mysql.converters.sql.StringSqlBinding;
+import com.torodb.core.exceptions.ToroRuntimeException;
 import com.torodb.kvdocument.types.KvType;
 import com.torodb.kvdocument.types.MongoDbPointerType;
 import com.torodb.kvdocument.values.KvMongoDbPointer;
 import com.torodb.kvdocument.values.heap.ByteArrayKvMongoObjectId;
 
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.sql.Types;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 
 /** */
 public class MongoDbPointerValueConverter
-    implements KvValueConverter<String, String, KvMongoDbPointer> {
+    implements KvValueConverter<JsonObject, String, KvMongoDbPointer> {
 
   private static final long serialVersionUID = 1L;
 
-  public static final MongoDbPointerValueConverter CONVERTER =
-      new MongoDbPointerValueConverter();
-
   public static final DataTypeForKv<KvMongoDbPointer> TYPE =
-      DataTypeForKv.from(StringValueConverter.TEXT, CONVERTER, Types.LONGVARCHAR);
+      DataTypeForKv.from(JsonConverter.JSON, new MongoDbPointerValueConverter(), 
+          Types.LONGVARCHAR);
 
   @Override
   public KvType getErasuredType() {
@@ -53,39 +50,31 @@ public class MongoDbPointerValueConverter
   }
 
   @Override
-  public KvMongoDbPointer from(String databaseObject) {
-
-    final JsonReader reader =
-        Json.createReader(new StringReader(databaseObject));
-    JsonObject object = reader.readObject();
-
+  public KvMongoDbPointer from(JsonObject databaseObject) {
     try {
       return KvMongoDbPointer.of(
-          object.getString("namespace"),
-          new ByteArrayKvMongoObjectId(object.getString("objectId").getBytes("UTF-8")));
+          databaseObject.getString("namespace"),
+          new ByteArrayKvMongoObjectId(databaseObject.getString("objectId").getBytes("UTF-8")));
     } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
+      throw new ToroRuntimeException(e);
     }
-    return null;
   }
 
   @Override
-  public String to(KvMongoDbPointer userObject) {
+  public JsonObject to(KvMongoDbPointer userObject) {
     try {
       return Json.createObjectBuilder()
           .add("namespace", userObject.getNamespace())
           .add("objectId", new String(userObject.getId().getArrayValue(), "UTF-8"))
-          .build()
-          .toString();
+          .build();
     } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
+      throw new ToroRuntimeException(e);
     }
-    return null;
   }
 
   @Override
-  public Class<String> fromType() {
-    return String.class;
+  public Class<JsonObject> fromType() {
+    return JsonObject.class;
   }
 
   @Override

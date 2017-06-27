@@ -26,23 +26,19 @@ import com.torodb.kvdocument.types.KvType;
 import com.torodb.kvdocument.types.MongoRegexType;
 import com.torodb.kvdocument.values.KvMongoRegex;
 
-import java.io.StringReader;
 import java.sql.Types;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 
 /** */
-public class MongoRegexValueConverter implements KvValueConverter<String, String, KvMongoRegex> {
+public class MongoRegexValueConverter 
+    implements KvValueConverter<JsonObject, String, KvMongoRegex> {
 
   private static final long serialVersionUID = 1L;
 
-  public static final MongoRegexValueConverter CONVERTER =
-      new MongoRegexValueConverter();
-
   public static final DataTypeForKv<KvMongoRegex> TYPE =
-      DataTypeForKv.from(StringValueConverter.TEXT, CONVERTER, Types.LONGVARCHAR);
+      DataTypeForKv.from(JsonConverter.JSON, new MongoRegexValueConverter(), Types.LONGVARCHAR);
 
   @Override
   public KvType getErasuredType() {
@@ -50,26 +46,22 @@ public class MongoRegexValueConverter implements KvValueConverter<String, String
   }
 
   @Override
-  public KvMongoRegex from(String databaseObject) {
-    final JsonReader reader =
-        Json.createReader(new StringReader(databaseObject));
-    JsonObject object = reader.readObject();
-
-    return KvMongoRegex.of(object.getString("pattern"), object.getString("options"));
+  public KvMongoRegex from(JsonObject databaseObject) {
+    return KvMongoRegex.of(databaseObject.getString("pattern"), 
+        databaseObject.getString("options"));
   }
 
   @Override
-  public String to(KvMongoRegex userObject) {
+  public JsonObject to(KvMongoRegex userObject) {
     return Json.createObjectBuilder()
         .add("pattern", userObject.getPattern())
         .add("options", userObject.getOptionsAsText())
-        .build()
-        .toString();
+        .build();
   }
 
   @Override
-  public Class<String> fromType() {
-    return String.class;
+  public Class<JsonObject> fromType() {
+    return JsonObject.class;
   }
 
   @Override

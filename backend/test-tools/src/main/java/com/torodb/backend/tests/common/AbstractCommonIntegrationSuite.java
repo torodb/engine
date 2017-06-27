@@ -21,67 +21,40 @@ package com.torodb.backend.tests.common;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.torodb.backend.SqlInterface;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-@SuppressFBWarnings(
-    value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", 
-    justification = "it is initialized in setUp()")
-public abstract class AbstractCommonIntegrationSuite {
-
-  private static final String DATABASE_NAME = "database_name";
-
-  private SqlInterface sqlInterface;
-
-  private DatabaseTestContext dbTestContext;
-
-  @Before
-  public void setUp() throws Exception {
-    dbTestContext = getDatabaseTestContext();
-    sqlInterface = dbTestContext.getSqlInterface();
-    dbTestContext.setupDatabase();
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    dbTestContext.tearDownDatabase();
-  }
-
-  protected abstract DatabaseTestContext getDatabaseTestContext();
+public abstract class AbstractCommonIntegrationSuite extends AbstractBackendIntegrationSuite {
 
   @Test
   public void dataInsertModeShouldBeDisabled() throws Exception {
-    dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
       assertFalse("Data insert mode not disabled by default", 
-          sqlInterface.getDbBackend().isOnDataInsertMode(DATABASE_NAME));
+          context.getSqlInterface().getDbBackend().isOnDataInsertMode(DATABASE_NAME));
     });
   }
 
   @Test
   public void shouldEnableDataInsertMode() throws Exception {
-    dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
       /* When */
-      sqlInterface.getDbBackend().enableDataInsertMode(DATABASE_NAME);
+      context.getSqlInterface().getDbBackend().enableDataInsertMode(DATABASE_NAME);
 
       /* Then */
       assertTrue("Data insert mode not enabled", 
-          sqlInterface.getDbBackend().isOnDataInsertMode(DATABASE_NAME));
+          context.getSqlInterface().getDbBackend().isOnDataInsertMode(DATABASE_NAME));
     });
   }
 
   @Test
   public void shouldDisableDataInsertMode() throws Exception {
-    dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
       /* When */
-      sqlInterface.getDbBackend().enableDataInsertMode(DATABASE_NAME);
-      sqlInterface.getDbBackend().disableDataInsertMode(DATABASE_NAME);
+      context.getSqlInterface().getDbBackend().enableDataInsertMode(DATABASE_NAME);
+      context.getSqlInterface().getDbBackend().disableDataInsertMode(DATABASE_NAME);
 
       /* Then */
       assertFalse("Data insert mode not diabled", 
-          sqlInterface.getDbBackend().isOnDataInsertMode(DATABASE_NAME));
+          context.getSqlInterface().getDbBackend().isOnDataInsertMode(DATABASE_NAME));
     });
   }
 
