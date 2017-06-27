@@ -41,7 +41,7 @@ public class MongoTimestampValueConverter implements
   private static final long serialVersionUID = 1251948867583783920L;
 
   public static final DataTypeForKv<KvMongoTimestamp> TYPE = DataTypeForKv.from(
-      JsonObjectConverter.TYPE, new MongoTimestampValueConverter());
+      JsonConverter.JSON, new MongoTimestampValueConverter());
 
   @Override
   public KvType getErasuredType() {

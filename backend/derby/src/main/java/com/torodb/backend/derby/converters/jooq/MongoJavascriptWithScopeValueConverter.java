@@ -39,7 +39,7 @@ public class MongoJavascriptWithScopeValueConverter
 
   public static final DataTypeForKv<KvMongoJavascriptWithScope> TYPE =
           DataTypeForKv.from(
-                  JsonObjectConverter.TYPE,
+                  JsonConverter.JSON,
                   new MongoJavascriptWithScopeValueConverter()
           );
 

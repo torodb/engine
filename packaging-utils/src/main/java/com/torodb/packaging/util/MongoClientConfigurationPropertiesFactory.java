@@ -20,11 +20,10 @@ package com.torodb.packaging.util;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.google.common.net.HostAndPort;
 import com.torodb.core.exceptions.SystemException;
 import com.torodb.mongowp.client.wrapper.MongoAuthenticationConfiguration;
 import com.torodb.mongowp.client.wrapper.MongoAuthenticationMechanism;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 import com.torodb.packaging.config.model.protocol.mongo.AbstractShardReplication;
 import com.torodb.packaging.config.model.protocol.mongo.Auth;
 import com.torodb.packaging.config.model.protocol.mongo.AuthMode;
@@ -53,7 +52,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-public class MongoClientConfigurationFactory {
+public class MongoClientConfigurationPropertiesFactory {
 
   @SuppressWarnings("checkstyle:LineLength")
   private static final ImmutableMap<AuthMode, Function<AuthMode, MongoAuthenticationMechanism>> mongoAuthenticationMechanismConverter =
@@ -64,19 +63,16 @@ public class MongoClientConfigurationFactory {
           AuthMode.x509, a -> MongoAuthenticationMechanism.x509
       ));
 
-  public static MongoClientConfiguration getMongoClientConfiguration(
+  public static MongoClientConfigurationProperties getMongoClientConfigurationProperties(
       AbstractShardReplication replication) {
-    HostAndPort syncSource = HostAndPort.fromString(replication.getSyncSource().value())
-        .withDefaultPort(27017);
-
-    MongoClientConfiguration.Builder mongoClientConfigurationBuilder =
-        new MongoClientConfiguration.Builder(syncSource);
+    MongoClientConfigurationProperties.Builder mongoClientConfigurationPropertiesBuilder =
+        new MongoClientConfigurationProperties.Builder();
 
     Ssl ssl = replication.getSsl();
-    mongoClientConfigurationBuilder.setSslEnabled(ssl.getEnabled().value());
+    mongoClientConfigurationPropertiesBuilder.setSslEnabled(ssl.getEnabled().value());
     if (ssl.getEnabled().value()) {
       try {
-        mongoClientConfigurationBuilder.setSslAllowInvalidHostnames(
+        mongoClientConfigurationPropertiesBuilder.setSslAllowInvalidHostnames(
             ssl.getAllowInvalidHostnames().value());
 
         TrustManager[] tms = getTrustManagers(ssl);
@@ -90,7 +86,7 @@ public class MongoClientConfigurationFactory {
           sslContext = SSLContext.getInstance("TLS");
         }
         sslContext.init(kms, tms, null);
-        mongoClientConfigurationBuilder.setSocketFactory(sslContext.getSocketFactory());
+        mongoClientConfigurationPropertiesBuilder.setSocketFactory(sslContext.getSocketFactory());
       } catch (CertificateException | KeyManagementException | KeyStoreException
           | UnrecoverableKeyException | NoSuchProviderException | NoSuchAlgorithmException
           | IOException exception) {
@@ -102,11 +98,11 @@ public class MongoClientConfigurationFactory {
     if (auth.getMode().value().isEnabled()) {
       MongoAuthenticationConfiguration mongoAuthenticationConfiguration =
           getMongoAuthenticationConfiguration(auth, ssl);
-      mongoClientConfigurationBuilder.addAuthenticationConfiguration(
+      mongoClientConfigurationPropertiesBuilder.addAuthenticationConfiguration(
           mongoAuthenticationConfiguration);
     }
 
-    return mongoClientConfigurationBuilder.build();
+    return mongoClientConfigurationPropertiesBuilder.build();
   }
 
   public static TrustManager[] getTrustManagers(Ssl ssl) throws NoSuchAlgorithmException,

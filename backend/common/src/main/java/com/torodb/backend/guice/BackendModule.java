@@ -61,6 +61,7 @@ public class BackendModule extends PrivateModule {
         .in(Singleton.class);
     bind(DslContextFactory.class)
         .to(DslContextFactoryImpl.class);
+    expose(DslContextFactory.class);
 
     bind(SqlHelper.class)
         .in(Singleton.class);

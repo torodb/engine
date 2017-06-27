@@ -18,6 +18,7 @@
 
 package com.torodb.mongodb.repl.topology;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.mongodb.repl.guice.ReplEssentialOverrideModule;
@@ -31,9 +32,9 @@ public class TopologyBundleConfig extends FollowerSyncSourceProviderConfig {
   private final ReplEssentialOverrideModule replEssentialOverrideModule;
 
   public TopologyBundleConfig(MongoClientFactory clientFactory, String replSetName,
-      HostAndPort seed, ReplEssentialOverrideModule replEssentialOverrideModule,
+      ImmutableList<HostAndPort> seeds, ReplEssentialOverrideModule replEssentialOverrideModule,
       BundleConfig delegate) {
-    super(seed, delegate);
+    super(seeds, delegate);
     this.clientFactory = clientFactory;
     this.replSetName = replSetName;
     this.replEssentialOverrideModule = replEssentialOverrideModule;

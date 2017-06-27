@@ -23,7 +23,7 @@ import com.torodb.core.bundle.BundleConfig;
 public class BackendConfigImplBuilder implements BackendConfigBuilder {
 
   private long connectionPoolTimeout = 10_000L;
-  private int connectionPoolSize = 100;
+  private int connectionPoolSize = 40;
   private int reservedReadPoolSize = 20;
   private String username = "torodb";
   private String password;

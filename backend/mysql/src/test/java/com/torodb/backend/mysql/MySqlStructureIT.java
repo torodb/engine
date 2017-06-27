@@ -18,115 +18,35 @@
 
 package com.torodb.backend.mysql;
 
-import com.torodb.backend.DataTypeProvider;
-import com.torodb.backend.ErrorHandler;
-import com.torodb.backend.SqlHelper;
-import com.torodb.backend.SqlInterface;
-import com.torodb.backend.ddl.DefaultReadStructure;
-import com.torodb.backend.mysql.meta.MySqlReadStructure;
 import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
-import com.torodb.backend.tests.common.DatabaseTestContext;
-import com.torodb.core.TableRefFactory;
-import com.torodb.core.transaction.metainf.FieldType;
+import com.torodb.backend.tests.common.BackendTestContextFactory;
 import com.torodb.testing.docker.mysql.EnumVersion;
 import com.torodb.testing.docker.mysql.MysqlService;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 public class MySqlStructureIT extends AbstractStructureIntegrationSuite {
 
-  private static MysqlService mysqlDockerService;
+  private static MysqlService mysqlService;
 
-  private Map<FieldType, String> typesDictionary = new HashMap<>();
-
-  @BeforeClass
+  @BeforeAll
   public static void beforeAll() {
-    mysqlDockerService = MysqlService.defaultService(EnumVersion.LATEST);
-    mysqlDockerService.startAsync();
-    mysqlDockerService.awaitRunning();
+    mysqlService = MysqlService.defaultService(EnumVersion.LATEST);
+    mysqlService.startAsync();
+    mysqlService.awaitRunning();
   }
 
-  @AfterClass
+  @AfterAll
   public static void afterAll() {
-    if (mysqlDockerService != null && mysqlDockerService.isRunning()) {
-      mysqlDockerService.stopAsync();
-      mysqlDockerService.awaitTerminated();
+    if (mysqlService != null && mysqlService.isRunning()) {
+      mysqlService.stopAsync();
+      mysqlService.awaitTerminated();
     }
   }
 
-  public MySqlStructureIT() {
-    typesDictionary.put(FieldType.STRING, "TEXT");
-    typesDictionary.put(FieldType.BINARY, "BLOB");
-    typesDictionary.put(FieldType.BOOLEAN, "BIT");
-    typesDictionary.put(FieldType.DATE, "DATE");
-    typesDictionary.put(FieldType.DOUBLE, "DOUBLE");
-    typesDictionary.put(FieldType.INSTANT, "TIMESTAMP");
-    typesDictionary.put(FieldType.INTEGER, "INT");
-    typesDictionary.put(FieldType.LONG, "BIGINT");
-    typesDictionary.put(FieldType.MONGO_OBJECT_ID, "VARBINARY");
-    typesDictionary.put(FieldType.MONGO_TIME_STAMP, "TEXT");
-    typesDictionary.put(FieldType.NULL, "BIT");
-    typesDictionary.put(FieldType.TIME, "TIME");
-    typesDictionary.put(FieldType.CHILD, "BIT");
-    typesDictionary.put(FieldType.DECIMAL128, "TEXT");
-    typesDictionary.put(FieldType.JAVASCRIPT, "TEXT");
-    typesDictionary.put(FieldType.JAVASCRIPT_WITH_SCOPE, "TEXT");
-    typesDictionary.put(FieldType.MIN_KEY, "BIT");
-    typesDictionary.put(FieldType.MAX_KEY, "BIT");
-    typesDictionary.put(FieldType.UNDEFINED, "BIT");
-    typesDictionary.put(FieldType.MONGO_REGEX, "TEXT");
-    typesDictionary.put(FieldType.MONGO_DB_POINTER, "TEXT");
-    typesDictionary.put(FieldType.DEPRECATED, "TEXT");
-  }
-  
   @Override
-  protected char getQuoteChar() {
-    return '`';
-  }
-
-  @Override
-  protected DatabaseTestContext getDatabaseTestContext() {
-    return new MySqlDatabaseTestContextFactory().createInstance(mysqlDockerService);
-  }
-
-  @Override
-  protected DataTypeProvider getDataTypeProvider() {
-    return new MySqlDataTypeProvider();
-  }
-
-  @Override
-  protected ErrorHandler getErrorHandler() {
-    return new MySqlErrorHandler();
-  }
-
-  @Override
-  protected DefaultReadStructure getDefaultReadStructure(SqlInterface sqlInterface, SqlHelper sqlHelper,
-      TableRefFactory tableRefFactory) {
-    return new MySqlReadStructure(sqlInterface, sqlHelper, tableRefFactory);
-  }
-
-  @Override
-  protected String getSqlTypeOf(FieldType fieldType) {
-    if (!typesDictionary.containsKey(fieldType))
-      throw new RuntimeException("Unsupported type " + fieldType.name());
-
-    return typesDictionary.get(fieldType);
-  }
-
-  @Override
-  protected String getSchemaColumn() {
-    return "TABLE_CAT";
-  }
-
-  @Override
-  protected ResultSet getSchemas(Connection connection) throws SQLException {
-    return connection.getMetaData().getCatalogs();
+  protected BackendTestContextFactory getBackendTestContextFactory() {
+    return new MySqlTestContextFactory(mysqlService);
   }
 
 }

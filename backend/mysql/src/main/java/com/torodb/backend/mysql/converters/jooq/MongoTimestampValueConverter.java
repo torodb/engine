@@ -27,26 +27,22 @@ import com.torodb.kvdocument.types.MongoTimestampType;
 import com.torodb.kvdocument.values.KvMongoTimestamp;
 import com.torodb.kvdocument.values.heap.DefaultKvMongoTimestamp;
 
-import java.io.StringReader;
 import java.sql.Types;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 
 /**
  *
  */
 public class MongoTimestampValueConverter implements
-    KvValueConverter<String, String, KvMongoTimestamp> {
+    KvValueConverter<JsonObject, String, KvMongoTimestamp> {
 
   private static final long serialVersionUID = 1L;
 
-  public static final MongoTimestampValueConverter CONVERTER =
-      new MongoTimestampValueConverter();
-
   public static final DataTypeForKv<KvMongoTimestamp> TYPE =
-      DataTypeForKv.from(StringValueConverter.TEXT, CONVERTER, Types.LONGVARCHAR);
+      DataTypeForKv.from(JsonConverter.JSON, new MongoTimestampValueConverter(), 
+          Types.LONGVARCHAR);
 
   @Override
   public KvType getErasuredType() {
@@ -54,24 +50,22 @@ public class MongoTimestampValueConverter implements
   }
 
   @Override
-  public KvMongoTimestamp from(String databaseObject) {
-    final JsonReader reader = Json.createReader(new StringReader(databaseObject));
-    JsonObject object = reader.readObject();
-
-    return new DefaultKvMongoTimestamp(object.getInt("secs"), object.getInt("counter"));
+  public KvMongoTimestamp from(JsonObject databaseObject) {
+    return new DefaultKvMongoTimestamp(databaseObject.getInt("secs"), 
+        databaseObject.getInt("counter"));
   }
 
   @Override
-  public String to(KvMongoTimestamp userObject) {
+  public JsonObject to(KvMongoTimestamp userObject) {
     return Json.createObjectBuilder()
         .add("secs", userObject.getSecondsSinceEpoch())
         .add("counter", userObject.getOrdinal())
-        .build().toString();
+        .build();
   }
 
   @Override
-  public Class<String> fromType() {
-    return String.class;
+  public Class<JsonObject> fromType() {
+    return JsonObject.class;
   }
 
   @Override

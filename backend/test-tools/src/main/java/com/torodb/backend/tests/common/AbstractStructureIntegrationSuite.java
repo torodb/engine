@@ -18,124 +18,56 @@
 
 package com.torodb.backend.tests.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.torodb.backend.DataTypeProvider;
-import com.torodb.backend.ErrorHandler;
-import com.torodb.backend.SqlHelper;
-import com.torodb.backend.SqlInterface;
+import com.google.common.collect.ImmutableList;
 import com.torodb.backend.converters.jooq.DataTypeForKv;
-import com.torodb.backend.ddl.DefaultReadStructure;
+import com.torodb.backend.meta.TorodbSchema;
+import com.torodb.backend.tables.KvTable;
+import com.torodb.backend.tables.MetaCollectionTable;
+import com.torodb.backend.tables.MetaDatabaseTable;
+import com.torodb.backend.tables.MetaDocPartIndexColumnTable;
+import com.torodb.backend.tables.MetaDocPartIndexTable;
+import com.torodb.backend.tables.MetaDocPartTable;
+import com.torodb.backend.tables.MetaFieldTable;
+import com.torodb.backend.tables.MetaIndexFieldTable;
+import com.torodb.backend.tables.MetaIndexTable;
+import com.torodb.backend.tables.MetaScalarTable;
 import com.torodb.core.TableRef;
-import com.torodb.core.TableRefFactory;
 import com.torodb.core.exceptions.InvalidDatabaseException;
-import com.torodb.core.impl.TableRefFactoryImpl;
+import com.torodb.core.transaction.metainf.FieldIndexOrdering;
 import com.torodb.core.transaction.metainf.FieldType;
 import com.torodb.core.transaction.metainf.ImmutableMetaCollection;
 import com.torodb.core.transaction.metainf.ImmutableMetaDatabase;
 import com.torodb.core.transaction.metainf.ImmutableMetaDocPart;
+import com.torodb.core.transaction.metainf.ImmutableMetaDocPartIndexColumn;
 import com.torodb.core.transaction.metainf.ImmutableMetaField;
+import com.torodb.core.transaction.metainf.ImmutableMetaIdentifiedDocPartIndex;
 import com.torodb.core.transaction.metainf.MetaCollection;
 import com.torodb.core.transaction.metainf.MetaDatabase;
 import com.torodb.core.transaction.metainf.MetaDocPart;
 import com.torodb.core.transaction.metainf.MetaField;
-import org.jooq.DSLContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.jooq.lambda.tuple.Tuple3;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-
-public abstract class AbstractStructureIntegrationSuite {
-
-  private static final String DATABASE_NAME = "database_name";
-  private static final String DATABASE_SCHEMA_NAME = "schema_name";
-  private static final String COLLECTION_NAME = "collection_name";
-  private static final String ROOT_TABLE_NAME = "root_table";
-  private static final String CHILD_TABLE_NAME = "child_table";
-  private static final String SECOND_CHILD_TABLE_NAME = "second_child_table";
-  private static final String FIELD_NAME = "field_name";
-  private static final String NEW_COLUMN_NAME = "new_column";
-
-  private SqlInterface sqlInterface;
-  private DefaultReadStructure defaultReadStructure;
-  private TableRefFactory tableRefFactory;
-
-  private DatabaseTestContext dbTestContext;
-
-  @Before
-  public void setUp() throws Exception {
-    dbTestContext = getDatabaseTestContext();
-    sqlInterface = dbTestContext.getSqlInterface();
-    tableRefFactory = new TableRefFactoryImpl();
-    DataTypeProvider dataTypeProvider = getDataTypeProvider();
-    ErrorHandler errorHandler = getErrorHandler();
-    SqlHelper sqlHelper = new SqlHelper(dataTypeProvider, errorHandler);
-    defaultReadStructure = getDefaultReadStructure(
-        sqlInterface, sqlHelper, tableRefFactory);
-    dbTestContext.setupDatabase();
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    dbTestContext.tearDownDatabase();
-  }
-
-  protected abstract DatabaseTestContext getDatabaseTestContext();
-
-  protected abstract DataTypeProvider getDataTypeProvider();
-
-  protected abstract ErrorHandler getErrorHandler();
-
-  protected abstract DefaultReadStructure getDefaultReadStructure(
-      SqlInterface sqlInterface, SqlHelper sqlHelper,
-      TableRefFactory tableRefFactory);
-
-  protected abstract String getSqlTypeOf(FieldType fieldType);
-
-  protected char getQuoteChar() {
-    return '"';
-  }
+public abstract class AbstractStructureIntegrationSuite extends AbstractBackendIntegrationSuite {
 
   @Test
   public void shouldCreateSchema() throws Exception {
-    dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
       /* When */
       createSchema(dslContext);
 
       /* Then */
-      Connection connection = dslContext.configuration().connectionProvider().acquire();
-      try (ResultSet resultSet = getSchemas(connection)) {
-        while (resultSet.next()) {
-          if (DATABASE_SCHEMA_NAME.equals(resultSet.getString(getSchemaColumn()))) {
-            return;
-          }
-        }
-
-        fail("Schema " + DATABASE_SCHEMA_NAME + " not found");
-      } catch (SQLException e) {
-        throw new RuntimeException("Wrong test invocation", e);
-      }
+      assertThatSchemaExists(dslContext, DATABASE_SCHEMA_NAME);
     });
-  }
-
-  protected String getSchemaColumn() {
-    return "TABLE_SCHEM";
-  }
-
-  protected ResultSet getSchemas(Connection connection) throws SQLException {
-    return connection.getMetaData().getSchemas("%", DATABASE_SCHEMA_NAME);
   }
 
   @Test
   public void shouldCreateRootDocPartTable() throws Exception {
-    dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
       /* Given */
       createSchema(dslContext);
 
@@ -143,24 +75,17 @@ public abstract class AbstractStructureIntegrationSuite {
       createRootTable(dslContext, ROOT_TABLE_NAME);
 
       /* Then */
-      Connection connection = dslContext.configuration().connectionProvider().acquire();
-      try (Statement foo = connection.createStatement()) {
-        ResultSet result = foo.executeQuery(
-            "select * from " + getQuoteChar() + DATABASE_SCHEMA_NAME + getQuoteChar()
-            + "." + getQuoteChar() + ROOT_TABLE_NAME + getQuoteChar());
 
-        assertThatColumnExists(result.getMetaData(), "did");
-
-        result.close();
-      } catch (SQLException e) {
-        throw new RuntimeException("Wrong test invocation", e);
-      }
+      assertThatTableExists(dslContext, DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME);
+      
+      assertThatColumnExists(dslContext, 
+          DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME, "did");
     });
   }
 
   @Test
   public void shouldCreateDocPartTable() throws Exception {
-    dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
       /* Given */
       createSchema(dslContext);
       TableRef rootTableRef = createRootTable(dslContext, ROOT_TABLE_NAME);
@@ -169,26 +94,21 @@ public abstract class AbstractStructureIntegrationSuite {
       createChildTable(dslContext, rootTableRef, ROOT_TABLE_NAME, CHILD_TABLE_NAME);
 
       /* Then */
-      Connection connection = dslContext.configuration().connectionProvider().acquire();
-      try (Statement foo = connection.createStatement()) {
-        ResultSet result = foo.executeQuery(
-            "select * from " + getQuoteChar() + DATABASE_SCHEMA_NAME + getQuoteChar()
-            + "." + getQuoteChar() + CHILD_TABLE_NAME + getQuoteChar());
+      assertThatTableExists(dslContext, 
+          DATABASE_SCHEMA_NAME, CHILD_TABLE_NAME);
 
-        assertThatColumnExists(result.getMetaData(), "did");
-        assertThatColumnExists(result.getMetaData(), "rid");
-        assertThatColumnExists(result.getMetaData(), "seq");
-
-        result.close();
-      } catch (SQLException e) {
-        throw new RuntimeException("Wrong test invocation", e);
-      }
+      assertThatColumnExists(dslContext, 
+          DATABASE_SCHEMA_NAME, CHILD_TABLE_NAME, "did");
+      assertThatColumnExists(dslContext, 
+          DATABASE_SCHEMA_NAME, CHILD_TABLE_NAME, "rid");
+      assertThatColumnExists(dslContext, 
+          DATABASE_SCHEMA_NAME, CHILD_TABLE_NAME, "seq");
     });
   }
 
   @Test
   public void shouldCreateSecondLevelDocPartTableWithPid() throws Exception {
-    dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
       /*Given */
       createSchema(dslContext);
       TableRef rootTableRef = createRootTable(dslContext, ROOT_TABLE_NAME);
@@ -199,216 +119,380 @@ public abstract class AbstractStructureIntegrationSuite {
       createChildTable(dslContext, childTableRef, CHILD_TABLE_NAME, SECOND_CHILD_TABLE_NAME);
 
       /* Then */
-      Connection connection = dslContext.configuration().connectionProvider().acquire();
-      try (Statement foo = connection.createStatement()) {
-        ResultSet result = foo.executeQuery(
-            "select * from " + getQuoteChar() + DATABASE_SCHEMA_NAME + getQuoteChar()
-            + "." + getQuoteChar() + SECOND_CHILD_TABLE_NAME + getQuoteChar());
-
-        assertThatColumnExists(result.getMetaData(), "did");
-        assertThatColumnExists(result.getMetaData(), "pid");
-        assertThatColumnExists(result.getMetaData(), "rid");
-        assertThatColumnExists(result.getMetaData(), "seq");
-
-        result.close();
-      } catch (SQLException e) {
-        throw new RuntimeException("Wrong test invocation", e);
-      }
+      assertThatTableExists(dslContext, DATABASE_SCHEMA_NAME, SECOND_CHILD_TABLE_NAME);
+      
+      assertThatColumnExists(dslContext, 
+          DATABASE_SCHEMA_NAME, SECOND_CHILD_TABLE_NAME, "did");
+      assertThatColumnExists(dslContext, 
+          DATABASE_SCHEMA_NAME, SECOND_CHILD_TABLE_NAME, "pid");
+      assertThatColumnExists(dslContext, 
+          DATABASE_SCHEMA_NAME, SECOND_CHILD_TABLE_NAME, "rid");
+      assertThatColumnExists(dslContext, 
+          DATABASE_SCHEMA_NAME, SECOND_CHILD_TABLE_NAME, "seq");
     });
   }
 
   @Test
-  public void shouldAddColumnsToExistingDocPartTable() throws Exception {
-    dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
+  public void shouldDeleteDatabase() throws Exception {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
+      /* Given */
+      createSchema(dslContext);
+      createRootTable(dslContext, ROOT_TABLE_NAME);
+
+      ImmutableMetaDocPart metaDocPart = new ImmutableMetaDocPart
+          .Builder(context.getTableRefFactory().createRoot(),ROOT_TABLE_NAME).build();
+      ImmutableMetaCollection metaCollection = new ImmutableMetaCollection
+          .Builder(COLLECTION_NAME, COLLECTION_IDENTIFIER).put(metaDocPart).build();
+      MetaDatabase metaDatabase = new ImmutableMetaDatabase
+          .Builder(DATABASE_SCHEMA_NAME, DATABASE_SCHEMA_NAME)
+          .put(metaCollection).build();
+
+      /* When */
+      context.getSqlInterface().getStructureInterface().dropDatabase(dslContext, metaDatabase);
+
+      /* Then */
+      assertThatSchemaDoesNotExists(dslContext, DATABASE_SCHEMA_NAME);
+    });
+  }
+
+  @Test
+  public void shouldDeleteIndex() throws Exception {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
+      /* Given */
+      FieldType fieldType = FieldType.INTEGER;
+      createSchema(dslContext);
+      createRootTable(dslContext, ROOT_TABLE_NAME);
+      DataTypeForKv<?> dataType = context.getSqlInterface()
+          .getDataTypeProvider().getDataType(fieldType);
+      context.getSqlInterface().getStructureInterface()
+          .addColumnToDocPartTable(dslContext, DATABASE_SCHEMA_NAME,
+              ROOT_TABLE_NAME, FIELD_COLUMN_NAME, dataType);
+      context.getSqlInterface().getStructureInterface()
+          .createIndex(dslContext, ROOT_INDEX_NAME, DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME, 
+              ImmutableList.of(
+                new Tuple3<String,Boolean,FieldType>(FIELD_COLUMN_NAME, true, fieldType)
+              ), 
+              false);
+
+      /* When */
+      context.getSqlInterface().getStructureInterface()
+          .dropIndex(dslContext, DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME, ROOT_INDEX_NAME);
+
+      /* Then */
+      assertThatIndexDoesNotExists(dslContext, DATABASE_SCHEMA_NAME, INDEX_NAME, ROOT_TABLE_NAME);
+    });
+  }
+
+  @Test
+  public void shouldDeleteCollection() throws Exception {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
+      /* Given */
+      TableRef rootTableRef = context.getTableRefFactory().createRoot();
+
+      ImmutableMetaDocPart metaDocPart = new ImmutableMetaDocPart
+          .Builder(rootTableRef, ROOT_TABLE_NAME).build();
+      final MetaCollection metaCollection = new ImmutableMetaCollection
+          .Builder(COLLECTION_NAME, COLLECTION_IDENTIFIER)
+          .put(metaDocPart)
+          .build();
+      
+      FieldType fieldType = FieldType.INTEGER;
+      createSchema(dslContext);
+      createRootTable(dslContext, ROOT_TABLE_NAME);
+      DataTypeForKv<?> dataType = context.getSqlInterface()
+          .getDataTypeProvider().getDataType(fieldType);
+      context.getSqlInterface().getStructureInterface()
+          .addColumnToDocPartTable(dslContext, DATABASE_SCHEMA_NAME,
+              ROOT_TABLE_NAME, FIELD_COLUMN_NAME, dataType);
+      context.getSqlInterface().getStructureInterface()
+          .createIndex(dslContext, ROOT_INDEX_NAME, DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME, 
+              ImmutableList.of(
+                new Tuple3<String,Boolean,FieldType>(FIELD_COLUMN_NAME, true, fieldType)
+              ), 
+              false);
+
+      /* When */
+      context.getSqlInterface().getStructureInterface()
+          .dropCollection(dslContext, DATABASE_SCHEMA_NAME, metaCollection);
+
+      /* Then */
+      assertThatTableDoesNotExists(dslContext, DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME);
+      assertThatIndexDoesNotExists(dslContext, DATABASE_SCHEMA_NAME, INDEX_NAME, ROOT_TABLE_NAME);
+    });
+  }
+
+  @Test
+  public void shouldDeleteAll() throws Exception {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
+      /* Given */
+      TableRef rootTableRef = context.getTableRefFactory().createRoot();
+
+      ImmutableMetaDocPart metaDocPart = new ImmutableMetaDocPart
+          .Builder(rootTableRef, ROOT_TABLE_NAME).build();
+      ImmutableMetaCollection metaCollection = new ImmutableMetaCollection
+          .Builder(COLLECTION_NAME, COLLECTION_IDENTIFIER)
+          .put(metaDocPart)
+          .build();
+      ImmutableMetaDatabase metaDatabase = new ImmutableMetaDatabase
+          .Builder(DATABASE_NAME, DATABASE_SCHEMA_NAME)
+          .put(metaCollection)
+          .build();
+
+      context.getSqlInterface().getMetaDataWriteInterface()
+          .addMetaDatabase(dslContext, metaDatabase);
+      context.getSqlInterface().getMetaDataWriteInterface()
+          .addMetaCollection(dslContext, metaDatabase, metaCollection);
+      context.getSqlInterface().getMetaDataWriteInterface()
+          .addMetaDocPart(dslContext, metaDatabase, metaCollection, metaDocPart);
+
+      createSchema(dslContext);
+      createRootTable(dslContext, ROOT_TABLE_NAME);
+      
+      /* When */
+      context.getSqlInterface().getStructureInterface().dropAll(dslContext);
+
+      /* Then */
+      assertThatSchemaDoesNotExists(dslContext, DATABASE_SCHEMA_NAME);
+      assertThatSchemaDoesNotExists(dslContext, TorodbSchema.IDENTIFIER);
+    });
+  }
+
+  @Test
+  public void shouldDeleteUserData() throws Exception {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
+      /* Given */
+      TableRef rootTableRef = context.getTableRefFactory().createRoot();
+
+      ImmutableMetaDocPart metaDocPart = new ImmutableMetaDocPart
+          .Builder(rootTableRef, ROOT_TABLE_NAME).build();
+      ImmutableMetaCollection metaCollection = new ImmutableMetaCollection
+          .Builder(COLLECTION_NAME, COLLECTION_IDENTIFIER)
+          .put(metaDocPart)
+          .build();
+      ImmutableMetaDatabase metaDatabase = new ImmutableMetaDatabase
+          .Builder(DATABASE_NAME, DATABASE_SCHEMA_NAME)
+          .put(metaCollection)
+          .build();
+
+      context.getSqlInterface().getMetaDataWriteInterface()
+          .addMetaDatabase(dslContext, metaDatabase);
+      context.getSqlInterface().getMetaDataWriteInterface()
+          .addMetaCollection(dslContext, metaDatabase, metaCollection);
+      context.getSqlInterface().getMetaDataWriteInterface()
+          .addMetaDocPart(dslContext, metaDatabase, metaCollection, metaDocPart);
+
+      createSchema(dslContext);
+      createRootTable(dslContext, ROOT_TABLE_NAME);
+      
+      /* When */
+      context.getSqlInterface().getStructureInterface().dropUserData(dslContext);
+
+      /* Then */
+      assertThatSchemaDoesNotExists(dslContext, DATABASE_SCHEMA_NAME);
+      assertThatSchemaExists(dslContext, TorodbSchema.IDENTIFIER);
+      assertThatTableExists(dslContext, TorodbSchema.IDENTIFIER, MetaDatabaseTable.TABLE_NAME);
+      assertThatTableExists(dslContext, TorodbSchema.IDENTIFIER, MetaCollectionTable.TABLE_NAME);
+      assertThatTableExists(dslContext, TorodbSchema.IDENTIFIER, MetaIndexTable.TABLE_NAME);
+      assertThatTableExists(dslContext, TorodbSchema.IDENTIFIER, MetaIndexFieldTable.TABLE_NAME);
+      assertThatTableExists(dslContext, TorodbSchema.IDENTIFIER, MetaDocPartTable.TABLE_NAME);
+      assertThatTableExists(dslContext, TorodbSchema.IDENTIFIER, MetaFieldTable.TABLE_NAME);
+      assertThatTableExists(dslContext, TorodbSchema.IDENTIFIER, MetaScalarTable.TABLE_NAME);
+      assertThatTableExists(dslContext, TorodbSchema.IDENTIFIER, MetaDocPartIndexTable.TABLE_NAME);
+      assertThatTableExists(dslContext, TorodbSchema.IDENTIFIER, 
+          MetaDocPartIndexColumnTable.TABLE_NAME);
+      assertThatTableExists(dslContext, TorodbSchema.IDENTIFIER, KvTable.TABLE_NAME);
+    });
+  }
+
+  @Test
+  public void shouldMoveCollection() throws Exception {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
+      /* Given */
+      TableRef rootTableRef = context.getTableRefFactory().createRoot();
+
+      ImmutableMetaDocPartIndexColumn metaDocPartIndexColumn = 
+          new ImmutableMetaDocPartIndexColumn(0, FIELD_COLUMN_NAME, FieldIndexOrdering.ASC);
+      ImmutableMetaIdentifiedDocPartIndex metaDocPartIndex = new ImmutableMetaIdentifiedDocPartIndex
+          .Builder(ROOT_INDEX_NAME, false)
+          .add(metaDocPartIndexColumn)
+          .build();
+      ImmutableMetaDocPart metaDocPart = new ImmutableMetaDocPart
+          .Builder(rootTableRef, ROOT_TABLE_NAME)
+          .put(metaDocPartIndex)
+          .build();
+      final MetaCollection metaCollection = new ImmutableMetaCollection
+          .Builder(COLLECTION_NAME, COLLECTION_IDENTIFIER)
+          .put(metaDocPart)
+          .build();
+
+      ImmutableMetaIdentifiedDocPartIndex newMetaDocPartIndex = 
+          new ImmutableMetaIdentifiedDocPartIndex.Builder("new_" + ROOT_INDEX_NAME, false)
+          .add(metaDocPartIndexColumn)
+          .build();
+      ImmutableMetaDocPart newMetaDocPart = new ImmutableMetaDocPart
+          .Builder(rootTableRef, "new_" + ROOT_TABLE_NAME)
+          .put(newMetaDocPartIndex)
+          .build();
+      final MetaCollection newMetaCollection = new ImmutableMetaCollection
+          .Builder("new_" + COLLECTION_NAME, "new_" + COLLECTION_IDENTIFIER)
+          .put(newMetaDocPart)
+          .build();
+      
+      createSchema(dslContext);
+      createSchema(dslContext, "new_" + DATABASE_SCHEMA_NAME);
+      createRootTable(dslContext, ROOT_TABLE_NAME);
+      FieldType fieldType = FieldType.INTEGER;
+      DataTypeForKv<?> dataType = context.getSqlInterface()
+          .getDataTypeProvider().getDataType(fieldType);
+      context.getSqlInterface().getStructureInterface()
+          .addColumnToDocPartTable(dslContext, DATABASE_SCHEMA_NAME,
+              ROOT_TABLE_NAME, FIELD_COLUMN_NAME, dataType);
+      context.getSqlInterface().getStructureInterface()
+          .createIndex(dslContext, ROOT_INDEX_NAME, DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME, 
+              ImmutableList.of(
+                new Tuple3<String,Boolean,FieldType>(FIELD_COLUMN_NAME, true, fieldType)
+              ), 
+              false);
+      createSchema(dslContext);
+
+      /* When */
+      context.getSqlInterface().getStructureInterface()
+          .renameCollection(dslContext, DATABASE_SCHEMA_NAME, metaCollection, 
+              "new_" + DATABASE_SCHEMA_NAME, newMetaCollection);
+
+      /* Then */
+      assertThatTableExists(dslContext, "new_" + DATABASE_SCHEMA_NAME, "new_" + ROOT_TABLE_NAME);
+      assertThatIndexExists(dslContext, 
+          "new_" + DATABASE_SCHEMA_NAME, "new_" + ROOT_TABLE_NAME, "new_" + ROOT_INDEX_NAME,
+          ImmutableList.of(
+              new Tuple3<String,Boolean,FieldType>(FIELD_COLUMN_NAME, true, fieldType)
+          ));
+    });
+  }
+  
+  @ParameterizedTest
+  @EnumSource(FieldType.class)
+  public void shouldAddColumns(FieldType fieldType) throws Exception {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
       /* Given */
       createSchema(dslContext);
       createRootTable(dslContext, ROOT_TABLE_NAME);
 
       /* When */
-      DataTypeForKv<?> dataType = sqlInterface.getDataTypeProvider().getDataType(FieldType.STRING);
-      sqlInterface.getStructureInterface()
+      DataTypeForKv<?> dataType = context.getSqlInterface()
+          .getDataTypeProvider().getDataType(fieldType);
+      context.getSqlInterface().getStructureInterface()
           .addColumnToDocPartTable(dslContext, DATABASE_SCHEMA_NAME,
-              ROOT_TABLE_NAME, NEW_COLUMN_NAME, dataType);
+              ROOT_TABLE_NAME, FIELD_COLUMN_NAME, dataType);
 
       /* Then */
-      Connection connection = dslContext.configuration().connectionProvider().acquire();
-      try (Statement foo = connection.createStatement()) {
-        ResultSet result = foo.executeQuery(
-            "select * from " + getQuoteChar() + DATABASE_SCHEMA_NAME + getQuoteChar()
-            + "." + getQuoteChar() + ROOT_TABLE_NAME + getQuoteChar());
-
-        assertThatColumnIsGivenType(FieldType.STRING, result.getMetaData(), NEW_COLUMN_NAME,
-            getSqlTypeOf(FieldType.STRING));
-
-        result.close();
-      } catch (SQLException e) {
-        throw new RuntimeException("Wrong test invocation", e);
-      }
+      assertThatColumnIsGivenType(dslContext, 
+          DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME, FIELD_COLUMN_NAME,
+          fieldType);
     });
   }
 
-  @Test
-  public void newColumnShouldSupportAnyGivenSupportedFieldType() throws Exception {
-    dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
-      createSchema(dslContext);
-      createRootTable(dslContext, ROOT_TABLE_NAME);
-
-      Connection connection = dslContext.configuration().connectionProvider().acquire();
-
-      for (FieldType fieldType : FieldType.values()) {
-        DataTypeForKv<?> dataType = sqlInterface.getDataTypeProvider().getDataType(fieldType);
-        String columnName = NEW_COLUMN_NAME + "_" + fieldType.name();
-
-        sqlInterface.getStructureInterface()
-            .addColumnToDocPartTable(dslContext, DATABASE_SCHEMA_NAME,
-                ROOT_TABLE_NAME, columnName, dataType);
-
-        try (Statement foo = connection.createStatement()) {
-          ResultSet result = foo.executeQuery(
-              "select * from " + getQuoteChar() + DATABASE_SCHEMA_NAME + getQuoteChar()
-              + "." + getQuoteChar() + ROOT_TABLE_NAME + getQuoteChar());
-
-          assertThatColumnIsGivenType(fieldType, result.getMetaData(),
-              columnName, getSqlTypeOf(fieldType));
-
-          result.close();
-        } catch (SQLException e) {
-          throw new RuntimeException("Wrong test invocation", e);
-        }
-      }
-    });
-  }
-
-  @Test
-  public void validationSupportAnyGivenSupportedFieldType() throws Exception {
-    dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
+  @ParameterizedTest
+  @EnumSource(FieldType.class)
+  public void shouldValidateColumn(FieldType fieldType) throws Exception {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
       MetaDatabase metaDatabase = new ImmutableMetaDatabase
           .Builder(DATABASE_NAME, DATABASE_SCHEMA_NAME).build();
-      sqlInterface.getMetaDataWriteInterface().addMetaDatabase(dslContext, metaDatabase);
+      context.getSqlInterface().getMetaDataWriteInterface()
+      .addMetaDatabase(dslContext, metaDatabase);
 
       MetaCollection metaCollection = new ImmutableMetaCollection
           .Builder(COLLECTION_NAME, ROOT_TABLE_NAME).build();
-      sqlInterface.getMetaDataWriteInterface()
+      context.getSqlInterface().getMetaDataWriteInterface()
           .addMetaCollection(dslContext, metaDatabase, metaCollection);
 
-      TableRef rootTableRef = tableRefFactory.createRoot();
+      TableRef rootTableRef = context.getTableRefFactory().createRoot();
       MetaDocPart metaDocPart = new ImmutableMetaDocPart
           .Builder(rootTableRef, ROOT_TABLE_NAME).build();
-      sqlInterface.getMetaDataWriteInterface()
+      context.getSqlInterface().getMetaDataWriteInterface()
         .addMetaDocPart(dslContext, metaDatabase, metaCollection, metaDocPart);
 
       createSchema(dslContext);
       createRootTable(dslContext, ROOT_TABLE_NAME);
 
-      for (FieldType fieldType : FieldType.values()) {
-        DataTypeForKv<?> dataType = sqlInterface.getDataTypeProvider().getDataType(fieldType);
-        String columnName = NEW_COLUMN_NAME + "_" + fieldType.name();
+      DataTypeForKv<?> dataType = context.getSqlInterface()
+          .getDataTypeProvider().getDataType(fieldType);
+      String columnName = FIELD_COLUMN_NAME + "_" + fieldType.name();
 
-        MetaField metaField = new ImmutableMetaField(FIELD_NAME, columnName, fieldType);
-        sqlInterface.getMetaDataWriteInterface()
-          .addMetaField(dslContext, metaDatabase, metaCollection, metaDocPart, metaField);
+      MetaField metaField = new ImmutableMetaField(FIELD_NAME, columnName, fieldType);
+      context.getSqlInterface().getMetaDataWriteInterface()
+        .addMetaField(dslContext, metaDatabase, metaCollection, metaDocPart, metaField);
 
-        sqlInterface.getStructureInterface()
-            .addColumnToDocPartTable(dslContext, DATABASE_SCHEMA_NAME,
-                ROOT_TABLE_NAME, columnName, dataType);
-      }
+      context.getSqlInterface().getStructureInterface()
+          .addColumnToDocPartTable(dslContext, DATABASE_SCHEMA_NAME,
+              ROOT_TABLE_NAME, columnName, dataType);
 
       try {
-        defaultReadStructure.readMetadata(dslContext);
+        context.getDdlOps().getReadStructureDdlOp().readMetadata(dslContext);
       } catch (InvalidDatabaseException ex) {
         fail(ex.getMessage());
       }
     });
   }
 
-  @Test
-  public void databaseShouldBeDeleted() throws Exception {
-    dbTestContext.executeOnDbConnectionWithDslContext(dslContext -> {
+  @ParameterizedTest
+  @EnumSource(FieldType.class)
+  public void shouldCreateIndex(FieldType fieldType) throws Exception {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
       /* Given */
-      String collection = ROOT_TABLE_NAME;
-
       createSchema(dslContext);
-      createRootTable(dslContext, collection);
-
-      ImmutableMetaDocPart metaDocPart = new ImmutableMetaDocPart
-          .Builder(tableRefFactory.createRoot(),ROOT_TABLE_NAME).build();
-      ImmutableMetaCollection metaCollection = new ImmutableMetaCollection
-          .Builder(collection, collection).put(metaDocPart).build();
-      MetaDatabase metaDatabase = new ImmutableMetaDatabase
-          .Builder(DATABASE_SCHEMA_NAME, DATABASE_SCHEMA_NAME)
-          .put(metaCollection).build();
+      createRootTable(dslContext, ROOT_TABLE_NAME);
+      DataTypeForKv<?> dataType = context.getSqlInterface()
+          .getDataTypeProvider().getDataType(fieldType);
+      context.getSqlInterface().getStructureInterface()
+          .addColumnToDocPartTable(dslContext, DATABASE_SCHEMA_NAME,
+              ROOT_TABLE_NAME, FIELD_COLUMN_NAME, dataType);
 
       /* When */
-      sqlInterface.getStructureInterface().dropDatabase(dslContext, metaDatabase);
+      context.getSqlInterface().getStructureInterface()
+          .createIndex(dslContext, ROOT_INDEX_NAME, DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME, 
+              ImmutableList.of(
+                new Tuple3<String,Boolean,FieldType>(FIELD_COLUMN_NAME, true, fieldType)
+              ), 
+              false);
 
       /* Then */
-      Connection connection = dslContext.configuration().connectionProvider().acquire();
-      try (ResultSet resultSet = getSchemas(connection)) {
-        while (resultSet.next()) {
-          if (DATABASE_SCHEMA_NAME.equals(resultSet.getString(getSchemaColumn()))) {
-            fail("Schema " + DATABASE_SCHEMA_NAME + " shouldn't exist");
-          }
-        }
-      } catch (SQLException e) {
-        throw new RuntimeException("Wrong test invocation", e);
-      }
+      assertThatIndexExists(dslContext,
+          DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME, ROOT_INDEX_NAME,
+          ImmutableList.of(
+              new Tuple3<String,Boolean,FieldType>(FIELD_COLUMN_NAME, true, fieldType)
+            ));
     });
   }
 
-  private void createSchema(DSLContext dslContext) {
-    sqlInterface.getStructureInterface().createDatabase(dslContext, DATABASE_SCHEMA_NAME);
+  @ParameterizedTest
+  @EnumSource(FieldType.class)
+  public void shouldCreateUniqueIndex(FieldType fieldType) throws Exception {
+    context.executeOnDbConnectionWithDslContext(dslContext -> {
+      /* Given */
+      createSchema(dslContext);
+      createRootTable(dslContext, ROOT_TABLE_NAME);
+      DataTypeForKv<?> dataType = context.getSqlInterface()
+          .getDataTypeProvider().getDataType(fieldType);
+      context.getSqlInterface().getStructureInterface()
+          .addColumnToDocPartTable(dslContext, DATABASE_SCHEMA_NAME,
+              ROOT_TABLE_NAME, FIELD_COLUMN_NAME, dataType);
+
+      /* When */
+      context.getSqlInterface().getStructureInterface()
+          .createIndex(dslContext, ROOT_INDEX_NAME, DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME, 
+              ImmutableList.of(
+                new Tuple3<String,Boolean,FieldType>(FIELD_COLUMN_NAME, true, fieldType)
+              ), 
+              true);
+
+      /* Then */
+      assertThatUniqueIndexExists(dslContext,
+          DATABASE_SCHEMA_NAME, ROOT_TABLE_NAME, ROOT_INDEX_NAME,
+          ImmutableList.of(
+              new Tuple3<String,Boolean,FieldType>(FIELD_COLUMN_NAME, true, fieldType)
+            ));
+    });
   }
-
-  private TableRef createRootTable(DSLContext dslContext, String rootName) {
-    TableRef rootTableRef = tableRefFactory.createRoot();
-    sqlInterface.getStructureInterface().createRootDocPartTable(dslContext,
-        DATABASE_SCHEMA_NAME, rootName, rootTableRef);
-
-    return rootTableRef;
-  }
-
-  private TableRef createChildTable(DSLContext dslContext, TableRef tableRef, String parentName,
-                                    String childName) {
-
-    TableRef childTableRef = tableRefFactory.createChild(tableRef, childName);
-    sqlInterface.getStructureInterface().createDocPartTable(dslContext, DATABASE_SCHEMA_NAME,
-        childName, childTableRef, parentName);
-
-    return childTableRef;
-  }
-
-  private void assertThatColumnExists(ResultSetMetaData metaData, String columnName)
-      throws SQLException {
-
-    boolean findMatch = false;
-
-    for (int i = 1; i <= metaData.getColumnCount(); i++) {
-      if (columnName.equals(metaData.getColumnLabel(i))) {
-        findMatch = true;
-      }
-    }
-
-    if (!findMatch) {
-      assertTrue("Column " + columnName + " should exist", false);
-    }
-  }
-
-  private void assertThatColumnIsGivenType(FieldType fieldType,
-      ResultSetMetaData metaData, String columnName, String requiredType) throws SQLException {
-
-    boolean findMatch = false;
-
-    for (int i = 1; i <= metaData.getColumnCount(); i++) {
-      if (columnName.equals(metaData.getColumnLabel(i))) {
-        findMatch = true;
-        assertEquals("Wrong type for field type " + fieldType,
-            requiredType, metaData.getColumnTypeName(i));
-      }
-    }
-
-    if (!findMatch) {
-      assertTrue("Column " + columnName + " should exist", false);
-    }
-  }
-
+  
 }

@@ -126,7 +126,7 @@ public class PostgreSqlStructureInterface extends AbstractStructureInterface {
   }
 
   @Override
-  protected String getDropIndexStatement(String schemaName, String indexName) {
+  protected String getDropIndexStatement(String schemaName, String tableName, String indexName) {
     StringBuilder sb = new StringBuilder()
         .append("DROP INDEX \"")
         .append(schemaName)

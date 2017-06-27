@@ -41,12 +41,16 @@ public class DerbyDbBackendBundle extends AbstractBackendBundle {
   @SuppressWarnings("checkstyle:JavadocMethod")
   public DerbyDbBackendBundle(DerbyDbBackendConfig config) {
     super(config);
-    Injector injector = config.getEssentialInjector().createChildInjector(
-        new DerbyBackendModule(config));
+    Injector injector = createInjector(config);
     this.lowLevelService = injector.getInstance(DbBackendService.class);
     this.backendService = injector.getInstance(BackendService.class);
     this.reservedIdGenerator = injector.getInstance(ReservedIdGenerator.class);
     this.identifierFactory = injector.getInstance(IdentifierFactory.class);
+  }
+
+  protected Injector createInjector(DerbyDbBackendConfig config) {
+    return config.getEssentialInjector().createChildInjector(
+        new DerbyBackendModule(config));
   }
 
   @Override
