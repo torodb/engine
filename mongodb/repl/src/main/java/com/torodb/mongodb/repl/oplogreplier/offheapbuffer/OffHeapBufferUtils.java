@@ -90,7 +90,7 @@ public class OffHeapBufferUtils {
       public void onReleased(int i, File file) {
         fileQueue.add(file);
         if (fileQueue.size() >= maxFiles) {
-          fileQueue.remove().delete();
+          boolean delete = fileQueue.remove().delete();
         }
       }
     };
@@ -128,11 +128,9 @@ public class OffHeapBufferUtils {
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                 throws IOException {
               //Only remove chronicle-queue files
-              if (CQ_EXT.equalsIgnoreCase(
-                  com.google.common.io.Files.getFileExtension(file.getFileName().toString()))) {
+              if (isCqFile(file)) {
                 Files.delete(file);
               }
-
               return FileVisitResult.CONTINUE;
             }
 
@@ -145,5 +143,16 @@ public class OffHeapBufferUtils {
           });
     } catch (IOException ignored) {
     }
+  }
+
+  private static boolean isCqFile(Path file) {
+
+    if (null != file && null != file.toString()) {
+      String ext = com.google.common.io.Files.getFileExtension(file.toString());
+      if (null != ext && CQ_EXT.equalsIgnoreCase(ext)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
