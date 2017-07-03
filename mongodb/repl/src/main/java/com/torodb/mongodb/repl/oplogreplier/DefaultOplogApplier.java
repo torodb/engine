@@ -24,8 +24,6 @@ import akka.actor.ActorSystem;
 import akka.dispatch.ExecutionContexts;
 import akka.japi.Pair;
 import akka.stream.ActorMaterializer;
-import akka.stream.FlowShape;
-import akka.stream.Graph;
 import akka.stream.KillSwitch;
 import akka.stream.KillSwitches;
 import akka.stream.Materializer;
@@ -35,10 +33,9 @@ import akka.stream.javadsl.Keep;
 import akka.stream.javadsl.RunnableGraph;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
+
 import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
-import com.torodb.akka.chronicle.queue.ChronicleQueueStreamFactory;
-import com.torodb.akka.chronicle.queue.Excerpt;
 import com.torodb.common.util.Empty;
 import com.torodb.core.Shutdowner;
 import com.torodb.core.concurrent.ConcurrentToolsFactory;
@@ -55,8 +52,12 @@ import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatch;
 import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatchChecker;
 import com.torodb.mongodb.repl.oplogreplier.batch.OplogBatchFilter;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.OplogFetcher;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferUtils;
 import com.torodb.mongowp.commands.oplog.OplogOperation;
+
 import org.apache.logging.log4j.Logger;
+
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
@@ -87,25 +88,35 @@ public class DefaultOplogApplier implements OplogApplier {
   private final OplogApplierMetrics metrics;
   private final OplogBatchFilter batchFilter;
   private final OplogBatchChecker batchChecker;
+  private final OffHeapBufferConfig offHeapConfig;
 
   @Inject
-  public DefaultOplogApplier(BatchLimits batchLimits, OplogManager oplogManager,
-      AnalyzedOplogBatchExecutor batchExecutor, BatchAnalyzerFactory batchAnalyzerFactory,
-      ConcurrentToolsFactory concurrentToolsFactory, Shutdowner shutdowner, LoggerFactory lf,
-      OplogApplierMetrics metrics, OplogBatchFilter batchFilter, OplogBatchChecker batchChecker) {
+  public DefaultOplogApplier(
+      BatchLimits batchLimits,
+      OplogManager oplogManager,
+      AnalyzedOplogBatchExecutor batchExecutor,
+      BatchAnalyzerFactory batchAnalyzerFactory,
+      ConcurrentToolsFactory concurrentToolsFactory,
+      Shutdowner shutdowner,
+      LoggerFactory lf,
+      OplogApplierMetrics metrics,
+      OplogBatchFilter batchFilter,
+      OplogBatchChecker batchChecker,
+      OffHeapBufferConfig offHeapConfig) {
     this.logger = lf.apply(this.getClass());
     this.batchExecutor = batchExecutor;
     this.batchLimits = batchLimits;
     this.oplogManager = oplogManager;
     this.batchAnalyzerFactory = batchAnalyzerFactory;
-    this.executorService = concurrentToolsFactory.createExecutorServiceWithMaxThreads(
-        "oplog-applier", 3);
-    this.actorSystem = ActorSystem.create("oplog-applier", null, null,
-        ExecutionContexts.fromExecutor(executorService)
-    );
+    this.executorService =
+        concurrentToolsFactory.createExecutorServiceWithMaxThreads("oplog-applier", 3);
+    this.actorSystem =
+        ActorSystem.create(
+            "oplog-applier", null, null, ExecutionContexts.fromExecutor(executorService));
     this.metrics = metrics;
     this.batchFilter = batchFilter;
     this.batchChecker = batchChecker;
+    this.offHeapConfig = offHeapConfig;
     shutdowner.addCloseShutdownListener(this);
   }
 
@@ -114,83 +125,70 @@ public class DefaultOplogApplier implements OplogApplier {
 
     Materializer materializer = ActorMaterializer.create(actorSystem);
 
-    RunnableGraph<Pair<UniqueKillSwitch, CompletionStage<Done>>> graph = createOplogSource(fetcher)
-        .async()
-        .via(createOffheapBuffer())
-        .map(Excerpt::getElement)
-        .async()
-        .map(batchFilter)
-        .map(batchChecker)
-        .via(createBatcherFlow(applierContext))
-        .viaMat(KillSwitches.single(), Keep.right())
-        .async()
-        .map(analyzedElem -> {
-          for (AnalyzedOplogBatch analyzedOplogBatch : analyzedElem.analyzedBatch) {
-            batchExecutor.apply(analyzedOplogBatch, applierContext);
-          }
-          return analyzedElem;
-        })
-        .map(this::metricExecution)
-        .toMat(
-            Sink.foreach(this::storeLastAppliedOp),
-            (killSwitch, completionStage) -> new Pair<>(killSwitch, completionStage)
-        );
+    RunnableGraph<Pair<UniqueKillSwitch, CompletionStage<Done>>> graph =
+        createOplogSource(fetcher)
+            .async()
+            .via(createOffheapBuffer(this.offHeapConfig))
+            .async()
+            .map(batchFilter)
+            .map(batchChecker)
+            .via(createBatcherFlow(applierContext))
+            .viaMat(KillSwitches.single(), Keep.right())
+            .async()
+            .map(
+                analyzedElem -> {
+                  for (AnalyzedOplogBatch analyzedOplogBatch : analyzedElem.analyzedBatch) {
+                    batchExecutor.apply(analyzedOplogBatch, applierContext);
+                  }
+                  return analyzedElem;
+                })
+            .map(this::metricExecution)
+            .toMat(
+                Sink.foreach(this::storeLastAppliedOp),
+                (killSwitch, completionStage) -> new Pair<>(killSwitch, completionStage));
 
     Pair<UniqueKillSwitch, CompletionStage<Done>> pair = graph.run(materializer);
     UniqueKillSwitch killSwitch = pair.first();
 
-    CompletableFuture<Empty> whenComplete = pair.second().toCompletableFuture()
-        .thenApply(done -> Empty.getInstance())
-        .whenComplete((done, t) -> {
-          fetcher.close();
-          if (done != null) {
-            logger.trace("Oplog replication stream finished normally");
-          } else {
-            Throwable cause;
-            if (t instanceof CompletionException) {
-              cause = t.getCause();
-            } else {
-              cause = t;
-            }
-            //the completable future has been cancelled
-            if (cause instanceof CancellationException) {
-              logger.debug("Oplog replication stream has been cancelled");
-              killSwitch.shutdown();
-            } else { //in this case the exception should came from the stream
-              cause = Throwables.getRootCause(cause);
-              logger.warn("Oplog replication stream finished exceptionally: " + cause
-                  .getLocalizedMessage(), cause);
-              //the stream should be finished exceptionally, but just in case we
-              //notify the kill switch to stop the stream.
-              killSwitch.shutdown();
-            }
-          }
-        });
+    CompletableFuture<Empty> whenComplete =
+        pair.second()
+            .toCompletableFuture()
+            .thenApply(done -> Empty.getInstance())
+            .whenComplete(
+                (done, t) -> {
+                  fetcher.close();
+                  if (done != null) {
+                    logger.trace("Oplog replication stream finished normally");
+                  } else {
+                    Throwable cause;
+                    if (t instanceof CompletionException) {
+                      cause = t.getCause();
+                    } else {
+                      cause = t;
+                    }
+                    //the completable future has been cancelled
+                    if (cause instanceof CancellationException) {
+                      logger.debug("Oplog replication stream has been cancelled");
+                      killSwitch.shutdown();
+                    } else { //in this case the exception should came from the stream
+                      cause = Throwables.getRootCause(cause);
+                      logger.warn(
+                          "Oplog replication stream finished exceptionally: "
+                              + cause.getLocalizedMessage(),
+                          cause);
+                      //the stream should be finished exceptionally, but just in case we
+                      //notify the kill switch to stop the stream.
+                      killSwitch.shutdown();
+                    }
+                  }
+                });
 
     return new DefaultApplyingJob(killSwitch, whenComplete);
   }
 
-  private static Graph<FlowShape<OplogBatch, Excerpt<OplogBatch>>, NotUsed> createOffheapBuffer() {
-    return new ChronicleQueueStreamFactory<>()
-        .withTemporalQueue()
-        .autoManaged()
-        .createBuffer(new OplogBatchMarshaller());
-  }
-
-  private static class DefaultApplyingJob extends AbstractApplyingJob {
-
-    private final KillSwitch killSwitch;
-
-    public DefaultApplyingJob(KillSwitch killSwitch,
-        CompletableFuture<Empty> onFinish) {
-      super(onFinish);
-      this.killSwitch = killSwitch;
-    }
-
-    @Override
-    public void cancel() {
-      killSwitch.shutdown();
-    }
+  private Flow<OplogBatch, OplogBatch, NotUsed> createOffheapBuffer(
+      OffHeapBufferConfig offHeapConfig) {
+    return OffHeapBufferUtils.createOffheapBuffer(offHeapConfig);
   }
 
   @Override
@@ -202,50 +200,60 @@ public class DefaultOplogApplier implements OplogApplier {
   }
 
   private Source<OplogBatch, NotUsed> createOplogSource(OplogFetcher fetcher) {
-    return Source.unfold(fetcher, f -> {
-      OplogBatch batch = f.fetch();
-      if (batch.isLastOne()) {
-        return Optional.empty();
-      }
-      return Optional.of(new Pair<>(f, batch));
-    });
+    return Source.unfold(
+        fetcher,
+        f -> {
+          OplogBatch batch = f.fetch();
+          if (batch.isLastOne()) {
+            return Optional.empty();
+          }
+          return Optional.of(new Pair<>(f, batch));
+        });
   }
 
   /**
    * Creates a flow that batches and analyze a input of {@link AnalyzedOplogBatch remote jobs}.
    *
-   * This flow tries to accummulate several remote jobs into a bigger one and does not emit until:
-   * <ul>
-   * <li>A maximum number of operations are batched</li>
-   * <li>Or a maximum time has happen since the last emit</li>
-   * <li>Or the recived job is not {@link AnalyzedOplogBatch#isReadyForMore()}</li>
-   * </ul>
+   * <p>This flow tries to accummulate several remote jobs into a bigger one and does not emit
+   * until:
    *
+   * <ul>
+   *   <li>A maximum number of operations are batched
+   *   <li>Or a maximum time has happen since the last emit
+   *   <li>Or the recived job is not {@link OplogBatch#isReadyForMore()}
+   * </ul>
    */
   private Flow<OplogBatch, AnalyzedStreamElement, NotUsed> createBatcherFlow(
       ApplierContext context) {
-    Predicate<OplogBatch> finishBatchPredicate = (OplogBatch rawBatch) -> !rawBatch
-        .isReadyForMore();
+    Predicate<OplogBatch> finishBatchPredicate =
+        (OplogBatch rawBatch) -> !rawBatch.isReadyForMore();
     ToIntFunction<OplogBatch> costFunction = (rawBatch) -> rawBatch.count();
 
     Supplier<RawStreamElement> zeroFun = () -> RawStreamElement.INITIAL_ELEMENT;
-    BiFunction<RawStreamElement, OplogBatch, RawStreamElement> acumFun = (streamElem, newBatch) ->
-        streamElem.concat(newBatch);
+    BiFunction<RawStreamElement, OplogBatch, RawStreamElement> acumFun =
+        (streamElem, newBatch) -> streamElem.concat(newBatch);
 
     BatchAnalyzer batchAnalyzer = batchAnalyzerFactory.createBatchAnalyzer(context);
     return Flow.of(OplogBatch.class)
-        .via(new BatchFlow<>(batchLimits.maxSize, batchLimits.maxPeriod,
-            finishBatchPredicate, costFunction, zeroFun, acumFun))
+        .via(
+            new BatchFlow<>(
+                batchLimits.maxSize,
+                batchLimits.maxPeriod,
+                finishBatchPredicate,
+                costFunction,
+                zeroFun,
+                acumFun))
         .filter(rawElem -> rawElem.rawBatch != null && !rawElem.rawBatch.isEmpty())
-        .map(rawElem -> {
-          List<OplogOperation> rawOps = rawElem.rawBatch.getOps();
-          List<AnalyzedOplogBatch> analyzed = batchAnalyzer.apply(rawOps);
-          return new AnalyzedStreamElement(rawElem, analyzed);
-        });
+        .map(
+            rawElem -> {
+              List<OplogOperation> rawOps = rawElem.rawBatch.getOps();
+              List<AnalyzedOplogBatch> analyzed = batchAnalyzer.apply(rawOps);
+              return new AnalyzedStreamElement(rawElem, analyzed);
+            });
   }
 
-  private AnalyzedStreamElement storeLastAppliedOp(AnalyzedStreamElement streamElement) throws
-      OplogManagerPersistException {
+  private AnalyzedStreamElement storeLastAppliedOp(AnalyzedStreamElement streamElement)
+      throws OplogManagerPersistException {
     assert !streamElement.rawBatch.isEmpty();
     OplogOperation lastOp = streamElement.rawBatch.getLastOperation();
     try (WriteOplogTransaction writeTrans = oplogManager.createWriteTransaction()) {
@@ -276,6 +284,21 @@ public class DefaultOplogApplier implements OplogApplier {
     }
     metrics.getMaxDelay().update(batchExecutionMillis);
     metrics.getApplicationCost().update((1000L * batchExecutionMillis) / rawBatchSize);
+  }
+
+  private static class DefaultApplyingJob extends AbstractApplyingJob {
+
+    private final KillSwitch killSwitch;
+
+    public DefaultApplyingJob(KillSwitch killSwitch, CompletableFuture<Empty> onFinish) {
+      super(onFinish);
+      this.killSwitch = killSwitch;
+    }
+
+    @Override
+    public void cancel() {
+      killSwitch.shutdown();
+    }
   }
 
   public static class BatchLimits {
@@ -328,13 +351,11 @@ public class DefaultOplogApplier implements OplogApplier {
     private final long startFetchTimestamp;
     private final List<AnalyzedOplogBatch> analyzedBatch;
 
-    AnalyzedStreamElement(RawStreamElement rawStreamElement,
-        List<AnalyzedOplogBatch> analyzedBatches) {
+    AnalyzedStreamElement(
+        RawStreamElement rawStreamElement, List<AnalyzedOplogBatch> analyzedBatches) {
       this.rawBatch = rawStreamElement.rawBatch;
       this.startFetchTimestamp = rawStreamElement.startFetchTimestamp;
       this.analyzedBatch = analyzedBatches;
     }
-
   }
-
 }
