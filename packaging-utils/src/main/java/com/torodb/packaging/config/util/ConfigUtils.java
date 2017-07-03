@@ -40,6 +40,9 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.base.Charsets;
 import com.torodb.packaging.config.model.backend.BackendPasswordConfig;
 import com.torodb.packaging.config.model.protocol.mongo.MongoPasswordConfig;
+
+import org.apache.logging.log4j.Logger;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -54,12 +57,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
+
 import javax.validation.ConstraintViolation;
 import javax.validation.Path;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import org.apache.logging.log4j.Logger;
 
 public class ConfigUtils {
 
@@ -146,7 +149,8 @@ public class ConfigUtils {
   private static IllegalArgumentException transformJsonMappingException(JsonPointer jsonPointer,
       PropertyBindingException jsonMappingException) {
     return transformJsonMappingException(jsonPointer, "Unrecognized field " + jsonMappingException
-            .getPropertyName() + " (known fields: " + jsonMappingException.getKnownPropertyIds() + ")",
+            .getPropertyName() + " (known fields: "
+            + jsonMappingException.getKnownPropertyIds() + ")",
         jsonMappingException);
   }
 
