@@ -29,8 +29,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * A {@link TorodBundle torod bundle} that uses a memory backend, intended to be used on
- * testing.
+ * A {@link com.torodb.torod.TorodBundle torod bundle} that uses a memory backend, intended to be
+ * used on testing.
  */
 public class MemoryTorodBundle extends AbstractTorodBundle {
 
@@ -38,10 +38,9 @@ public class MemoryTorodBundle extends AbstractTorodBundle {
 
   public MemoryTorodBundle(BundleConfig config) {
     super(config);
-    Injector injector = config.getEssentialInjector().createChildInjector(
-        new MemoryTorodModule(),
-        new ConcurrentTorodModule()
-    );
+    Injector injector = config
+            .getEssentialInjector()
+            .createChildInjector(new MemoryTorodModule(), new ConcurrentTorodModule());
     this.torodServer = injector.getInstance(TorodServer.class);
   }
 

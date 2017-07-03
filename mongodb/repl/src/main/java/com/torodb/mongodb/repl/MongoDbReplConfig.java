@@ -27,7 +27,7 @@ import com.torodb.core.metrics.ToroMetricRegistry;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
-import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
 import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 
 import java.util.Optional;
@@ -47,7 +47,7 @@ public class MongoDbReplConfig implements BundleConfig {
   private final Optional<ToroMetricRegistry> metricRegistry;
   private final LoggerFactory loggerFactory;
   private final BundleConfig generalConfig;
-  private final BufferOffHeapConfig bufferOffHeapConfig;
+  private final OffHeapBufferConfig offHeapBufferConfig;
 
   public MongoDbReplConfig(MongoDbCoreBundle coreBundle, ImmutableList<HostAndPort> seeds,
       MongoClientConfigurationProperties mongoClientConfigurationProperties,
@@ -55,7 +55,7 @@ public class MongoDbReplConfig implements BundleConfig {
       String replSetName, ConsistencyHandler consistencyHandler, 
       Optional<ToroMetricRegistry> metricRegistry,
       LoggerFactory loggerFactory, BundleConfig generalConfig,
-      BufferOffHeapConfig bufferOffHeapConfig) {
+      OffHeapBufferConfig offHeapBufferConfig) {
     this.coreBundle = coreBundle;
     this.seeds = seeds;
     this.mongoClientConfigurationProperties = mongoClientConfigurationProperties;
@@ -65,7 +65,7 @@ public class MongoDbReplConfig implements BundleConfig {
     this.metricRegistry = metricRegistry;
     this.loggerFactory = loggerFactory;
     this.generalConfig = generalConfig;
-    this.bufferOffHeapConfig = bufferOffHeapConfig;
+    this.offHeapBufferConfig = offHeapBufferConfig;
   }
 
   public MongoDbCoreBundle getMongoDbCoreBundle() {
@@ -115,8 +115,8 @@ public class MongoDbReplConfig implements BundleConfig {
     return generalConfig.getSupervisor();
   }
 
-  public BufferOffHeapConfig getBufferOffHeapConfig() {
-    return bufferOffHeapConfig;
+  public OffHeapBufferConfig getOffHeapBufferConfig() {
+    return offHeapBufferConfig;
   }
 
 }

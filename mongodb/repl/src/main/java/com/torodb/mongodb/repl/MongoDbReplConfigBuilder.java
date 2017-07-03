@@ -26,7 +26,7 @@ import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.metrics.ToroMetricRegistry;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
-import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
 import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 
 import java.util.Optional;
@@ -42,7 +42,7 @@ public class MongoDbReplConfigBuilder {
   private ConsistencyHandler consistencyHandler;
   private Optional<ToroMetricRegistry> metricRegistry;
   private LoggerFactory loggerFactory;
-  private BufferOffHeapConfig bufferOffHeapConfig;
+  private OffHeapBufferConfig offHeapBufferConfig;
 
   public MongoDbReplConfigBuilder(BundleConfig generalConfig) {
     this.generalConfig = generalConfig;
@@ -89,9 +89,9 @@ public class MongoDbReplConfigBuilder {
     return this;
   }
 
-  public MongoDbReplConfigBuilder setBufferOffHeapConfig(
-      BufferOffHeapConfig bufferOffHeapConfig) {
-    this.bufferOffHeapConfig = bufferOffHeapConfig;
+  public MongoDbReplConfigBuilder setOffHeapBufferConfig(
+      OffHeapBufferConfig offHeapBufferConfig) {
+    this.offHeapBufferConfig = offHeapBufferConfig;
     return this;
   }
 
@@ -106,12 +106,12 @@ public class MongoDbReplConfigBuilder {
     Preconditions.checkNotNull(generalConfig, "general config must be not null");
     Preconditions.checkNotNull(metricRegistry, "metric registry must be not null");
     Preconditions.checkNotNull(loggerFactory, "logger factory must be not null");
-    Preconditions.checkNotNull(bufferOffHeapConfig, "buffer offheap config must be not null");
+    Preconditions.checkNotNull(offHeapBufferConfig, "off heap buffer config must be not null");
 
     return new MongoDbReplConfig(coreBundle, seeds,
         mongoClientConfigurationProperties, replicationFilters,
         replSetName, consistencyHandler, metricRegistry, loggerFactory, generalConfig,
-        bufferOffHeapConfig);
+        offHeapBufferConfig);
   }
 
 }

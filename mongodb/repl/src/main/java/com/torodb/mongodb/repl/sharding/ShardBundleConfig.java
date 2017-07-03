@@ -26,7 +26,7 @@ import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.ConsistencyHandler;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
-import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
 import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 import com.torodb.torod.TorodBundle;
 
@@ -40,14 +40,14 @@ public class ShardBundleConfig extends BundleConfigImpl {
   private final ReplicationFilters userReplFilter;
   private final ConsistencyHandler consistencyHandler;
   private final LoggerFactory lifecycleLoggingFactory;
-  private final BufferOffHeapConfig bufferOffHeapConfig;
+  private final OffHeapBufferConfig offHeapBufferConfig;
 
   public ShardBundleConfig(String shardId, TorodBundle torodBundle,
       ImmutableList<HostAndPort> seeds,
       MongoClientConfigurationProperties clientConfigProperties,
       String replSetName, ReplicationFilters userReplFilter,
       ConsistencyHandler consistencyHandler, LoggerFactory lifecycleLoggingFactory,
-      Injector essentialInjector, Supervisor supervisor, BufferOffHeapConfig bufferOffHeapConfig) {
+      Injector essentialInjector, Supervisor supervisor, OffHeapBufferConfig offHeapBufferConfig) {
     super(essentialInjector, supervisor);
     this.shardId = shardId;
     this.torodBundle = torodBundle;
@@ -57,7 +57,7 @@ public class ShardBundleConfig extends BundleConfigImpl {
     this.userReplFilter = userReplFilter;
     this.consistencyHandler = consistencyHandler;
     this.lifecycleLoggingFactory = lifecycleLoggingFactory;
-    this.bufferOffHeapConfig = bufferOffHeapConfig;
+    this.offHeapBufferConfig = offHeapBufferConfig;
   }
 
   public String getShardId() {
@@ -92,7 +92,7 @@ public class ShardBundleConfig extends BundleConfigImpl {
     return lifecycleLoggingFactory;
   }
 
-  public BufferOffHeapConfig getBufferOffHeapConfig() {
-    return bufferOffHeapConfig;
+  public OffHeapBufferConfig getOffHeapBufferConfig() {
+    return offHeapBufferConfig;
   }
 }

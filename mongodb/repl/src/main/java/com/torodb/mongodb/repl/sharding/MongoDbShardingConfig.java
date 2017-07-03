@@ -27,7 +27,7 @@ import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.ConsistencyHandler;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
-import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
 import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 import com.torodb.torod.TorodBundle;
 
@@ -43,30 +43,30 @@ public class MongoDbShardingConfig implements BundleConfig {
   private final ReplicationFilters userReplFilter;
   private final BundleConfig generalConfig;
   private final LoggerFactory lifecycleLoggingFactory;
-  private final BufferOffHeapConfig bufferOffHeapConfig;
+  private final OffHeapBufferConfig offHeapBufferConfig;
 
   public MongoDbShardingConfig(TorodBundle torodBundle, ShardConfig singleShard,
       ReplicationFilters userReplFilter, LoggerFactory lifecycleLoggingFactory,
-      BundleConfig generalConfig, BufferOffHeapConfig bufferOffHeapConfig) {
+      BundleConfig generalConfig, OffHeapBufferConfig offHeapBufferConfig) {
     this.torodBundle = torodBundle;
     this.shardConfigs = Collections.singletonList(singleShard);
     this.userReplFilter = userReplFilter;
     this.generalConfig = generalConfig;
     this.lifecycleLoggingFactory = lifecycleLoggingFactory;
     this.unsharded = true;
-    this.bufferOffHeapConfig = bufferOffHeapConfig;
+    this.offHeapBufferConfig = offHeapBufferConfig;
   }
 
   MongoDbShardingConfig(TorodBundle torodBundle, List<ShardConfig> shardConfigs,
       ReplicationFilters userReplFilter, LoggerFactory lifecycleLoggingFactory,
-      BundleConfig generalConfig, BufferOffHeapConfig bufferOffHeapConfig) {
+      BundleConfig generalConfig, OffHeapBufferConfig offHeapBufferConfig) {
     this.torodBundle = torodBundle;
     this.shardConfigs = shardConfigs;
     this.userReplFilter = userReplFilter;
     this.lifecycleLoggingFactory = lifecycleLoggingFactory;
     this.generalConfig = generalConfig;
     this.unsharded = false;
-    this.bufferOffHeapConfig = bufferOffHeapConfig;
+    this.offHeapBufferConfig = offHeapBufferConfig;
   }
 
   public TorodBundle getTorodBundle() {
@@ -77,8 +77,8 @@ public class MongoDbShardingConfig implements BundleConfig {
     return unsharded;
   }
 
-  public BufferOffHeapConfig getBufferOffHeapConfig() {
-    return bufferOffHeapConfig;
+  public OffHeapBufferConfig getOffHeapBufferConfig() {
+    return offHeapBufferConfig;
   }
 
   @DoNotChange

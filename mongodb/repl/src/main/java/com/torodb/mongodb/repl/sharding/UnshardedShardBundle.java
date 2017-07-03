@@ -88,7 +88,7 @@ public class UnshardedShardBundle extends ShardBundle {
         .setReplicationFilters(config.getUserReplFilter())
         .setMetricRegistry(Optional.empty())
         .setLoggerFactory(new ComponentLoggerFactory("REPL"))
-        .setBufferOffHeapConfig(config.getBufferOffHeapConfig())
+        .setOffHeapBufferConfig(config.getOffHeapBufferConfig())
         .build();
   }
 

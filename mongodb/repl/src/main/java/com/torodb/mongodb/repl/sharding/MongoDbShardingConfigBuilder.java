@@ -24,15 +24,16 @@ import com.torodb.core.bundle.BundleConfigImpl;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
-import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
 import com.torodb.mongodb.repl.sharding.MongoDbShardingConfig.ShardConfig;
 import com.torodb.torod.TorodBundle;
+
 import java.util.Objects;
 
 public abstract class MongoDbShardingConfigBuilder {
 
   private final BundleConfig generalConfig;
-  private BufferOffHeapConfig bufferOffHeapConfig;
+  private OffHeapBufferConfig offHeapBufferConfig;
   private TorodBundle torodBundle;
   private ReplicationFilters userReplFilter;
   private LoggerFactory lifecycleLoggerFactory;
@@ -69,9 +70,9 @@ public abstract class MongoDbShardingConfigBuilder {
     return this;
   }
 
-  public MongoDbShardingConfigBuilder setBufferOffHeapConfig(
-      BufferOffHeapConfig bufferOffHeapConfig) {
-    this.bufferOffHeapConfig = bufferOffHeapConfig;
+  public MongoDbShardingConfigBuilder setOffHeapBufferConfig(
+      OffHeapBufferConfig offHeapBufferConfig) {
+    this.offHeapBufferConfig = offHeapBufferConfig;
     return this;
   }
 
@@ -81,16 +82,16 @@ public abstract class MongoDbShardingConfigBuilder {
       ReplicationFilters userReplFilter,
       LoggerFactory lifecycleLoggerFactory,
       BundleConfig generalConfig,
-      BufferOffHeapConfig bufferOffHeapConfig);
+      OffHeapBufferConfig offHeapBufferConfig);
 
   public MongoDbShardingConfig build() {
     Objects.requireNonNull(torodBundle, "The torod bundle must be not null");
     Objects.requireNonNull(userReplFilter, "The user filter must be not null");
     Objects.requireNonNull(lifecycleLoggerFactory, "The lifecycle logger factory must be not null");
-    Objects.requireNonNull(bufferOffHeapConfig, "The buffer OffHeap config must be not null");
+    Objects.requireNonNull(offHeapBufferConfig, "The Off Heap Buffer config must be not null");
 
     return build(torodBundle, userReplFilter, lifecycleLoggerFactory, generalConfig,
-        bufferOffHeapConfig);
+        offHeapBufferConfig);
   }
 
 }

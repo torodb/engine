@@ -26,7 +26,7 @@ import com.torodb.mongodb.repl.ReplCoreBundle;
 import com.torodb.mongodb.repl.commands.ReplCommandExecutor;
 import com.torodb.mongodb.repl.commands.ReplCommandLibrary;
 import com.torodb.mongodb.repl.guice.ReplEssentialOverrideModule;
-import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
 
 public class DefaultOplogApplierBundleConfig implements BundleConfig {
 
@@ -36,19 +36,19 @@ public class DefaultOplogApplierBundleConfig implements BundleConfig {
   private final ReplCommandExecutor replCommandsExecutor;
   private final ReplEssentialOverrideModule essentialOverrideModule;
   private final BundleConfig delegate;
-  private final BufferOffHeapConfig bufferOffHeapConfig;
+  private final OffHeapBufferConfig offHeapBufferConfig;
 
   public DefaultOplogApplierBundleConfig(ReplCoreBundle replCoreBundle,
       MongoDbCoreBundle mongoDbCorebundle, ReplCommandLibrary replCommandsLibrary,
       ReplCommandExecutor replCommandsExecutor, ReplEssentialOverrideModule essentialOverrideModule,
-      BundleConfig delegate, BufferOffHeapConfig bufferOffHeapConfig) {
+      BundleConfig delegate, OffHeapBufferConfig offHeapBufferConfig) {
     this.replCoreBundle = replCoreBundle;
     this.mongoDbCorebundle = mongoDbCorebundle;
     this.replCommandsLibrary = replCommandsLibrary;
     this.replCommandsExecutor = replCommandsExecutor;
     this.essentialOverrideModule = essentialOverrideModule;
     this.delegate = delegate;
-    this.bufferOffHeapConfig = bufferOffHeapConfig;
+    this.offHeapBufferConfig = offHeapBufferConfig;
   }
 
   public ReplCoreBundle getReplCoreBundle() {
@@ -71,8 +71,8 @@ public class DefaultOplogApplierBundleConfig implements BundleConfig {
     return essentialOverrideModule;
   }
 
-  public BufferOffHeapConfig getBufferOffHeapConfig() {
-    return bufferOffHeapConfig;
+  public OffHeapBufferConfig getOffHeapBufferConfig() {
+    return offHeapBufferConfig;
   }
 
   @Override

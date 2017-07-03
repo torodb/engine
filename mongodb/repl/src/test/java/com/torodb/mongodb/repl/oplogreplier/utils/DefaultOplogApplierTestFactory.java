@@ -31,8 +31,8 @@ import com.torodb.mongodb.repl.guice.ReplEssentialOverrideModule;
 import com.torodb.mongodb.repl.oplogreplier.DefaultOplogApplier;
 import com.torodb.mongodb.repl.oplogreplier.DefaultOplogApplierBundle;
 import com.torodb.mongodb.repl.oplogreplier.DefaultOplogApplierBundleConfig;
-import com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig;
-import com.torodb.mongodb.repl.oplogreplier.config.BufferRollCycle;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.BufferRollCycle;
 
 /**
  * A utility class used to creates instances of {@link DefaultOplogApplier} configured to be run on
@@ -48,7 +48,7 @@ public class DefaultOplogApplierTestFactory {
    */
   public static DefaultOplogApplierBundle createBundle(BundleConfig generalConfig,
       ReplCoreBundle replCoreBundle, MongoDbCoreBundle mongoDbCoreBundle,
-      ToroDbReplicationFilters replFilters, BufferOffHeapConfig bufferOffHeapConfig) {
+      ToroDbReplicationFilters replFilters, OffHeapBufferConfig offHeapBufferConfig) {
 
     ReplEssentialOverrideModule essentialOverrideModule = new TestReplEssentialOverrideModule(
         generalConfig.getEssentialInjector()
@@ -66,14 +66,14 @@ public class DefaultOplogApplierTestFactory {
         testReplCommandsUtil.getReplCommandsLibrary(),
         testReplCommandsUtil.getReplCommandsExecutor(),
         essentialOverrideModule,
-        generalConfig, bufferOffHeapConfig)
+        generalConfig, offHeapBufferConfig)
     );
   }
 
   /**
    * Like {@link #createBundle(com.torodb.core.bundle.BundleConfig, com.torodb.mongodb.repl.ReplCoreBundle,
    * com.torodb.mongodb.core.MongoDbCoreBundle, com.torodb.mongodb.repl.filters.ToroDbReplicationFilters,
-   * com.torodb.mongodb.repl.oplogreplier.config.BufferOffHeapConfig)}, but uses a replication
+   * OffHeapBufferConfig)}, but uses a replication
    * filter that ignores the database called <em>ignoredDb</em> and all collections called
    * <em>ignoredCol</em>
    */
@@ -84,7 +84,7 @@ public class DefaultOplogApplierTestFactory {
         replCoreBundle,
         mongoDbCoreBundle,
         createTestReplicationFilters(),
-        createTestBufferOffHeapConfig()
+        createTestOffHeapBufferConfig()
     );
   }
 
@@ -108,8 +108,8 @@ public class DefaultOplogApplierTestFactory {
     return new ToroDbReplicationFilters(userFilters);
   }
 
-  private static BufferOffHeapConfig createTestBufferOffHeapConfig() {
-    BufferOffHeapConfig offHeapConfig = new BufferOffHeapConfig() {
+  private static OffHeapBufferConfig createTestOffHeapBufferConfig() {
+    OffHeapBufferConfig offHeapConfig = new OffHeapBufferConfig() {
       @Override
       public Boolean getEnabled() {
         return true;
@@ -117,12 +117,12 @@ public class DefaultOplogApplierTestFactory {
 
       @Override
       public String getPath() {
-        return "/tmp/";
+        return "";
       }
 
       @Override
-      public int getMaxSize() {
-        return 10024;
+      public int getMaxFiles() {
+        return 10;
       }
 
       @Override

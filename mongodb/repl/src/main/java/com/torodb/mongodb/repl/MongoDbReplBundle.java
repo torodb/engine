@@ -209,7 +209,7 @@ public class MongoDbReplBundle extends AbstractBundle<MongoDbReplExtInt> {
         replCommandsBuilder.getReplCommandsExecutor(),
         essentialOverrideModule,
         replBundleConfig,
-        config.getBufferOffHeapConfig()
+        config.getOffHeapBufferConfig()
     );
   }
 
