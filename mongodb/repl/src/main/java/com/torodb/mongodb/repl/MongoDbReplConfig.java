@@ -27,6 +27,7 @@ import com.torodb.core.metrics.ToroMetricRegistry;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
 import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 
 import java.util.Optional;
@@ -36,6 +37,7 @@ import java.util.concurrent.ThreadFactory;
  * The configuration used by {@link MongoDbReplBundle}.
  */
 public class MongoDbReplConfig implements BundleConfig {
+
   private final MongoDbCoreBundle coreBundle;
   private final ImmutableList<HostAndPort> seeds;
   private final MongoClientConfigurationProperties mongoClientConfigurationProperties;
@@ -45,13 +47,15 @@ public class MongoDbReplConfig implements BundleConfig {
   private final Optional<ToroMetricRegistry> metricRegistry;
   private final LoggerFactory loggerFactory;
   private final BundleConfig generalConfig;
+  private final OffHeapBufferConfig offHeapBufferConfig;
 
   public MongoDbReplConfig(MongoDbCoreBundle coreBundle, ImmutableList<HostAndPort> seeds,
-      MongoClientConfigurationProperties mongoClientConfigurationProperties, 
+      MongoClientConfigurationProperties mongoClientConfigurationProperties,
       ReplicationFilters userReplFilter,
       String replSetName, ConsistencyHandler consistencyHandler, 
       Optional<ToroMetricRegistry> metricRegistry,
-      LoggerFactory loggerFactory, BundleConfig generalConfig) {
+      LoggerFactory loggerFactory, BundleConfig generalConfig,
+      OffHeapBufferConfig offHeapBufferConfig) {
     this.coreBundle = coreBundle;
     this.seeds = seeds;
     this.mongoClientConfigurationProperties = mongoClientConfigurationProperties;
@@ -61,6 +65,7 @@ public class MongoDbReplConfig implements BundleConfig {
     this.metricRegistry = metricRegistry;
     this.loggerFactory = loggerFactory;
     this.generalConfig = generalConfig;
+    this.offHeapBufferConfig = offHeapBufferConfig;
   }
 
   public MongoDbCoreBundle getMongoDbCoreBundle() {
@@ -109,4 +114,9 @@ public class MongoDbReplConfig implements BundleConfig {
   public Supervisor getSupervisor() {
     return generalConfig.getSupervisor();
   }
+
+  public OffHeapBufferConfig getOffHeapBufferConfig() {
+    return offHeapBufferConfig;
+  }
+
 }

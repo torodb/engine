@@ -121,7 +121,8 @@ public class MongoDbShardingBundle extends AbstractBundle<MongoDbShardingExtInt>
         shardConfig.getConsistencyHandler(),
         generalConf.getLifecycleLoggingFactory(),
         generalConf.getEssentialInjector(),
-        generalConf.getSupervisor()
+        generalConf.getSupervisor(),
+        generalConf.getOffHeapBufferConfig()
     );
 
   }
