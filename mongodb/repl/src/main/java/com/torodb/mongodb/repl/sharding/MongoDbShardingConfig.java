@@ -27,6 +27,7 @@ import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.ConsistencyHandler;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
 import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 import com.torodb.torod.TorodBundle;
 
@@ -34,7 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class MongoDbShardingConfig implements BundleConfig  {
+public class MongoDbShardingConfig implements BundleConfig {
 
   private final TorodBundle torodBundle;
   private final boolean unsharded;
@@ -42,27 +43,30 @@ public class MongoDbShardingConfig implements BundleConfig  {
   private final ReplicationFilters userReplFilter;
   private final BundleConfig generalConfig;
   private final LoggerFactory lifecycleLoggingFactory;
+  private final OffHeapBufferConfig offHeapBufferConfig;
 
   public MongoDbShardingConfig(TorodBundle torodBundle, ShardConfig singleShard,
       ReplicationFilters userReplFilter, LoggerFactory lifecycleLoggingFactory,
-      BundleConfig generalConfig) {
+      BundleConfig generalConfig, OffHeapBufferConfig offHeapBufferConfig) {
     this.torodBundle = torodBundle;
     this.shardConfigs = Collections.singletonList(singleShard);
     this.userReplFilter = userReplFilter;
     this.generalConfig = generalConfig;
     this.lifecycleLoggingFactory = lifecycleLoggingFactory;
     this.unsharded = true;
+    this.offHeapBufferConfig = offHeapBufferConfig;
   }
 
   MongoDbShardingConfig(TorodBundle torodBundle, List<ShardConfig> shardConfigs,
       ReplicationFilters userReplFilter, LoggerFactory lifecycleLoggingFactory,
-      BundleConfig generalConfig) {
+      BundleConfig generalConfig, OffHeapBufferConfig offHeapBufferConfig) {
     this.torodBundle = torodBundle;
     this.shardConfigs = shardConfigs;
     this.userReplFilter = userReplFilter;
     this.lifecycleLoggingFactory = lifecycleLoggingFactory;
     this.generalConfig = generalConfig;
     this.unsharded = false;
+    this.offHeapBufferConfig = offHeapBufferConfig;
   }
 
   public TorodBundle getTorodBundle() {
@@ -71,6 +75,10 @@ public class MongoDbShardingConfig implements BundleConfig  {
 
   public boolean isUnsharded() {
     return unsharded;
+  }
+
+  public OffHeapBufferConfig getOffHeapBufferConfig() {
+    return offHeapBufferConfig;
   }
 
   @DoNotChange
@@ -97,6 +105,7 @@ public class MongoDbShardingConfig implements BundleConfig  {
   }
 
   public static class ShardConfig {
+
     private final String shardId;
     private final ImmutableList<HostAndPort> seeds;
     private final MongoClientConfigurationProperties clientConfigProperties;
@@ -120,7 +129,7 @@ public class MongoDbShardingConfig implements BundleConfig  {
     public ImmutableList<HostAndPort> getSeeds() {
       return seeds;
     }
-    
+
     public MongoClientConfigurationProperties getClientConfigProperties() {
       return clientConfigProperties;
     }
@@ -158,5 +167,5 @@ public class MongoDbShardingConfig implements BundleConfig  {
       return true;
     }
   }
- 
+
 }

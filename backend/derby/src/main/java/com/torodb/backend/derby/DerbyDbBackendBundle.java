@@ -29,7 +29,7 @@ import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.d2r.ReservedIdGenerator;
 
 /**
- * A {@link BackendBundle} that uses DerbyDB.
+ * A {@link com.torodb.core.backend.BackendBundle} that uses DerbyDB.
  */
 public class DerbyDbBackendBundle extends AbstractBackendBundle {
 

@@ -40,6 +40,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.base.Charsets;
 import com.torodb.packaging.config.model.backend.BackendPasswordConfig;
 import com.torodb.packaging.config.model.protocol.mongo.MongoPasswordConfig;
+
 import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
@@ -51,6 +52,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -70,6 +72,16 @@ public class ConfigUtils {
 
   public static final String getUserHomeFilePath(String file) {
     return getUserHomePath() + File.separatorChar + file;
+  }
+
+  public static final String getDefaultTempPath() {
+    String path;
+    try {
+      path = Files.createTempDirectory("torodb-stampede").toString();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+    return path;
   }
 
   public static ObjectMapper mapper(boolean excludeDefaults) {
@@ -137,7 +149,8 @@ public class ConfigUtils {
   private static IllegalArgumentException transformJsonMappingException(JsonPointer jsonPointer,
       PropertyBindingException jsonMappingException) {
     return transformJsonMappingException(jsonPointer, "Unrecognized field " + jsonMappingException
-        .getPropertyName() + " (known fields: " + jsonMappingException.getKnownPropertyIds() + ")",
+            .getPropertyName() + " (known fields: "
+            + jsonMappingException.getKnownPropertyIds() + ")",
         jsonMappingException);
   }
 
@@ -188,7 +201,7 @@ public class ConfigUtils {
     ));
   }
 
-  public static void parseMongopassFile(final MongoPasswordConfig mongoPasswordConfig, 
+  public static void parseMongopassFile(final MongoPasswordConfig mongoPasswordConfig,
       Logger logger) throws FileNotFoundException, IOException {
     mongoPasswordConfig.setPassword(getPasswordFromPassFile(
         mongoPasswordConfig.getMongopassFile(),
