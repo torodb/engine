@@ -24,17 +24,10 @@
             "o": {
                 "ns": "test.test2",
                 "key": {
-                    "a": 1
+                    "a": 1,
+                    "b": 1
                 },
-                "name": "a_1"
-            }
-        },
-        {
-            "op": "c",
-            "ns": "test.$cmd",
-            "o": {
-                "deleteIndexes": "test2",
-                "index": "a_1"
+                "name": "a_1_b_1"
             }
         }
     ]
