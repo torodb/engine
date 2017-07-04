@@ -60,6 +60,12 @@ public class ShardBundleConfig extends BundleConfigImpl {
     this.offHeapBufferConfig = offHeapBufferConfig;
   }
 
+  /**
+   * The id of the shard that is going to be replicated.
+   *
+   * Two {@link ShardBundle} can be running concurrently on the same backend if they compatible
+   * between them and their shard id is different.
+   */
   public String getShardId() {
     return shardId;
   }
