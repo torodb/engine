@@ -18,9 +18,6 @@
 
 package com.torodb.mongodb.repl.commands.impl;
 
-import com.torodb.core.exceptions.user.UnsupportedCompoundIndexException;
-import com.torodb.core.exceptions.user.UnsupportedUniqueIndexException;
-import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.language.AttributeReference;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.transaction.metainf.FieldIndexOrdering;
@@ -39,6 +36,9 @@ import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.torod.IndexFieldInfo;
 import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.exception.UnexistentCollectionException;
+import com.torodb.torod.exception.UnexistentDatabaseException;
+import com.torodb.torod.exception.UnsupportedIndexException;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -154,14 +154,9 @@ public class CreateIndexesReplImpl
               fields, indexOptions.isUnique())) {
             indexesAfter++;
           }
-        } catch (UnsupportedCompoundIndexException ex) {
+        } catch (UnsupportedIndexException ex) {
           String note =
-              "Compound indexes are not supported. Skipping index.";
-          logger.info(note);
-          continue;
-        } catch (UnsupportedUniqueIndexException ex) {
-          String note =
-              "Unique index with keys on distinct subdocuments is not supported. Skipping index.";
+              "Index is not supported. Skipping index.";
           logger.info(note);
           continue;
         }
@@ -175,7 +170,7 @@ public class CreateIndexesReplImpl
 
       return Status.ok(new CreateIndexesResult(indexesBefore, indexesAfter, note,
           createdCollectionAutomatically));
-    } catch (UserException ex) {
+    } catch (UnexistentCollectionException | UnexistentDatabaseException ex) {
       return Status.from(ErrorCode.COMMAND_FAILED, ex.getLocalizedMessage());
     }
   }

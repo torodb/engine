@@ -32,6 +32,7 @@ import com.torodb.torod.SchemaOperationExecutor;
 import com.torodb.torod.exception.AlreadyExistentCollectionException;
 import com.torodb.torod.exception.UnexistentCollectionException;
 import com.torodb.torod.exception.UnexistentDatabaseException;
+import com.torodb.torod.exception.UnsupportedIndexException;
 import com.torodb.torod.exception.UserSchemaException;
 import org.apache.logging.log4j.Logger;
 
@@ -71,7 +72,7 @@ class MongoSchemaOperationExecutor implements SchemaOperationExecutor {
 
     try {
       delegate.createIndex(dbName, colName, DefaultIdUtils.ID_INDEX, INDEXED_FIELD, true);
-    } catch (UserException ex) {
+    } catch (UnsupportedIndexException ex) {
       supervisor.onError(this, ex);
     } catch (UnexistentCollectionException | UnexistentDatabaseException ex) {
       logger.debug("Trying to create the default _id index on unexistent namespace", ex);
@@ -131,7 +132,7 @@ class MongoSchemaOperationExecutor implements SchemaOperationExecutor {
   @Override
   public boolean createIndex(String dbName, String colName, String indexName,
       List<IndexFieldInfo> fields, boolean unique) throws UnexistentDatabaseException,
-      UnexistentCollectionException, UserException {
+      UnexistentCollectionException, UnsupportedIndexException {
     return delegate.createIndex(dbName, colName, indexName, fields, unique);
   }
 
