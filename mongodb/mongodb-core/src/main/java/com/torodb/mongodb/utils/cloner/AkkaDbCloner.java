@@ -123,8 +123,8 @@ import java.util.function.Function;
 @Beta
 public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
 
-  private static final FieldIndexOrderingConverterIndexTypeVisitor fieldIndexOrderingConverterVisitor =
-      new FieldIndexOrderingConverterIndexTypeVisitor();
+  private static final FieldIndexOrderingConverterVisitor fieldIndexOrderingConverterVisitor =
+      new FieldIndexOrderingConverterVisitor();
   
   private final Logger logger;
   /**
@@ -742,7 +742,7 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
 
   }
 
-  private static class FieldIndexOrderingConverterIndexTypeVisitor
+  private static class FieldIndexOrderingConverterVisitor
       extends DefaultIndexTypeVisitor<Void, Optional<FieldIndexOrdering>> {
 
     @Override

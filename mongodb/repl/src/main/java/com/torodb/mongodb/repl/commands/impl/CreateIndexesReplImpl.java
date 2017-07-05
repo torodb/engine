@@ -51,9 +51,8 @@ import javax.inject.Inject;
 public class CreateIndexesReplImpl
     extends ReplCommandImpl<CreateIndexesArgument, CreateIndexesResult> {
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private static final FieldIndexOrderingConverterIndexTypeVisitor fieldIndexOrderingConverterVisitor =
-      new FieldIndexOrderingConverterIndexTypeVisitor();
+  private static final FieldIndexOrderingConverterVisitor fieldIndexOrderingConverterVisitor =
+      new FieldIndexOrderingConverterVisitor();
   private final Logger logger;
   private final CommandFilterUtil filterUtil;
   private final IndexFilter indexFilter;
@@ -175,7 +174,7 @@ public class CreateIndexesReplImpl
     }
   }
 
-  private static class FieldIndexOrderingConverterIndexTypeVisitor
+  private static class FieldIndexOrderingConverterVisitor
       extends DefaultIndexTypeVisitor<Void, Optional<FieldIndexOrdering>> {
 
     @Override
