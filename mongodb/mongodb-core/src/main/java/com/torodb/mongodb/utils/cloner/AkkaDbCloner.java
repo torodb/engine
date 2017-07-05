@@ -42,6 +42,7 @@ import com.torodb.common.util.RetryHelper.ExceptionHandler;
 import com.torodb.core.concurrent.ActorSystemTorodbService;
 import com.torodb.core.concurrent.ConcurrentToolsFactory;
 import com.torodb.core.exceptions.user.UserException;
+import com.torodb.core.language.AttributeReference;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.retrier.Retrier;
@@ -49,9 +50,15 @@ import com.torodb.core.retrier.Retrier.Hint;
 import com.torodb.core.retrier.RetrierAbortException;
 import com.torodb.core.retrier.RetrierGiveUpException;
 import com.torodb.core.transaction.RollbackException;
+import com.torodb.core.transaction.metainf.FieldIndexOrdering;
 import com.torodb.mongodb.commands.pojos.CollectionOptions;
 import com.torodb.mongodb.commands.pojos.CursorResult;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions;
+import com.torodb.mongodb.commands.pojos.index.IndexOptions.KnownType;
+import com.torodb.mongodb.commands.pojos.index.type.AscIndexType;
+import com.torodb.mongodb.commands.pojos.index.type.DefaultIndexTypeVisitor;
+import com.torodb.mongodb.commands.pojos.index.type.DescIndexType;
+import com.torodb.mongodb.commands.pojos.index.type.IndexType;
 import com.torodb.mongodb.commands.signatures.admin.CreateCollectionCommand;
 import com.torodb.mongodb.commands.signatures.admin.CreateCollectionCommand.CreateCollectionArgument;
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand;
@@ -116,6 +123,9 @@ import java.util.function.Function;
 @Beta
 public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
 
+  private static final FieldIndexOrderingConverterIndexTypeVisitor fieldIndexOrderingConverterVisitor =
+      new FieldIndexOrderingConverterIndexTypeVisitor();
+  
   private final Logger logger;
   /**
    * The number of parallel task that can be used to clone each collection.
@@ -588,6 +598,78 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
             reason.get().apply(indexEntry));
         continue;
       }
+      
+      if (indexEntry.isBackground()) {
+        logger.info("Building index in background is not supported. Ignoring option");
+        indexEntry = new IndexOptions(
+            indexEntry.getVersion(), 
+            indexEntry.getName(), 
+            indexEntry.getDatabase(), 
+            indexEntry.getCollection(), 
+            false, 
+            indexEntry.isUnique(),
+            indexEntry.isSparse(),
+            indexEntry.getExpireAfterSeconds(), 
+            indexEntry.getKeys(), 
+            indexEntry.getStorageEngine(), 
+            indexEntry.getOtherProps());
+      }
+
+      if (indexEntry.isSparse()) {
+        logger.info("Sparse index are not supported. Ignoring option");
+        indexEntry = new IndexOptions(
+            indexEntry.getVersion(), 
+            indexEntry.getName(), 
+            indexEntry.getDatabase(), 
+            indexEntry.getCollection(), 
+            indexEntry.isBackground(),
+            indexEntry.isUnique(),
+            false,
+            indexEntry.getExpireAfterSeconds(), 
+            indexEntry.getKeys(), 
+            indexEntry.getStorageEngine(), 
+            indexEntry.getOtherProps());
+      }
+
+      boolean skipIndex = false;
+      for (IndexOptions.Key indexKey : indexEntry.getKeys()) {
+        AttributeReference.Builder attRefBuilder = new AttributeReference.Builder();
+        for (String key : indexKey.getKeys()) {
+          attRefBuilder.addObjectKey(key);
+        }
+
+        IndexType indexType = indexKey.getType();
+
+        if (!KnownType.contains(indexType)) {
+          String note = "Bad index key pattern: Unknown index type '"
+              + indexKey.getType().getName() + "'. Skipping index.";
+          logger.info(note);
+          skipIndex = true;
+          break;
+        }
+
+        Optional<FieldIndexOrdering> ordering = indexType.accept(
+            fieldIndexOrderingConverterVisitor, null);
+        if (!ordering.isPresent()) {
+          String note = "Index of type " + indexType.getName()
+              + " is not supported. Skipping index.";
+          logger.info(note);
+          skipIndex = true;
+          break;
+        }
+      }
+      
+      if (skipIndex) {
+        continue;
+      }
+      
+      if (indexEntry.getKeys().size() > 1) {
+        String note =
+            "Compound indexes are not supported. Skipping index.";
+        logger.info(note);
+        continue;
+      }
+
       logger.info("Index {}.{}.{} will be cloned", fromDb, fromCol, indexEntry.getName());
       indexesToClone.add(indexEntry);
     }
@@ -658,5 +740,24 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
       return retrier.retry(callable, NEXT_HANDLER, Hint.TIME_SENSIBLE, Hint.INFREQUENT_ROLLBACK);
     }
 
+  }
+
+  private static class FieldIndexOrderingConverterIndexTypeVisitor
+      extends DefaultIndexTypeVisitor<Void, Optional<FieldIndexOrdering>> {
+
+    @Override
+    protected Optional<FieldIndexOrdering> defaultVisit(IndexType indexType, Void arg) {
+      return Optional.empty();
+    }
+
+    @Override
+    public Optional<FieldIndexOrdering> visit(AscIndexType indexType, Void arg) {
+      return Optional.of(FieldIndexOrdering.ASC);
+    }
+
+    @Override
+    public Optional<FieldIndexOrdering> visit(DescIndexType indexType, Void arg) {
+      return Optional.of(FieldIndexOrdering.DESC);
+    }
   }
 }
