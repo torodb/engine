@@ -217,7 +217,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
    * {@link MetaDataReadInterface}.
    *
    * @param dsl
-   * @param metaReadInterface
+   * @param metaDataReadInterface
    */
   protected void dropUserDatabases(DSLContext dsl, MetaDataReadInterface metaDataReadInterface) {
     metaDataReadInterface.readMetaDatabaseTable(dsl)

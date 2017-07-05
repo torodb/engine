@@ -31,6 +31,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
+/**
+ * A {@link UnshardedShardBundle} is a {@link ShardBundle} designed to replicate a
+ * <em>unsharded</em> replica set and it is incompatible with any other {@link ShardBundle}, even
+ * other {@link UnshardedShardBundle}.
+ *
+ * This is just an abstraction that adapts a {@link MongoDbReplBundle} into a {@link ShardBundle},
+ * used to simplify client interfaces, so they can use the same code when following a sharding
+ * cluster or a single replica set.
+ */
 public class UnshardedShardBundle extends ShardBundle {
 
   private final TorodBundle actualTorodBundle;
@@ -88,6 +97,7 @@ public class UnshardedShardBundle extends ShardBundle {
         .setReplicationFilters(config.getUserReplFilter())
         .setMetricRegistry(Optional.empty())
         .setLoggerFactory(new ComponentLoggerFactory("REPL"))
+        .setOffHeapBufferConfig(config.getOffHeapBufferConfig())
         .build();
   }
 

@@ -20,6 +20,7 @@ package com.torodb.mongodb.repl.oplogreplier;
 
 import com.torodb.mongodb.repl.OplogManager;
 import com.torodb.mongodb.repl.oplogreplier.fetcher.OplogFetcher;
+
 import org.jooq.lambda.tuple.Tuple2;
 
 import java.util.concurrent.CancellationException;
@@ -31,9 +32,8 @@ import java.util.concurrent.CompletableFuture;
 public interface OplogApplier extends AutoCloseable {
 
   /**
-   * Applies the {@link OplogBatch} fetched by the given {@link OplogFetcher}, modifying the
-   * {@link OplogManager}.
-   *
+   * Applies the {@link com.torodb.mongodb.repl.oplogreplier.batch.OplogBatch} fetched by the given
+   * {@link OplogFetcher}, modifying the {@link OplogManager}.
    *
    * @param fetcher
    * @param context
@@ -49,9 +49,9 @@ public interface OplogApplier extends AutoCloseable {
 
     /**
      * Returns a future that will be done once the applying process finishes.
-     * <p>
-     * This future should never finish exceptionally, as all exceptions are captured and returned as
-     * a tuple with the {@link ApplyingJobFinishState finish state} and the exception thrown.
+     *
+     * <p>This future should never finish exceptionally, as all exceptions are captured and returned
+     * as a tuple with the {@link ApplyingJobFinishState finish state} and the exception thrown.
      *
      * @return
      */
@@ -72,9 +72,9 @@ public interface OplogApplier extends AutoCloseable {
 
     /**
      * Cancels the applying process.
-     * <p>
-     * If the process does not finishes early by other reason, the {@link #onFinish()} future will
-     * finished with a tupple whose first element is {@link ApplyingJobFinishState#CANCELLED}.
+     *
+     * <p>If the process does not finishes early by other reason, the {@link #onFinish()} future
+     * will finished with a tupple whose first element is {@link ApplyingJobFinishState#CANCELLED}.
      */
     void cancel();
   }

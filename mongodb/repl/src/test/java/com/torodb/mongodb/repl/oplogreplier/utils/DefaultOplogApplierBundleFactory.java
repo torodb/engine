@@ -36,7 +36,7 @@ import java.util.function.Function;
 /**
  *
  */
-public class DefaultOplogApplierBundleFactory 
+public class DefaultOplogApplierBundleFactory
     implements Function<MongoDbCoreBundle, Bundle<OplogApplier>> {
 
   @Override
@@ -88,6 +88,6 @@ public class DefaultOplogApplierBundleFactory
       return oplogApplierBundle.getExternalInterface().getOplogApplier();
     }
 
-    
+
   }
 }

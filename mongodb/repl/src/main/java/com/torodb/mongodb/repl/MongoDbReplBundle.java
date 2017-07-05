@@ -57,6 +57,13 @@ import org.apache.logging.log4j.Logger;
 import java.util.Collection;
 import java.util.Collections;
 
+/**
+ * MongoDbReplBundle is a aggregation bundle that starts all replication submodules.
+ * 
+ * When the bundle start, it tries to the node it has to calculate a sync source from by retriving
+ * the topology from the given {@link MongoDbReplConfig#getSyncSourceSeed() sync source seed} and
+ * then it tries to replicate from.
+ */
 public class MongoDbReplBundle extends AbstractBundle<MongoDbReplExtInt> {
 
   private final Logger logger;
@@ -208,7 +215,8 @@ public class MongoDbReplBundle extends AbstractBundle<MongoDbReplExtInt> {
         replCommandsBuilder.getReplCommandsLibrary(),
         replCommandsBuilder.getReplCommandsExecutor(),
         essentialOverrideModule,
-        replBundleConfig
+        replBundleConfig,
+        config.getOffHeapBufferConfig()
     );
   }
 
