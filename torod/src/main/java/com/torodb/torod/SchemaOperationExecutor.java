@@ -24,6 +24,7 @@ import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.torod.exception.AlreadyExistentCollectionException;
 import com.torodb.torod.exception.UnexistentCollectionException;
 import com.torodb.torod.exception.UnexistentDatabaseException;
+import com.torodb.torod.exception.UnsupportedIndexException;
 import com.torodb.torod.exception.UserSchemaException;
 
 import java.util.Collection;
@@ -175,12 +176,12 @@ public interface SchemaOperationExecutor extends AutoCloseable {
    * @return true iff the index was created (otherwise there was a compatible index before)
    * @throws UnexistentDatabaseException   if the database does not exist
    * @throws UnexistentCollectionException if the collection does not exist
-   * @throws UserException                 if the index is not supported
+   * @throws UnsupportedIndexException     if the index is not supported
    *
    */
   public boolean createIndex(String dbName, String colName, String indexName,
       List<IndexFieldInfo> fields, boolean unique)
-      throws UnexistentDatabaseException, UnexistentCollectionException, UserException;
+      throws UnexistentDatabaseException, UnexistentCollectionException, UnsupportedIndexException;
 
 
   /**

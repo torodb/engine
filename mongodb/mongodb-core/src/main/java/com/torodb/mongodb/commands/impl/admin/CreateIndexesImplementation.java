@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.commands.impl.admin;
 
-import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.language.AttributeReference;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.transaction.metainf.FieldIndexOrdering;
@@ -38,6 +37,9 @@ import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.exceptions.CommandFailed;
 import com.torodb.torod.IndexFieldInfo;
 import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.exception.UnexistentCollectionException;
+import com.torodb.torod.exception.UnexistentDatabaseException;
+import com.torodb.torod.exception.UnsupportedIndexException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -125,7 +127,8 @@ public class CreateIndexesImplementation extends
 
       return Status.ok(new CreateIndexesResult(indexesBefore, indexesAfter, note,
           createdCollectionAutomatically));
-    } catch (UserException ex) {
+    } catch (UnexistentCollectionException
+        | UnexistentDatabaseException | UnsupportedIndexException ex) {
       return Status.from(ErrorCode.COMMAND_FAILED, ex.getLocalizedMessage());
     } catch (CommandFailed ex) {
       return Status.from(ex);

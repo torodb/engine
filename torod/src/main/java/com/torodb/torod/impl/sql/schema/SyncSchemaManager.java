@@ -29,8 +29,8 @@ import com.torodb.torod.exception.AlreadyExistentCollectionException;
 import com.torodb.torod.exception.SchemaOperationException;
 import com.torodb.torod.exception.UnexistentCollectionException;
 import com.torodb.torod.exception.UnexistentDatabaseException;
+import com.torodb.torod.exception.UnsupportedIndexException;
 import com.torodb.torod.exception.UserSchemaException;
-import com.torodb.torod.impl.sql.schema.SchemaManager;
 
 import java.util.Collection;
 import java.util.List;
@@ -209,10 +209,12 @@ public class SyncSchemaManager {
    */
   public boolean createIndex(DdlOperationExecutor ops, String dbName, String colName,
       String indexName, List<IndexFieldInfo> fields, boolean unique)
-      throws UnexistentDatabaseException, UnexistentCollectionException {
+      throws UnexistentDatabaseException, UnexistentCollectionException, 
+      UnsupportedIndexException {
     return waitFor(async.createIndex(ops, dbName, colName, indexName, fields, unique),
         UnexistentDatabaseException.class,
-        UnexistentCollectionException.class);
+        UnexistentCollectionException.class,
+        UnsupportedIndexException.class);
   }
 
   /**
@@ -298,7 +300,7 @@ public class SyncSchemaManager {
       throws E1, E2, E3 {
     try {
       return future.join();
-    } catch (SchemaOperationException ex) {
+    } catch (CompletionException ex) {
       Throwables.throwIfInstanceOf(ex.getCause(), ex1Class);
       Throwables.throwIfInstanceOf(ex.getCause(), ex2Class);
       Throwables.throwIfInstanceOf(ex.getCause(), ex3Class);

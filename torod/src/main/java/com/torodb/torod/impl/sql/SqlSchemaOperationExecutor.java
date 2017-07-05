@@ -33,6 +33,7 @@ import com.torodb.torod.SchemaOperationExecutor;
 import com.torodb.torod.exception.AlreadyExistentCollectionException;
 import com.torodb.torod.exception.UnexistentCollectionException;
 import com.torodb.torod.exception.UnexistentDatabaseException;
+import com.torodb.torod.exception.UnsupportedIndexException;
 import com.torodb.torod.impl.sql.schema.SchemaManager;
 import com.torodb.torod.impl.sql.schema.SyncSchemaManager;
 
@@ -104,7 +105,7 @@ class SqlSchemaOperationExecutor implements SchemaOperationExecutor {
   @Override
   public boolean createIndex(String dbName, String colName, String indexName,
       List<IndexFieldInfo> fields, boolean unique) throws UnexistentDatabaseException,
-      UnexistentCollectionException {
+      UnexistentCollectionException, UnsupportedIndexException {
     return manager.createIndex(ddlExecutor, dbName, colName, indexName, fields, unique);
   }
 

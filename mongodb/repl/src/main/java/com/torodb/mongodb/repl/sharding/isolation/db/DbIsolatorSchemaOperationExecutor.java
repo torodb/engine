@@ -28,6 +28,7 @@ import com.torodb.torod.SchemaOperationExecutor;
 import com.torodb.torod.exception.AlreadyExistentCollectionException;
 import com.torodb.torod.exception.UnexistentCollectionException;
 import com.torodb.torod.exception.UnexistentDatabaseException;
+import com.torodb.torod.exception.UnsupportedIndexException;
 import com.torodb.torod.exception.UserSchemaException;
 
 import java.util.Collection;
@@ -65,7 +66,7 @@ public class DbIsolatorSchemaOperationExecutor
   @Override
   public boolean createIndex(String dbName, String colName, String indexName,
       List<IndexFieldInfo> fields, boolean unique) throws UnexistentDatabaseException,
-      UnexistentCollectionException, UserException {
+      UnexistentCollectionException, UnsupportedIndexException {
     return getDecorated().createIndex(
         converter.convertDatabaseName(dbName),
         colName,

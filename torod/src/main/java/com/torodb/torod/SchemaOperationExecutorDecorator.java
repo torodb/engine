@@ -21,6 +21,9 @@ package com.torodb.torod;
 import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.transaction.RollbackException;
 import com.torodb.kvdocument.values.KvDocument;
+import com.torodb.torod.exception.UnexistentCollectionException;
+import com.torodb.torod.exception.UnexistentDatabaseException;
+import com.torodb.torod.exception.UnsupportedIndexException;
 
 import java.util.Collection;
 import java.util.List;
@@ -84,7 +87,8 @@ public class SchemaOperationExecutorDecorator implements SchemaOperationExecutor
 
   @Override
   public boolean createIndex(String dbName, String colName, String indexName,
-      List<IndexFieldInfo> fields, boolean unique) throws UserException {
+      List<IndexFieldInfo> fields, boolean unique) throws UnexistentDatabaseException,
+          UnexistentCollectionException, UnsupportedIndexException {
     return decorated.createIndex(dbName, colName, indexName, fields, unique);
   }
 

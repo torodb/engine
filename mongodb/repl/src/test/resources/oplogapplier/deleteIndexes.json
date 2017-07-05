@@ -33,7 +33,7 @@
             "op": "c",
             "ns": "test.$cmd",
             "o": {
-                "deleteIndex": "test2",
+                "deleteIndexes": "test2",
                 "index": "a_1"
             }
         }
