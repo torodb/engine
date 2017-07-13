@@ -21,6 +21,7 @@ package com.torodb.backend.ddl;
 import com.torodb.backend.BackendLoggerFactory;
 import com.torodb.backend.SqlHelper;
 import com.torodb.backend.SqlInterface;
+import com.torodb.backend.converters.jooq.DataTypeForKv;
 import com.torodb.backend.exceptions.InvalidDatabaseSchemaException;
 import com.torodb.backend.meta.SchemaValidator;
 import com.torodb.backend.meta.SchemaValidator.Table;
@@ -60,7 +61,6 @@ import com.torodb.core.transaction.metainf.MutableMetaSnapshot;
 import com.torodb.core.transaction.metainf.WrapperMutableMetaSnapshot;
 import org.apache.logging.log4j.Logger;
 import org.jooq.DSLContext;
-import org.jooq.DataType;
 import org.jooq.Result;
 
 import java.sql.SQLException;
@@ -112,9 +112,10 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
     protected final MetaDocPartTable<Object, MetaDocPartRecord<Object>> docPartTable;
     protected final MetaFieldTable<Object, MetaFieldRecord<Object>> fieldTable;
     protected final MetaScalarTable<Object, MetaScalarRecord<Object>> scalarTable;
-    protected final MetaIndexTable<MetaIndexRecord> indexTable;
+    protected final MetaIndexTable<Object, MetaIndexRecord<Object>> indexTable;
     protected final MetaIndexFieldTable<Object, MetaIndexFieldRecord<Object>> indexFieldTable;
-    protected final MetaDocPartIndexTable<Object, MetaDocPartIndexRecord<Object>> docPartIndexTable;
+    @SuppressWarnings("checkstyle:lineLength")
+    protected final MetaDocPartIndexTable<Object, Object, MetaDocPartIndexRecord<Object, Object>> docPartIndexTable;
     @SuppressWarnings("checkstyle:lineLength")
     protected final MetaDocPartIndexColumnTable<Object, MetaDocPartIndexColumnRecord<Object>> fieldIndexTable;
 
@@ -169,8 +170,8 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
     }
 
     protected SchemaValidator createSchemaValidator(MetaDatabaseRecord databaseRecord) {
-      return new SchemaValidator(dsl, databaseRecord.getIdentifier(),
-          databaseRecord.getName());
+      return new SchemaValidator(dsl, sqlInterface.getIdentifierConstraints(), 
+          databaseRecord.getIdentifier(), databaseRecord.getName());
     }
 
     private void checkCompleteness(MetaDatabaseRecord database, SchemaValidator schemaValidator) {
@@ -334,7 +335,7 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
     }
 
     private void analyzeDocPartIndex(MutableMetaDatabase database, MetaCollection collection,
-        MutableMetaDocPart docPart, MetaDocPartIndexRecord<Object> docPartIndex,
+        MutableMetaDocPart docPart, MetaDocPartIndexRecord<Object, Object> docPartIndex,
         SchemaValidator schemaValidator) {
       TableRef tableRef = docPartIndex.getTableRefValue(tableRefFactory);
 
@@ -350,7 +351,7 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
       }
 
       MutableMetaDocPartIndex metaDocPartIndex = docPart.addMetaDocPartIndex(docPartIndex
-          .getUnique());
+          .getUniqueAsBoolean());
 
       dsl.selectFrom(fieldIndexTable)
           .where(fieldIndexTable.DATABASE.eq(database.getName())
@@ -395,12 +396,13 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
     }
 
     private void analyzeIndex(MutableMetaDatabase db,
-        MutableMetaCollection metaCollection, MetaIndexRecord index,
+        MutableMetaCollection metaCollection, MetaIndexRecord<Object> index,
         SchemaValidator schemaValidator) {
       if (!index.getCollection().equals(metaCollection.getName())) {
         return;
       }
-      MutableMetaIndex metaIndex = metaCollection.addMetaIndex(index.getName(), index.getUnique());
+      MutableMetaIndex metaIndex = metaCollection.addMetaIndex(
+          index.getName(), index.getUniqueAsBoolean());
 
       dsl.selectFrom(indexFieldTable)
           .where(indexFieldTable.DATABASE.eq(db.getName())
@@ -483,7 +485,7 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
 
     private String getColumnRef(MetaDatabase database, MetaDocPart docPart,
         MetaFieldRecord<?> field) {
-      DataType<?> dataType = sqlInterface.getDataTypeProvider().getDataType(field.getType());
+      DataTypeForKv<?> dataType = sqlInterface.getDataTypeProvider().getDataType(field.getType());
       String type = dataType.getTypeName();
       int sqlType = dataType.getSQLType();
       return getTableRef(database, docPart) + "." + field.getIdentifier() + " (type:" + type
@@ -492,7 +494,7 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
 
     private String getColumnRef(MetaDatabase database, MetaDocPart docPart,
         MetaScalarRecord<?> scalar) {
-      DataType<?> dataType = sqlInterface.getDataTypeProvider().getDataType(scalar.getType());
+      DataTypeForKv<?> dataType = sqlInterface.getDataTypeProvider().getDataType(scalar.getType());
       String type = dataType.getTypeName();
       int sqlType = dataType.getSQLType();
       return getTableRef(database, docPart) + "." + scalar.getIdentifier() + " (type:" + type
@@ -500,7 +502,7 @@ public class DefaultReadStructure implements ReadStructureDdlOp {
     }
 
     private String getIndexRef(MetaDatabase database, MetaDocPart docPart,
-        MetaDocPartIndexRecord<?> docPartIndex) {
+        MetaDocPartIndexRecord<?, ?> docPartIndex) {
       return database.getIdentifier() + "." + docPart.getIdentifier() + "." + docPartIndex
           .getIdentifier();
     }

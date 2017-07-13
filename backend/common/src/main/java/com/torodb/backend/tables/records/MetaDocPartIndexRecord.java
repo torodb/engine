@@ -29,9 +29,9 @@ import org.jooq.impl.UpdatableRecordImpl;
 
 @SuppressWarnings({"checkstyle:LineLength", "checkstyle:AbbreviationAsWordInName",
     "checkstyle:MemberName", "checkstyle:OverloadMethodsDeclarationOrder"})
-public abstract class MetaDocPartIndexRecord<TableRefTypeT>
-    extends UpdatableRecordImpl<MetaDocPartIndexRecord<TableRefTypeT>>
-    implements Record5<String, String, String, TableRefTypeT, Boolean> {
+public abstract class MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT>
+    extends UpdatableRecordImpl<MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT>>
+    implements Record5<String, String, String, TableRefTypeT, BooleanTypeT> {
 
   private static final long serialVersionUID = -2107968478;
 
@@ -95,15 +95,15 @@ public abstract class MetaDocPartIndexRecord<TableRefTypeT>
   /**
    * Setter for <code>torodb.container.unique</code>.
    */
-  public void setUnique(Boolean value) {
+  public void setUnique(BooleanTypeT value) {
     set(4, value);
   }
 
   /**
    * Getter for <code>torodb.container.unique</code>.
    */
-  public Boolean getUnique() {
-    return (Boolean) getValue(4);
+  public BooleanTypeT getUnique() {
+    return (BooleanTypeT) getValue(4);
   }
 
   // -------------------------------------------------------------------------
@@ -126,8 +126,8 @@ public abstract class MetaDocPartIndexRecord<TableRefTypeT>
    */
   @SuppressWarnings("unchecked")
   @Override
-  public Row5<String, String, String, TableRefTypeT, Boolean> fieldsRow() {
-    return (Row5<String, String, String, TableRefTypeT, Boolean>) super.fieldsRow();
+  public Row5<String, String, String, TableRefTypeT, BooleanTypeT> fieldsRow() {
+    return (Row5<String, String, String, TableRefTypeT, BooleanTypeT>) super.fieldsRow();
   }
 
   /**
@@ -135,8 +135,8 @@ public abstract class MetaDocPartIndexRecord<TableRefTypeT>
    */
   @SuppressWarnings("unchecked")
   @Override
-  public Row5<String, String, String, TableRefTypeT, Boolean> valuesRow() {
-    return (Row5<String, String, String, TableRefTypeT, Boolean>) super.valuesRow();
+  public Row5<String, String, String, TableRefTypeT, BooleanTypeT> valuesRow() {
+    return (Row5<String, String, String, TableRefTypeT, BooleanTypeT>) super.valuesRow();
   }
 
   /**
@@ -175,7 +175,7 @@ public abstract class MetaDocPartIndexRecord<TableRefTypeT>
    * {@inheritDoc}
    */
   @Override
-  public Field<Boolean> field5() {
+  public Field<BooleanTypeT> field5() {
     return metaDocPartTable.UNIQUE;
   }
 
@@ -215,7 +215,7 @@ public abstract class MetaDocPartIndexRecord<TableRefTypeT>
    * {@inheritDoc}
    */
   @Override
-  public Boolean value5() {
+  public BooleanTypeT value5() {
     return getUnique();
   }
 
@@ -223,7 +223,7 @@ public abstract class MetaDocPartIndexRecord<TableRefTypeT>
    * {@inheritDoc}
    */
   @Override
-  public MetaDocPartIndexRecord<TableRefTypeT> value1(String value) {
+  public MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT> value1(String value) {
     setDatabase(value);
     return this;
   }
@@ -232,7 +232,7 @@ public abstract class MetaDocPartIndexRecord<TableRefTypeT>
    * {@inheritDoc}
    */
   @Override
-  public MetaDocPartIndexRecord<TableRefTypeT> value2(String value) {
+  public MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT> value2(String value) {
     setIdentifier(value);
     return this;
   }
@@ -241,7 +241,7 @@ public abstract class MetaDocPartIndexRecord<TableRefTypeT>
    * {@inheritDoc}
    */
   @Override
-  public MetaDocPartIndexRecord<TableRefTypeT> value3(String value) {
+  public MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT> value3(String value) {
     setCollection(value);
     return this;
   }
@@ -250,7 +250,7 @@ public abstract class MetaDocPartIndexRecord<TableRefTypeT>
    * {@inheritDoc}
    */
   @Override
-  public MetaDocPartIndexRecord<TableRefTypeT> value4(TableRefTypeT value) {
+  public MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT> value4(TableRefTypeT value) {
     setTableRef(value);
     return this;
   }
@@ -259,7 +259,7 @@ public abstract class MetaDocPartIndexRecord<TableRefTypeT>
    * {@inheritDoc}
    */
   @Override
-  public MetaDocPartIndexRecord<TableRefTypeT> value5(Boolean value) {
+  public MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT> value5(BooleanTypeT value) {
     setUnique(value);
     return this;
   }
@@ -268,22 +268,26 @@ public abstract class MetaDocPartIndexRecord<TableRefTypeT>
    * {@inheritDoc}
    */
   @Override
-  public abstract MetaDocPartIndexRecord<TableRefTypeT> values(String database, String identifier,
-      String collection, TableRefTypeT tableRef, Boolean unique);
+  public abstract MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT> values(String database, String identifier,
+      String collection, TableRefTypeT tableRef, BooleanTypeT unique);
 
-  public MetaDocPartIndexRecord<TableRefTypeT> values(String database, String identifier,
+  public MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT> values(String database, String identifier,
       String collection, TableRef tableRef, Boolean unique) {
-    return values(database, identifier, collection, toTableRefType(tableRef), unique);
+    return values(database, identifier, collection, toTableRefType(tableRef), toBooleanType(unique));
   }
 
   protected abstract TableRefTypeT toTableRefType(TableRef tableRef);
 
   public abstract TableRef getTableRefValue(TableRefFactory tableRefFactory);
 
+  protected abstract BooleanTypeT toBooleanType(Boolean value);
+
+  public abstract Boolean getUniqueAsBoolean();
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
-  private final MetaDocPartIndexTable<TableRefTypeT, MetaDocPartIndexRecord<TableRefTypeT>> metaDocPartTable;
+  private final MetaDocPartIndexTable<TableRefTypeT, BooleanTypeT, MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT>> metaDocPartTable;
 
   /**
    * Create a detached MetaDocPartRecord

@@ -27,7 +27,7 @@ import org.jooq.TableField;
 import org.jooq.impl.SQLDataType;
 
 @SuppressFBWarnings(value = {"EQ_DOESNT_OVERRIDE_EQUALS", "HE_HASHCODE_NO_EQUALS"})
-public class MySqlMetaIndexTable extends MetaIndexTable<MySqlMetaIndexRecord> {
+public class MySqlMetaIndexTable extends MetaIndexTable<Boolean, MySqlMetaIndexRecord> {
 
   private static final long serialVersionUID = -6090026713335495681L;
   /**

@@ -28,7 +28,7 @@ import org.jooq.impl.SQLDataType;
 
 @SuppressFBWarnings(value = {"EQ_DOESNT_OVERRIDE_EQUALS", "HE_HASHCODE_NO_EQUALS"})
 public class MySqlMetaDocPartIndexTable
-    extends MetaDocPartIndexTable<String, MySqlMetaDocPartIndexRecord> {
+    extends MetaDocPartIndexTable<String, Boolean, MySqlMetaDocPartIndexRecord> {
 
   private static final long serialVersionUID = 1726883639731937990L;
   /**

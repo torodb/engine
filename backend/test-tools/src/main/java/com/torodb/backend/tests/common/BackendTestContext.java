@@ -169,13 +169,26 @@ public abstract class BackendTestContext<T extends AbstractBackendBundle & Backe
         }
       }
 
-      for (String schemaName : nextToDropSchemaList) {
-        if (identifierConstraints.isAllowedSchemaIdentifier(schemaName) 
-            || schemaName.equals(TorodbSchema.IDENTIFIER)) {
-          String dropSchemaStatement = getDropSchemaStatement(schemaName);
-          try (PreparedStatement preparedStatement = 
-              connection.prepareStatement(dropSchemaStatement)) {
-            preparedStatement.executeUpdate();
+      while (!nextToDropSchemaList.isEmpty()) {
+        List<String> toDropSchemaList = 
+            new ArrayList<>(nextToDropSchemaList);
+        nextToDropSchemaList.clear();
+        for (String schemaName : toDropSchemaList) {
+          if (identifierConstraints.isAllowedSchemaIdentifier(schemaName) 
+              || schemaName.equals(TorodbSchema.IDENTIFIER)) {
+            String dropSchemaStatement = getDropSchemaStatement(schemaName);
+            try (PreparedStatement preparedStatement = 
+                connection.prepareStatement(dropSchemaStatement)) {
+              try {
+                preparedStatement.executeUpdate();
+                connection.commit();
+              } catch (SQLException sqlException) {
+                connection.rollback();
+                if (getOnDropDatabaseRetryStrategy().apply(sqlException)) {
+                  nextToDropSchemaList.add(schemaName);
+                }
+              }
+            }
           }
         }
       }
@@ -225,6 +238,10 @@ public abstract class BackendTestContext<T extends AbstractBackendBundle & Backe
   }
   
   protected Function<SQLException, Boolean> getOnDropTableRetryStrategy() {
+    return ex -> true;
+  }
+  
+  protected Function<SQLException, Boolean> getOnDropDatabaseRetryStrategy() {
     return ex -> true;
   }
 

@@ -20,6 +20,7 @@ package com.torodb.backend.mysql.meta;
 import com.google.common.collect.ImmutableList;
 import com.torodb.backend.exceptions.InvalidDatabaseSchemaException;
 import com.torodb.backend.meta.SchemaValidator;
+import com.torodb.core.backend.IdentifierConstraints;
 import com.torodb.core.exceptions.SystemException;
 import org.jooq.DSLContext;
 
@@ -30,9 +31,10 @@ import java.sql.SQLException;
 
 public class MySqlSchemaValidator extends SchemaValidator {
 
-  public MySqlSchemaValidator(DSLContext dsl, String schemaName, String database)
-      throws InvalidDatabaseSchemaException {
-    super(dsl, schemaName, database);
+  public MySqlSchemaValidator(DSLContext dsl, IdentifierConstraints identifierConstraints, 
+      String schemaName, String database) 
+          throws InvalidDatabaseSchemaException {
+    super(dsl, identifierConstraints, schemaName, database);
   }
 
   @Override

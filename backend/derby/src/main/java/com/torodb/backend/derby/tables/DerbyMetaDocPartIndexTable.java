@@ -31,7 +31,7 @@ import javax.json.JsonArray;
 
 @SuppressFBWarnings(value = {"EQ_DOESNT_OVERRIDE_EQUALS", "HE_HASHCODE_NO_EQUALS"})
 public class DerbyMetaDocPartIndexTable
-    extends MetaDocPartIndexTable<JsonArray, DerbyMetaDocPartIndexRecord> {
+    extends MetaDocPartIndexTable<JsonArray, Boolean, DerbyMetaDocPartIndexRecord> {
 
   private static final long serialVersionUID = -6245672836069836849L;
   /**

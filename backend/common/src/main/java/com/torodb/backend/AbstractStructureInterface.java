@@ -57,10 +57,10 @@ public abstract class AbstractStructureInterface implements StructureInterface {
 
   private static final Logger LOGGER = BackendLoggerFactory.get(AbstractStructureInterface.class);
 
-  private final DbBackendService dbBackend;
-  private final MetaDataReadInterface metaDataReadInterface;
-  private final SqlHelper sqlHelper;
-  private final IdentifierConstraints identifierConstraints;
+  protected final DbBackendService dbBackend;
+  protected final MetaDataReadInterface metaDataReadInterface;
+  protected final SqlHelper sqlHelper;
+  protected final IdentifierConstraints identifierConstraints;
 
   @Inject
   public AbstractStructureInterface(DbBackendService dbBackend,
@@ -228,7 +228,8 @@ public abstract class AbstractStructureInterface implements StructureInterface {
   public Optional<Schema> findTorodbSchema(DSLContext dsl, Meta jooqMeta) {
     Schema torodbSchema = null;
     for (Schema schema : jooqMeta.getSchemas()) {
-      if (identifierConstraints.isSameIdentifier(TorodbSchema.IDENTIFIER, schema.getName())) {
+      if (identifierConstraints.isSameSchemaIdentifier(
+          TorodbSchema.IDENTIFIER, schema.getName())) {
         torodbSchema = schema;
         break;
       }
@@ -245,7 +246,7 @@ public abstract class AbstractStructureInterface implements StructureInterface {
       String metaTableName = metaTable.getName();
       boolean metaTableFound = false;
       for (Table<?> table : torodbSchema.getTables()) {
-        if (identifierConstraints.isSameIdentifier(table.getName(), metaTableName)) {
+        if (identifierConstraints.isSameTableIdentifier(table.getName(), metaTableName)) {
           metaTable.checkSemanticallyEquals(table);
           metaTableFound = true;
           LOGGER.debug(table + " found and check");

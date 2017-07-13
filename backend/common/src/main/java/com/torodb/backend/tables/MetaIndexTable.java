@@ -36,7 +36,7 @@ import java.util.List;
     "Equals comparation is done in TableImpl class, which compares schema, name and fields")
 @SuppressWarnings({"checkstyle:LineLength", "checkstyle:AbbreviationAsWordInName",
     "checkstyle:MemberName"})
-public abstract class MetaIndexTable<R extends MetaIndexRecord> extends SemanticTable<R> {
+public abstract class MetaIndexTable<BooleanTypeT, R extends MetaIndexRecord<BooleanTypeT>> extends SemanticTable<R> {
 
   private static final long serialVersionUID = 230691041;
 
@@ -89,7 +89,7 @@ public abstract class MetaIndexTable<R extends MetaIndexRecord> extends Semantic
   /**
    * The column <code>torodb.index.unique</code>.
    */
-  public final TableField<R, Boolean> UNIQUE =
+  public final TableField<R, BooleanTypeT> UNIQUE =
       createUniqueField();
 
   protected abstract TableField<R, String> createDatabaseField();
@@ -98,9 +98,9 @@ public abstract class MetaIndexTable<R extends MetaIndexRecord> extends Semantic
 
   protected abstract TableField<R, String> createNameField();
 
-  protected abstract TableField<R, Boolean> createUniqueField();
+  protected abstract TableField<R, BooleanTypeT> createUniqueField();
 
-  private final UniqueKeys<R> uniqueKeys;
+  private final UniqueKeys<BooleanTypeT, R> uniqueKeys;
 
   /**
    * Create a <code>torodb.index</code> table reference
@@ -116,7 +116,7 @@ public abstract class MetaIndexTable<R extends MetaIndexRecord> extends Semantic
   protected MetaIndexTable(String alias, Table<R> aliased, Field<?>[] parameters) {
     super(alias, TorodbSchema.TORODB, aliased, parameters, "");
 
-    this.uniqueKeys = new UniqueKeys<R>(this);
+    this.uniqueKeys = new UniqueKeys<BooleanTypeT, R>(this);
   }
 
   /**
@@ -139,23 +139,23 @@ public abstract class MetaIndexTable<R extends MetaIndexRecord> extends Semantic
    * {@inheritDoc}
    */
   @Override
-  public abstract MetaIndexTable<R> as(String alias);
+  public abstract MetaIndexTable<BooleanTypeT, R> as(String alias);
 
   /**
    * Rename this table
    */
-  public abstract MetaIndexTable<R> rename(String name);
+  public abstract MetaIndexTable<BooleanTypeT, R> rename(String name);
 
-  public UniqueKeys<R> getUniqueKeys() {
+  public UniqueKeys<BooleanTypeT, R> getUniqueKeys() {
     return uniqueKeys;
   }
 
   @SuppressWarnings("checkstyle:LineLength")
-  public static class UniqueKeys<KeyRecordT extends MetaIndexRecord> extends AbstractKeys {
+  public static class UniqueKeys<BooleanTypeT, KeyRecordT extends MetaIndexRecord<BooleanTypeT>> extends AbstractKeys {
 
     private final UniqueKey<KeyRecordT> INDEX_PKEY;
 
-    private UniqueKeys(MetaIndexTable<KeyRecordT> indexTable) {
+    private UniqueKeys(MetaIndexTable<BooleanTypeT, KeyRecordT> indexTable) {
       INDEX_PKEY = createUniqueKey(indexTable, indexTable.DATABASE, indexTable.COLLECTION,
           indexTable.NAME);
     }

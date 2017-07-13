@@ -21,7 +21,7 @@ package com.torodb.backend.mysql.tables.records;
 import com.torodb.backend.mysql.tables.MySqlMetaIndexTable;
 import com.torodb.backend.tables.records.MetaIndexRecord;
 
-public class MySqlMetaIndexRecord extends MetaIndexRecord {
+public class MySqlMetaIndexRecord extends MetaIndexRecord<Boolean> {
 
   private static final long serialVersionUID = 55188308260288314L;
 
@@ -50,6 +50,16 @@ public class MySqlMetaIndexRecord extends MetaIndexRecord {
     super(MySqlMetaIndexTable.INDEX);
 
     values(database, collection, name, unique);
+  }
+
+  @Override
+  protected Boolean toBooleanType(Boolean value) {
+    return value;
+  }
+
+  @Override
+  public Boolean getUniqueAsBoolean() {
+    return getUnique();
   }
 
 }

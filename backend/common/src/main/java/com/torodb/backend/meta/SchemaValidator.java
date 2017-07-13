@@ -20,14 +20,15 @@ package com.torodb.backend.meta;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.torodb.backend.converters.jooq.DataTypeForKv;
 import com.torodb.backend.exceptions.InvalidDatabaseSchemaException;
 import com.torodb.backend.tables.records.MetaFieldRecord;
 import com.torodb.backend.tables.records.MetaScalarRecord;
 import com.torodb.core.TableRef;
 import com.torodb.core.TableRefFactory;
+import com.torodb.core.backend.IdentifierConstraints;
 import com.torodb.core.exceptions.SystemException;
 import org.jooq.DSLContext;
-import org.jooq.DataType;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -43,13 +44,16 @@ public class SchemaValidator {
 
   protected final String database;
   protected final String schemaName;
+  protected final IdentifierConstraints identifierConstraints;
   protected final Iterable<? extends Table> existingTables;
   protected final Iterable<? extends Index> existingIndexes;
 
-  public SchemaValidator(DSLContext dsl, String schemaName, String database) throws
-      InvalidDatabaseSchemaException {
+  public SchemaValidator(DSLContext dsl, IdentifierConstraints identifierConstraints, 
+      String schemaName, String database) 
+          throws InvalidDatabaseSchemaException {
     this.database = database;
     this.schemaName = schemaName;
+    this.identifierConstraints = identifierConstraints;
     Connection connection = dsl.configuration().connectionProvider().acquire();
     try {
       checkDatabaseSchema(connection);
@@ -100,7 +104,8 @@ public class SchemaValidator {
       DatabaseMetaData metaData = connection.getMetaData();
       ResultSet resultSet = metaData.getSchemas();
       while (resultSet.next()) {
-        if (resultSet.getString("TABLE_SCHEM").equals(schemaName)) {
+        if (identifierConstraints.isSameSchemaIdentifier(
+            resultSet.getString("TABLE_SCHEM"), schemaName)) {
           return;
         }
       }
@@ -135,12 +140,13 @@ public class SchemaValidator {
     return false;
   }
 
-  public boolean existsColumnWithType(String tableName, String columnName, DataType<?> columnType) {
+  public boolean existsColumnWithType(String tableName, String columnName, 
+      DataTypeForKv<?> columnType) {
     for (Table table : existingTables) {
       if (table.getName().equals(tableName)) {
         for (TableField field : table.fields()) {
           if (field.getName().equals(columnName)) {
-            String typeName = columnType.getTypeName();
+            String typeName = columnType.getJdbcName();
             return field.getSqlType() == columnType.getSQLType() 
                 && field.getTypeName().replace("\"", "").equals(typeName);
           }
@@ -344,7 +350,8 @@ public class SchemaValidator {
               fields.add(new IndexField(
                   resultSet.getString("COLUMN_NAME"),
                   resultSet.getInt("ORDINAL_POSITION"),
-                  resultSet.getString("ASC_OR_DESC").equals("A")));
+                  resultSet.getString("ASC_OR_DESC") == null 
+                  || resultSet.getString("ASC_OR_DESC").equals("A")));
             } finally {
               this.schema = schema;
               this.name = name;

@@ -26,7 +26,7 @@ import com.torodb.core.TableRefFactory;
 
 import javax.json.JsonArray;
 
-public class DerbyMetaDocPartIndexRecord extends MetaDocPartIndexRecord<JsonArray> {
+public class DerbyMetaDocPartIndexRecord extends MetaDocPartIndexRecord<JsonArray, Boolean> {
 
   private static final long serialVersionUID = 9051776163794859336L;
 
@@ -66,6 +66,16 @@ public class DerbyMetaDocPartIndexRecord extends MetaDocPartIndexRecord<JsonArra
   @Override
   public TableRef getTableRefValue(TableRefFactory tableRefFactory) {
     return TableRefConverter.fromJsonArray(tableRefFactory, getTableRef());
+  }
+
+  @Override
+  protected Boolean toBooleanType(Boolean value) {
+    return value;
+  }
+
+  @Override
+  public Boolean getUniqueAsBoolean() {
+    return getUnique();
   }
 
 }

@@ -21,7 +21,7 @@ package com.torodb.backend.postgresql.tables.records;
 import com.torodb.backend.postgresql.tables.PostgreSqlMetaIndexTable;
 import com.torodb.backend.tables.records.MetaIndexRecord;
 
-public class PostgreSqlMetaIndexRecord extends MetaIndexRecord {
+public class PostgreSqlMetaIndexRecord extends MetaIndexRecord<Boolean> {
 
   private static final long serialVersionUID = 55188308260288314L;
 
@@ -50,6 +50,16 @@ public class PostgreSqlMetaIndexRecord extends MetaIndexRecord {
     super(PostgreSqlMetaIndexTable.INDEX);
 
     values(database, collection, name, unique);
+  }
+
+  @Override
+  protected Boolean toBooleanType(Boolean value) {
+    return value;
+  }
+
+  @Override
+  public Boolean getUniqueAsBoolean() {
+    return getUnique();
   }
 
 }

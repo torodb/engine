@@ -215,16 +215,16 @@ public abstract class AbstractMetaDataIntegrationSuite extends AbstractBackendIn
       context.getSqlInterface().getMetaDataWriteInterface()
           .addMetaIndex(dslContext, metaDatabase, metaCollection, metaIndex);
 
-      Result<MetaIndexRecord> records = getMetaIndexTableRecords(dslContext);
+      Result<MetaIndexRecord<Object>> records = getMetaIndexTableRecords(dslContext);
 
       assertEquals(1, records.size());
 
-      MetaIndexRecord firstRecord = records.get(0);
+      MetaIndexRecord<Object> firstRecord = records.get(0);
 
       assertEquals(DATABASE_NAME, firstRecord.getDatabase());
       assertEquals(COLLECTION_NAME, firstRecord.getCollection());
       assertEquals(INDEX_NAME, firstRecord.getName());
-      assertEquals(false, firstRecord.getUnique());
+      assertEquals(false, firstRecord.getUniqueAsBoolean());
     });
   }
 
@@ -280,18 +280,18 @@ public abstract class AbstractMetaDataIntegrationSuite extends AbstractBackendIn
           .addMetaDocPartIndex(dslContext, metaDatabase, metaCollection, metaDocPart, 
               metaDocPartIndex);
 
-      Result<MetaDocPartIndexRecord<Object>> records = 
+      Result<MetaDocPartIndexRecord<Object, Object>> records = 
           getMetaDocPartIndexTableRecords(dslContext);
 
       assertEquals(1, records.size());
 
-      MetaDocPartIndexRecord<Object> firstRecord = records.get(0);
+      MetaDocPartIndexRecord<Object, Object> firstRecord = records.get(0);
 
       assertEquals(DATABASE_NAME, firstRecord.getDatabase());
       assertEquals(COLLECTION_NAME, firstRecord.getCollection());
       assertEquals(rootTableRef, firstRecord.getTableRefValue(context.getTableRefFactory()));
       assertEquals(ROOT_INDEX_NAME, firstRecord.getIdentifier());
-      assertEquals(false, firstRecord.getUnique());
+      assertEquals(false, firstRecord.getUniqueAsBoolean());
     });
   }
 
@@ -644,8 +644,8 @@ public abstract class AbstractMetaDataIntegrationSuite extends AbstractBackendIn
         .fetch();
   }
 
-  private Result<MetaIndexRecord> getMetaIndexTableRecords(DSLContext dslContext) {
-    MetaIndexTable<MetaIndexRecord> metaIndexTable = context.getSqlInterface()
+  private Result<MetaIndexRecord<Object>> getMetaIndexTableRecords(DSLContext dslContext) {
+    MetaIndexTable<Object, MetaIndexRecord<Object>> metaIndexTable = context.getSqlInterface()
         .getMetaDataReadInterface().getMetaIndexTable();
 
     return dslContext.selectFrom(metaIndexTable)
@@ -661,9 +661,10 @@ public abstract class AbstractMetaDataIntegrationSuite extends AbstractBackendIn
         .fetch();
   }
 
-  private Result<MetaDocPartIndexRecord<Object>> getMetaDocPartIndexTableRecords(
+  private Result<MetaDocPartIndexRecord<Object, Object>> getMetaDocPartIndexTableRecords(
       DSLContext dslContext) {
-    MetaDocPartIndexTable<Object, MetaDocPartIndexRecord<Object>> metaDocPartIndexTable = 
+    MetaDocPartIndexTable<Object, Object, 
+        MetaDocPartIndexRecord<Object, Object>> metaDocPartIndexTable = 
         context.getSqlInterface().getMetaDataReadInterface().getMetaDocPartIndexTable();
 
     return dslContext.selectFrom(metaDocPartIndexTable)
