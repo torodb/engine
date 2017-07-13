@@ -68,12 +68,12 @@ public abstract class AbstractBackendIntegrationSuite {
     context.setupDatabase();
   }
 
-  protected abstract BackendTestContextFactory getBackendTestContextFactory();
-
   @AfterEach
   public void tearDown() throws Exception {
     context.tearDownDatabase();
   }
+
+  protected abstract BackendTestContextFactory getBackendTestContextFactory();
   
   public BackendTestContext<?> getContext() {
     return context;
@@ -201,7 +201,7 @@ public abstract class AbstractBackendIntegrationSuite {
   }
 
   protected final String getSqlTypeOf(FieldType fieldType) {
-    return context.getSqlInterface().getDataTypeProvider().getDataType(fieldType).getTypeName();
+    return context.getSqlInterface().getDataTypeProvider().getDataType(fieldType).getJdbcName();
   }
 
   protected void assertThatUniqueIndexExists(DSLContext dslContext, 
@@ -239,7 +239,8 @@ public abstract class AbstractBackendIntegrationSuite {
           found = true;
         }
         columnCount++;
-        if (lastIndexName != null && !lastIndexName.equals(foundIndexName)) {
+        if (lastIndexName != null && (foundIndexName == null 
+            || !lastIndexName.equals(foundIndexName))) {
           found = found && foundIndexName.equals(indexName)
               && columnCount != columns.size() && unique && !lastNonUnique;
           if (found) {
@@ -259,7 +260,11 @@ public abstract class AbstractBackendIntegrationSuite {
       throws SQLException {
     execute(dslContext, connection -> {
       ResultSet result = context.getIndexes(connection, schemaName, tableName);
-      assertFalse("Index should not exists", result.next());
+      while (result.next()) {
+        String foundIndexName = result.getString("INDEX_NAME");
+        assertFalse("Index should not exists", 
+            foundIndexName != null && foundIndexName.equals(indexName));
+      }
     });
   }
 
@@ -313,7 +318,7 @@ public abstract class AbstractBackendIntegrationSuite {
     }
   }
   
-  private interface Executor {
+  protected interface Executor {
     public void execute(Connection connection) throws SQLException;
   }
 }

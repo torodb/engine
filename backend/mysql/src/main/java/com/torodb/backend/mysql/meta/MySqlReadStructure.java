@@ -47,8 +47,8 @@ public class MySqlReadStructure extends DefaultReadStructure {
     }
 
     protected SchemaValidator createSchemaValidator(MetaDatabaseRecord databaseRecord) {
-      return new MySqlSchemaValidator(dsl, databaseRecord.getIdentifier(),
-          databaseRecord.getName());
+      return new MySqlSchemaValidator(dsl, sqlInterface.getIdentifierConstraints(),
+          databaseRecord.getIdentifier(), databaseRecord.getName());
     }
     
   }

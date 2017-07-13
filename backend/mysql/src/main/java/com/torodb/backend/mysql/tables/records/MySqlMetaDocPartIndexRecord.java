@@ -29,7 +29,7 @@ import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonReader;
 
-public class MySqlMetaDocPartIndexRecord extends MetaDocPartIndexRecord<String> {
+public class MySqlMetaDocPartIndexRecord extends MetaDocPartIndexRecord<String, Boolean> {
 
   private static final long serialVersionUID = 2263619273193694206L;
 
@@ -70,6 +70,16 @@ public class MySqlMetaDocPartIndexRecord extends MetaDocPartIndexRecord<String> 
   public TableRef getTableRefValue(TableRefFactory tableRefFactory) {
     final JsonReader reader = Json.createReader(new StringReader(getTableRef()));
     return TableRefConverter.fromJsonArray(tableRefFactory, reader.readArray());
+  }
+
+  @Override
+  protected Boolean toBooleanType(Boolean value) {
+    return value;
+  }
+
+  @Override
+  public Boolean getUniqueAsBoolean() {
+    return getUnique();
   }
 
 }

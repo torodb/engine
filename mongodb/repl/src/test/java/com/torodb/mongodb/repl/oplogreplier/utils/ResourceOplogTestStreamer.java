@@ -58,13 +58,17 @@ public abstract class ResourceOplogTestStreamer implements Supplier<Stream<Oplog
     }
     OplogApplierTest test = OplogTestParser.fromExtendedJsonString(text);
     if (!test.getTestName().isPresent()) {
-      test = new OverrideNameOplogTest(test, resourceName);
+      test = createOplogApplierTest(test, resourceName);
     }
 
     return test;
   }
 
-  private static class OverrideNameOplogTest implements OplogApplierTest {
+  protected OplogApplierTest createOplogApplierTest(OplogApplierTest decorated, String newName) {
+    return new OverrideNameOplogTest(decorated, newName);
+  }
+
+  protected static class OverrideNameOplogTest implements OplogApplierTest {
     private final OplogApplierTest decorated;
     private final String newName;
 

@@ -61,7 +61,6 @@ public abstract class AbstractIdentifierConstraints implements IdentifierConstra
         // Mongo types
         .put(FieldType.MONGO_OBJECT_ID, 'x')
         .put(FieldType.MONGO_TIME_STAMP, 'y')
-        // No-Mongo types
         .put(FieldType.DATE, 'c') // [c]alendar
         .put(FieldType.TIME, 'm') // ti[m]e
         .put(FieldType.JAVASCRIPT, 'j') // [j]avascript
@@ -131,7 +130,8 @@ public abstract class AbstractIdentifierConstraints implements IdentifierConstra
 
   @Override
   public boolean isAllowedSchemaIdentifier(@Nonnull String schemaName) {
-    return !restrictedSchemaNames.contains(schemaName);
+    return restrictedSchemaNames.stream().noneMatch(
+        restrictedSchemaName -> isSameSchemaIdentifier(restrictedSchemaName, schemaName));
   }
 
   @Override
@@ -141,7 +141,8 @@ public abstract class AbstractIdentifierConstraints implements IdentifierConstra
 
   @Override
   public boolean isAllowedColumnIdentifier(@Nonnull String columnName) {
-    return !restrictedColumnNames.contains(columnName);
+    return restrictedColumnNames.stream().noneMatch(
+        restrictedColumnName -> isSameColumnIdentifier(restrictedColumnName, columnName));
   }
 
   @Override
@@ -150,9 +151,21 @@ public abstract class AbstractIdentifierConstraints implements IdentifierConstra
   }
 
   @Override
-  public boolean isSameIdentifier(@Nonnull String leftIdentifier, @Nonnull String rightIdentifier) {
+  public boolean isSameSchemaIdentifier(
+      @Nonnull String leftIdentifier, @Nonnull String rightIdentifier) {
     return leftIdentifier.equals(rightIdentifier);
-    //leftIdentifier.toLowerCase(Locale.US).equals(rightIdentifier.toLowerCase(Locale.US));
+  }
+
+  @Override
+  public boolean isSameTableIdentifier(
+      @Nonnull String leftIdentifier, @Nonnull String rightIdentifier) {
+    return leftIdentifier.equals(rightIdentifier);
+  }
+
+  @Override
+  public boolean isSameColumnIdentifier(
+      @Nonnull String leftIdentifier, @Nonnull String rightIdentifier) {
+    return leftIdentifier.equals(rightIdentifier);
   }
 
   @Override

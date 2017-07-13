@@ -26,8 +26,9 @@ import org.jooq.Row4;
 import org.jooq.impl.UpdatableRecordImpl;
 
 @SuppressWarnings("checkstyle:OverloadMethodsDeclarationOrder")
-public abstract class MetaIndexRecord extends UpdatableRecordImpl<MetaIndexRecord>
-    implements Record4<String, String, String, Boolean> {
+public abstract class MetaIndexRecord<BooleanTypeT> 
+    extends UpdatableRecordImpl<MetaIndexRecord<BooleanTypeT>>
+    implements Record4<String, String, String, BooleanTypeT> {
 
   private static final long serialVersionUID = -567809380986685830L;
 
@@ -76,15 +77,15 @@ public abstract class MetaIndexRecord extends UpdatableRecordImpl<MetaIndexRecor
   /**
    * Setter for <code>torodb.index.unique</code>.
    */
-  public void setUnique(Boolean value) {
+  public void setUnique(BooleanTypeT value) {
     set(3, value);
   }
 
   /**
    * Getter for <code>torodb.index.unique</code>.
    */
-  public Boolean getUnique() {
-    return (Boolean) getValue(3);
+  public BooleanTypeT getUnique() {
+    return (BooleanTypeT) getValue(3);
   }
 
   // -------------------------------------------------------------------------
@@ -107,8 +108,8 @@ public abstract class MetaIndexRecord extends UpdatableRecordImpl<MetaIndexRecor
    */
   @SuppressWarnings("unchecked")
   @Override
-  public Row4<String, String, String, Boolean> fieldsRow() {
-    return (Row4<String, String, String, Boolean>) super.fieldsRow();
+  public Row4<String, String, String, BooleanTypeT> fieldsRow() {
+    return (Row4<String, String, String, BooleanTypeT>) super.fieldsRow();
   }
 
   /**
@@ -116,8 +117,8 @@ public abstract class MetaIndexRecord extends UpdatableRecordImpl<MetaIndexRecor
    */
   @SuppressWarnings("unchecked")
   @Override
-  public Row4<String, String, String, Boolean> valuesRow() {
-    return (Row4<String, String, String, Boolean>) super.valuesRow();
+  public Row4<String, String, String, BooleanTypeT> valuesRow() {
+    return (Row4<String, String, String, BooleanTypeT>) super.valuesRow();
   }
 
   /**
@@ -148,7 +149,7 @@ public abstract class MetaIndexRecord extends UpdatableRecordImpl<MetaIndexRecor
    * {@inheritDoc}
    */
   @Override
-  public Field<Boolean> field4() {
+  public Field<BooleanTypeT> field4() {
     return metaIndexTable.UNIQUE;
   }
 
@@ -180,7 +181,7 @@ public abstract class MetaIndexRecord extends UpdatableRecordImpl<MetaIndexRecor
    * {@inheritDoc}
    */
   @Override
-  public Boolean value4() {
+  public BooleanTypeT value4() {
     return getUnique();
   }
 
@@ -188,7 +189,7 @@ public abstract class MetaIndexRecord extends UpdatableRecordImpl<MetaIndexRecor
    * {@inheritDoc}
    */
   @Override
-  public MetaIndexRecord value1(String value) {
+  public MetaIndexRecord<BooleanTypeT> value1(String value) {
     setDatabase(value);
     return this;
   }
@@ -197,7 +198,7 @@ public abstract class MetaIndexRecord extends UpdatableRecordImpl<MetaIndexRecor
    * {@inheritDoc}
    */
   @Override
-  public MetaIndexRecord value2(String value) {
+  public MetaIndexRecord<BooleanTypeT> value2(String value) {
     setCollection(value);
     return this;
   }
@@ -206,7 +207,7 @@ public abstract class MetaIndexRecord extends UpdatableRecordImpl<MetaIndexRecor
    * {@inheritDoc}
    */
   @Override
-  public MetaIndexRecord value3(String value) {
+  public MetaIndexRecord<BooleanTypeT> value3(String value) {
     setName(value);
     return this;
   }
@@ -215,7 +216,7 @@ public abstract class MetaIndexRecord extends UpdatableRecordImpl<MetaIndexRecor
    * {@inheritDoc}
    */
   @Override
-  public MetaIndexRecord value4(Boolean value) {
+  public MetaIndexRecord<BooleanTypeT> value4(BooleanTypeT value) {
     setUnique(value);
     return this;
   }
@@ -223,14 +224,23 @@ public abstract class MetaIndexRecord extends UpdatableRecordImpl<MetaIndexRecor
   /**
    * {@inheritDoc}
    */
-  @Override
-  public abstract MetaIndexRecord values(String database, String collection, String name,
-      Boolean unique);
+  public MetaIndexRecord<BooleanTypeT> values(String database, String collection, String name,
+      Boolean unique) {
+    return values(database, collection, name, toBooleanType(unique));
+  }
 
+  @Override
+  public abstract MetaIndexRecord<BooleanTypeT> values(String database, String collection, 
+      String name, BooleanTypeT unique);
+
+  protected abstract BooleanTypeT toBooleanType(Boolean value);
+
+  public abstract Boolean getUniqueAsBoolean();
+  
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
-  private final MetaIndexTable<MetaIndexRecord> metaIndexTable;
+  private final MetaIndexTable<BooleanTypeT, MetaIndexRecord<BooleanTypeT>> metaIndexTable;
 
   /**
    * Create a detached MetaIndexRecord

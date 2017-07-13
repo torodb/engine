@@ -18,10 +18,12 @@
 
 package com.torodb.mongodb.repl;
 
+import com.torodb.common.util.RetryHelper;
 import com.torodb.core.backend.BackendBundle;
 import com.torodb.core.backend.BackendService;
 import com.torodb.core.backend.DdlOperationExecutor;
 import com.torodb.core.bundle.BundleConfig;
+import com.torodb.core.retrier.DefaultRetrier;
 import com.torodb.torod.TorodBundle;
 import com.torodb.torod.impl.sql.SqlTorodBundle;
 import com.torodb.torod.impl.sql.SqlTorodConfig;
@@ -61,7 +63,10 @@ public class SqlCoreMetaBundle extends AbstractCoreMetaBundle {
 
     try (DdlOperationExecutor ddlEx = backendService.openDdlOperationExecutor()) {
       //try to drop everything just in case another test uses the same backend
-      ddlEx.dropAll();
+      DefaultRetrier.getInstance().retry(() -> {
+        ddlEx.dropAll();
+        return null;
+      });
     } finally {
       backendBundle.stopAsync();
       backendBundle.awaitTerminated();

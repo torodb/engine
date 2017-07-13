@@ -72,14 +72,15 @@ public interface MetaDataReadInterface {
   <T, R extends MetaScalarRecord<T>> MetaScalarTable<T, R> getMetaScalarTable();
 
   @Nonnull
-  <T, R extends MetaDocPartIndexRecord<T>> MetaDocPartIndexTable<T, R> getMetaDocPartIndexTable();
+  @SuppressWarnings("checkstyle:LineLength")
+  <T, B, R extends MetaDocPartIndexRecord<T, B>> MetaDocPartIndexTable<T, B, R> getMetaDocPartIndexTable();
 
   @Nonnull
   @SuppressWarnings("checkstyle:LineLength")
   <T, R extends MetaDocPartIndexColumnRecord<T>> MetaDocPartIndexColumnTable<T, R> getMetaDocPartIndexColumnTable();
 
   @Nonnull
-  <R extends MetaIndexRecord> MetaIndexTable<R> getMetaIndexTable();
+  <B, R extends MetaIndexRecord<B>> MetaIndexTable<B, R> getMetaIndexTable();
 
   @Nonnull
   <T, R extends MetaIndexFieldRecord<T>> MetaIndexFieldTable<T, R> getMetaIndexFieldTable();

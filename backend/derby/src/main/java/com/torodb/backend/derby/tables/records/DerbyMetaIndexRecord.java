@@ -21,7 +21,7 @@ package com.torodb.backend.derby.tables.records;
 import com.torodb.backend.derby.tables.DerbyMetaIndexTable;
 import com.torodb.backend.tables.records.MetaIndexRecord;
 
-public class DerbyMetaIndexRecord extends MetaIndexRecord {
+public class DerbyMetaIndexRecord extends MetaIndexRecord<Boolean> {
 
   private static final long serialVersionUID = -2922006334416416115L;
 
@@ -49,6 +49,16 @@ public class DerbyMetaIndexRecord extends MetaIndexRecord {
     super(DerbyMetaIndexTable.INDEX);
 
     values(database, collection, name, unique);
+  }
+
+  @Override
+  protected Boolean toBooleanType(Boolean value) {
+    return value;
+  }
+
+  @Override
+  public Boolean getUniqueAsBoolean() {
+    return getUnique();
   }
 
 }

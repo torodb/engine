@@ -60,9 +60,9 @@ public abstract class AbstractMetaDataWriteInterface implements MetaDataWriteInt
   private final MetaDocPartTable<?, ?> metaDocPartTable;
   private final MetaFieldTable<?, ?> metaFieldTable;
   private final MetaScalarTable<?, ?> metaScalarTable;
-  private final MetaIndexTable<?> metaIndexTable;
+  private final MetaIndexTable<?, ?> metaIndexTable;
   private final MetaIndexFieldTable<?, ?> metaIndexFieldTable;
-  private final MetaDocPartIndexTable<?, ?> metaDocPartIndexTable;
+  private final MetaDocPartIndexTable<?, ?, ?> metaDocPartIndexTable;
   private final MetaDocPartIndexColumnTable<?, ?> metaDocPartIndexColumnTable;
   private final KvTable<?> kvTable;
   private final SqlHelper sqlHelper;

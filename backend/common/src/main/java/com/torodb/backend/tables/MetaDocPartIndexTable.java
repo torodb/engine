@@ -36,7 +36,8 @@ import java.util.List;
     "Equals comparation is done in TableImpl class, which compares schema, name and fields")
 @SuppressWarnings({"checkstyle:LineLength", "checkstyle:AbbreviationAsWordInName",
     "checkstyle:MemberName"})
-public abstract class MetaDocPartIndexTable<TableRefTypeT, R extends MetaDocPartIndexRecord<TableRefTypeT>>
+public abstract class MetaDocPartIndexTable<TableRefTypeT, BooleanTypeT, R 
+      extends MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT>>
     extends SemanticTable<R> {
 
   private static final long serialVersionUID = -2876705139919509818L;
@@ -93,7 +94,7 @@ public abstract class MetaDocPartIndexTable<TableRefTypeT, R extends MetaDocPart
   /**
    * The column <code>torodb.index.unique</code>.
    */
-  public final TableField<R, Boolean> UNIQUE = createUniqueField();
+  public final TableField<R, BooleanTypeT> UNIQUE = createUniqueField();
 
   protected abstract TableField<R, String> createDatabaseField();
 
@@ -103,9 +104,9 @@ public abstract class MetaDocPartIndexTable<TableRefTypeT, R extends MetaDocPart
 
   protected abstract TableField<R, TableRefTypeT> createTableRefField();
 
-  protected abstract TableField<R, Boolean> createUniqueField();
+  protected abstract TableField<R, BooleanTypeT> createUniqueField();
 
-  private final UniqueKeys<TableRefTypeT, R> uniqueKeys;
+  private final UniqueKeys<TableRefTypeT, BooleanTypeT, R> uniqueKeys;
 
   /**
    * Create a <code>torodb.index_field</code> table reference
@@ -144,24 +145,24 @@ public abstract class MetaDocPartIndexTable<TableRefTypeT, R extends MetaDocPart
    * {@inheritDoc}
    */
   @Override
-  public abstract MetaDocPartIndexTable<TableRefTypeT, R> as(String alias);
+  public abstract MetaDocPartIndexTable<TableRefTypeT, BooleanTypeT, R> as(String alias);
 
   /**
    * Rename this table.
    */
-  public abstract MetaDocPartIndexTable<TableRefTypeT, R> rename(String name);
+  public abstract MetaDocPartIndexTable<TableRefTypeT, BooleanTypeT, R> rename(String name);
 
-  public UniqueKeys<TableRefTypeT, R> getUniqueKeys() {
+  public UniqueKeys<TableRefTypeT, BooleanTypeT, R> getUniqueKeys() {
     return uniqueKeys;
   }
 
   @SuppressWarnings("checkstyle:LineLength")
-  public static class UniqueKeys<TableRefTypeT, KeyRecordT extends MetaDocPartIndexRecord<TableRefTypeT>>
+  public static class UniqueKeys<TableRefTypeT, BooleanTypeT, KeyRecordT extends MetaDocPartIndexRecord<TableRefTypeT, BooleanTypeT>>
       extends AbstractKeys {
 
     private final UniqueKey<KeyRecordT> FIELD_INDEXED_PKEY;
 
-    private UniqueKeys(MetaDocPartIndexTable<TableRefTypeT, KeyRecordT> fieldTable) {
+    private UniqueKeys(MetaDocPartIndexTable<TableRefTypeT, BooleanTypeT, KeyRecordT> fieldTable) {
       FIELD_INDEXED_PKEY = createUniqueKey(fieldTable, fieldTable.DATABASE, fieldTable.IDENTIFIER);
     }
   }

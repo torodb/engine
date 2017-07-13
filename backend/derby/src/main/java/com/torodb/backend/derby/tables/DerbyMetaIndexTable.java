@@ -27,7 +27,7 @@ import org.jooq.TableField;
 import org.jooq.impl.SQLDataType;
 
 @SuppressFBWarnings(value = {"EQ_DOESNT_OVERRIDE_EQUALS", "HE_HASHCODE_NO_EQUALS"})
-public class DerbyMetaIndexTable extends MetaIndexTable<DerbyMetaIndexRecord> {
+public class DerbyMetaIndexTable extends MetaIndexTable<Boolean, DerbyMetaIndexRecord> {
 
   private static final long serialVersionUID = -7901334417081875840L;
   /**

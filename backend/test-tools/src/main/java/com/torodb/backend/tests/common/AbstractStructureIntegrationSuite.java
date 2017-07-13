@@ -353,8 +353,7 @@ public abstract class AbstractStructureIntegrationSuite extends AbstractBackendI
                 new Tuple3<String,Boolean,FieldType>(FIELD_COLUMN_NAME, true, fieldType)
               ), 
               false);
-      createSchema(dslContext);
-
+      
       /* When */
       context.getSqlInterface().getStructureInterface()
           .renameCollection(dslContext, DATABASE_SCHEMA_NAME, metaCollection, 
@@ -417,15 +416,14 @@ public abstract class AbstractStructureIntegrationSuite extends AbstractBackendI
 
       DataTypeForKv<?> dataType = context.getSqlInterface()
           .getDataTypeProvider().getDataType(fieldType);
-      String columnName = FIELD_COLUMN_NAME + "_" + fieldType.name();
 
-      MetaField metaField = new ImmutableMetaField(FIELD_NAME, columnName, fieldType);
+      MetaField metaField = new ImmutableMetaField(FIELD_NAME, FIELD_COLUMN_NAME, fieldType);
       context.getSqlInterface().getMetaDataWriteInterface()
         .addMetaField(dslContext, metaDatabase, metaCollection, metaDocPart, metaField);
 
       context.getSqlInterface().getStructureInterface()
           .addColumnToDocPartTable(dslContext, DATABASE_SCHEMA_NAME,
-              ROOT_TABLE_NAME, columnName, dataType);
+              ROOT_TABLE_NAME, FIELD_COLUMN_NAME, dataType);
 
       try {
         context.getDdlOps().getReadStructureDdlOp().readMetadata(dslContext);

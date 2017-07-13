@@ -49,7 +49,17 @@ public class MockIdentifierInterface implements IdentifierConstraints {
   }
 
   @Override
-  public boolean isSameIdentifier(String leftIdentifier, String rightIdentifier) {
+  public boolean isSameSchemaIdentifier(String leftIdentifier, String rightIdentifier) {
+    return leftIdentifier.equals(rightIdentifier);
+  }
+
+  @Override
+  public boolean isSameTableIdentifier(String leftIdentifier, String rightIdentifier) {
+    return leftIdentifier.equals(rightIdentifier);
+  }
+
+  @Override
+  public boolean isSameColumnIdentifier(String leftIdentifier, String rightIdentifier) {
     return leftIdentifier.equals(rightIdentifier);
   }
 
