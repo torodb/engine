@@ -106,6 +106,10 @@ public class UpdateActionTranslator {
       UpdateOperator key,
       BsonValue<?> value
   ) throws UpdateException {
+	if (UpdateOperator.VERSION.equals(key)) {
+		// no-op
+		return;
+	}
     if (!value.isDocument()) {
       throw new UpdateException("Modifiers operate on fields but found "
           + "a " + value + " instead.");
@@ -289,7 +293,8 @@ public class UpdateActionTranslator {
     MULTIPLY("$mul"),
     SET_CURRENT_DATE("$currentDate"),
     SET_FIELD("$set"),
-    UNSET_FIELD("$unset");
+    UNSET_FIELD("$unset"),
+    VERSION("$v");
 
     private static final Map<String, UpdateOperator> operandsByKey;
     private final String key;
