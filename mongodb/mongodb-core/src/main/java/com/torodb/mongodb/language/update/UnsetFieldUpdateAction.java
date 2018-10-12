@@ -60,6 +60,7 @@ public class UnsetFieldUpdateAction extends SingleFieldUpdateAction implements
       BuilderCallback<K> builder,
       AttributeReference key
   ) throws UpdateException {
+	  try {
     Boolean result = AttributeReferenceToBuilderCallback.resolve(
         builder,
         key.getKeys(),
@@ -70,6 +71,9 @@ public class UnsetFieldUpdateAction extends SingleFieldUpdateAction implements
       return false;
     }
     return result;
+	  } catch (UpdateException ev) {
+		  return false;
+	  }
   }
 
   @Override
