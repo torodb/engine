@@ -24,9 +24,9 @@ public class UpdateException extends UserException {
 
   private final String database;
 
-  public UpdateException(String database) {
-    super();
-    this.database = database;
+  public UpdateException(String message) {
+    super(message);
+    this.database = message;
   }
 
   public String getDatabase() {
