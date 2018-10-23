@@ -237,6 +237,7 @@ public class ConcurrentDataImportModeDdlOps implements DataImportModeDdlOps {
   @Override
   public void close() throws Exception {
     streamExecutor.stopAsync();
+    streamExecutor.awaitTerminated();
   }
 
 }
