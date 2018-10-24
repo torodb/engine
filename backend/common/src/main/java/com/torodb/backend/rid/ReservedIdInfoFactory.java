@@ -18,11 +18,13 @@
 
 package com.torodb.backend.rid;
 
-import com.google.common.util.concurrent.Service;
 import com.torodb.core.TableRef;
+import com.torodb.core.transaction.metainf.MetaSnapshot;
 
-public interface ReservedIdInfoFactory extends Service {
+public interface ReservedIdInfoFactory {
 
   ReservedIdInfo create(String dbName, String collectionName, TableRef tableRef);
+
+  void load(MetaSnapshot snapshot);
 
 }

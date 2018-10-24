@@ -18,13 +18,13 @@
 
 package com.torodb.packaging.config.model.protocol.mongo;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.torodb.packaging.config.annotation.Description;
 import com.torodb.packaging.config.jackson.RoleWithDefaultDeserializer;
 import com.torodb.packaging.config.model.common.EnumWithDefault;
+import com.torodb.packaging.config.model.common.ListOfStringWithDefault;
 import com.torodb.packaging.config.model.common.StringWithDefault;
 
 import javax.validation.constraints.NotNull;
@@ -36,7 +36,7 @@ public abstract class AbstractShardReplication {
   private StringWithDefault name = StringWithDefault.withDefault(null);
   private StringWithDefault replSetName = StringWithDefault.withDefault(null);
   private EnumWithDefault<Role> role = EnumWithDefault.withDefault(Role.HIDDEN_SLAVE);
-  private StringWithDefault syncSource = StringWithDefault.withDefault(null);
+  private ListOfStringWithDefault syncSource = ListOfStringWithDefault.withDefault(null);
   private Ssl ssl = new Ssl();
   private Auth auth = new Auth();
 
@@ -74,11 +74,11 @@ public abstract class AbstractShardReplication {
 
   @Description("config.mongo.replication.syncSource")
   @JsonProperty(required = true)
-  public StringWithDefault getSyncSource() {
+  public ListOfStringWithDefault getSyncSource() {
     return syncSource;
   }
 
-  public void setSyncSource(StringWithDefault syncSource) {
+  public void setSyncSource(ListOfStringWithDefault syncSource) {
     this.syncSource = syncSource;
   }
 

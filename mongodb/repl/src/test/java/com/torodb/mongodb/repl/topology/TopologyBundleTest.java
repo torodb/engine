@@ -19,13 +19,14 @@
 package com.torodb.mongodb.repl.topology;
 
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.Service;
 import com.torodb.core.bundle.BundleConfig;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.AbstractReplBundleTest;
-import com.torodb.mongodb.repl.MongoDbCoreBundleServiceBundle;
+import com.torodb.mongodb.repl.MemoryCoreMetaBundle;
 import com.torodb.mongodb.repl.ReplCoreBundle;
 import com.torodb.mongodb.repl.ReplCoreBundleTest;
 import com.torodb.mongodb.repl.TestBundleConfig;
@@ -52,7 +53,7 @@ public class TopologyBundleTest extends AbstractReplBundleTest<TopologyBundle> {
   public void setUp() {
     TestBundleConfig generalConfig = new TestBundleConfig();
 
-    MongoDbCoreBundleServiceBundle mongoCoreBundleFactory = MongoDbCoreBundleServiceBundle.createBundle();
+    MemoryCoreMetaBundle mongoCoreBundleFactory = MemoryCoreMetaBundle.createBundle();
     MongoDbCoreBundle mongoCoreBundle = mongoCoreBundleFactory.getExternalInterface();
     ReplCoreBundle replCoreBundle = ReplCoreBundleTest.createBundle(generalConfig, mongoCoreBundle);
 
@@ -84,7 +85,7 @@ public class TopologyBundleTest extends AbstractReplBundleTest<TopologyBundle> {
     return new TopologyBundle(new TopologyBundleConfig(
         replCoreBundle.getExternalInterface().getMongoClientFactory(),
         "replSetName1",
-        seed,
+        ImmutableList.of(seed),
         essentialOverrideModule,
         generalConfig)
     );

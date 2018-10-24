@@ -25,87 +25,63 @@ import com.torodb.core.language.AttributeReference;
 import com.torodb.core.transaction.RollbackException;
 import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvValue;
-import com.torodb.torod.IndexFieldInfo;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.torod.WriteDocTransaction;
 import com.torodb.torod.cursors.TorodCursor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class DbIsolatorWriteTrans<D extends SharedWriteTorodTransaction> extends DbIsolatorTrans<D>
-    implements SharedWriteTorodTransaction {
+public class DbIsolatorWriteTrans extends DbIsolatorTrans<WriteDocTransaction>
+    implements WriteDocTransaction {
 
-  public DbIsolatorWriteTrans(DbIsolatorConn connection, D decorated) {
-    super(connection, decorated);
+  public DbIsolatorWriteTrans(Converter converter, WriteDocTransaction decorated) {
+    super(converter, decorated);
+  }
+
+  @Override
+  public void insert(String dbName, String colName, Collection<KvDocument> documents) throws
+      RollbackException, UserException {
+    getDecorated().insert(getConverter().convertDatabaseName(dbName), colName, documents);
+  }
+
+  @Override
+  public void insert(String dbName, String colName, KvDocument document) throws RollbackException,
+      UserException {
+    getDecorated().insert(getConverter().convertDatabaseName(dbName), colName, document);
   }
 
   @Override
   public void insert(String dbName, String colName, Stream<KvDocument> documents) throws
       RollbackException, UserException {
-    getDecorated().insert(convertDatabaseName(dbName), colName, documents);
+    getDecorated().insert(getConverter().convertDatabaseName(dbName), colName, documents);
   }
 
   @Override
   public void delete(String dbName, String colName, Cursor<Integer> cursor) {
-    getDecorated().delete(convertDatabaseName(dbName), colName, cursor);
+    getDecorated().delete(getConverter().convertDatabaseName(dbName), colName, cursor);
   }
 
   @Override
   public void delete(String dbName, String colName, List<ToroDocument> candidates) {
-    getDecorated().delete(convertDatabaseName(dbName), colName, candidates);
+    getDecorated().delete(getConverter().convertDatabaseName(dbName), colName, candidates);
   }
 
   @Override
   public void delete(String dbName, String colName, TorodCursor cursor) {
-    getDecorated().delete(convertDatabaseName(dbName), colName, cursor);
+    getDecorated().delete(getConverter().convertDatabaseName(dbName), colName, cursor);
   }
 
   @Override
   public long deleteAll(String dbName, String colName) {
-    return getDecorated().deleteAll(convertDatabaseName(dbName), colName);
+    return getDecorated().deleteAll(getConverter().convertDatabaseName(dbName), colName);
   }
 
   @Override
   public long deleteByAttRef(String dbName, String colName, AttributeReference attRef,
       KvValue<?> value) {
-    return getDecorated().deleteByAttRef(convertDatabaseName(dbName), colName, attRef, value);
-  }
-
-  @Override
-  public void dropCollection(String db, String collection) throws RollbackException, UserException {
-    getDecorated().dropCollection(convertDatabaseName(db), collection);
-  }
-
-  @Override
-  public void createCollection(String db, String collection)
-      throws RollbackException, UserException {
-    getDecorated().createCollection(convertDatabaseName(db), collection);
-  }
-
-  @Override
-  public void dropDatabase(String db) throws RollbackException, UserException {
-    getDecorated().dropDatabase(convertDatabaseName(db));
-  }
-
-  @Override
-  public boolean createIndex(String dbName, String colName, String indexName,
-      List<IndexFieldInfo> fields, boolean unique) throws UserException {
-    return getDecorated().createIndex(
-        convertDatabaseName(dbName),
-        colName,
-        convertIndexName(indexName),
-        fields,
-        unique
-    );
-  }
-
-  @Override
-  public boolean dropIndex(String dbName, String colName, String indexName) {
-    return getDecorated().dropIndex(
-        convertDatabaseName(dbName),
-        colName,
-        convertIndexName(indexName)
-    );
+    return getDecorated().deleteByAttRef(getConverter().convertDatabaseName(dbName), colName,
+        attRef, value);
   }
 
   @Override

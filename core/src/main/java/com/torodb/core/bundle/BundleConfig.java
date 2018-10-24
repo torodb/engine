@@ -22,7 +22,6 @@ import com.google.inject.Injector;
 import com.torodb.core.Shutdowner;
 import com.torodb.core.retrier.Retrier;
 import com.torodb.core.supervision.Supervisor;
-import com.torodb.core.transaction.metainf.MetainfoRepository;
 
 import java.util.concurrent.ThreadFactory;
 

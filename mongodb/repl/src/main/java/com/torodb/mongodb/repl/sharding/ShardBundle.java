@@ -21,6 +21,15 @@ package com.torodb.mongodb.repl.sharding;
 import com.torodb.common.util.Empty;
 import com.torodb.core.bundle.AbstractBundle;
 
+/**
+ * This bundle is used to replicate from a single shard.
+ *
+ * Implementations can be compatible or incompatible with other concurrent shard bundles. Unless it
+ * is explicitly said, it is undertand that all implementations are compatible with theirself.
+ *
+ * Implementations can assume there is a {@link ShardBundleConfig#getTorodBundle() torod bundle},
+ * provided by the configuration.
+ */
 public abstract class ShardBundle extends AbstractBundle<Empty> {
 
   ShardBundle(ShardBundleConfig config) {

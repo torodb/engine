@@ -18,19 +18,41 @@
 
 package com.torodb.torod;
 
-import com.torodb.common.util.Empty;
 import com.torodb.core.services.TorodbService;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 
 /**
  *
  */
 public interface TorodServer extends TorodbService {
 
-  public TorodConnection openConnection();
+  public DocTransaction openReadTransaction(long timeout, TimeUnit unit) throws TimeoutException;
 
-  public CompletableFuture<Empty> disableDataImportMode(String dbName);
+  /**
+   * Like {@link #openReadTransaction(long, java.util.concurrent.TimeUnit)}, but uses a default
+   * timeout.
+   */
+  public DocTransaction openReadTransaction() throws TimeoutException;
 
-  public CompletableFuture<Empty> enableDataImportMode(String dbName);
+  public WriteDocTransaction openWriteTransaction(long timeout, TimeUnit unit) throws
+      TimeoutException;
+
+  /**
+   * Like {@link #openWriteTransaction(long, java.util.concurrent.TimeUnit) }, but uses a default
+   * timeout.
+   */
+  public WriteDocTransaction openWriteTransaction() throws TimeoutException;
+
+  public SchemaOperationExecutor openSchemaOperationExecutor(long timeout, TimeUnit unit) throws
+      TimeoutException;
+
+  /**
+   * Like {@link #openSchemaOperationExecutor(long, java.util.concurrent.TimeUnit) }, but uses a
+   * default timeout.
+   */
+  public SchemaOperationExecutor openSchemaOperationExecutor() throws TimeoutException;
+
 }

@@ -34,7 +34,11 @@ public interface IdentifierConstraints {
 
   boolean isAllowedIndexIdentifier(@Nonnull String identifier);
 
-  boolean isSameIdentifier(@Nonnull String leftIdentifier, @Nonnull String rightIdentifier);
+  boolean isSameSchemaIdentifier(@Nonnull String leftIdentifier, @Nonnull String rightIdentifier);
+
+  boolean isSameTableIdentifier(@Nonnull String leftIdentifier, @Nonnull String rightIdentifier);
+
+  boolean isSameColumnIdentifier(@Nonnull String leftIdentifier, @Nonnull String rightIdentifier);
 
   char getSeparator();
 

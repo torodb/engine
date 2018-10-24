@@ -19,52 +19,34 @@
 package com.torodb.backend.postgresql;
 
 import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
-import com.torodb.backend.tests.common.DatabaseTestContext;
-import com.torodb.core.transaction.metainf.FieldType;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.torodb.backend.tests.common.BackendTestContextFactory;
+import com.torodb.testing.docker.postgres.EnumVersion;
+import com.torodb.testing.docker.postgres.PostgresService;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 public class PostgreSqlStructureIT extends AbstractStructureIntegrationSuite {
 
-  private Map<FieldType, String> typesDictionary = new HashMap<>();
+  private static PostgresService postgresService;
 
-  public PostgreSqlStructureIT() {
-    typesDictionary.put(FieldType.STRING, "varchar");
-    typesDictionary.put(FieldType.BINARY, "bytea");
-    typesDictionary.put(FieldType.BOOLEAN, "bool");
-    typesDictionary.put(FieldType.DATE, "date");
-    typesDictionary.put(FieldType.DOUBLE, "float8");
-    typesDictionary.put(FieldType.INSTANT, "timestamptz");
-    typesDictionary.put(FieldType.INTEGER, "int4");
-    typesDictionary.put(FieldType.LONG, "int8");
-    typesDictionary.put(FieldType.MONGO_OBJECT_ID, "bytea");
-    typesDictionary.put(FieldType.MONGO_TIME_STAMP, "\"torodb\".\"mongo_timestamp\"");
-    typesDictionary.put(FieldType.NULL, "bool");
-    typesDictionary.put(FieldType.TIME, "time");
-    typesDictionary.put(FieldType.CHILD, "bool");
-    typesDictionary.put(FieldType.DECIMAL128, "\"torodb\".\"decimal_128\"");
-    typesDictionary.put(FieldType.JAVASCRIPT, "varchar");
-    typesDictionary.put(FieldType.JAVASCRIPT_WITH_SCOPE, "jsonb");
-    typesDictionary.put(FieldType.MIN_KEY, "bool");
-    typesDictionary.put(FieldType.MAX_KEY, "bool");
-    typesDictionary.put(FieldType.UNDEFINED, "bool");
-    typesDictionary.put(FieldType.MONGO_REGEX, "jsonb");
-    typesDictionary.put(FieldType.MONGO_DB_POINTER, "jsonb");
-    typesDictionary.put(FieldType.DEPRECATED, "varchar");
+  @BeforeAll
+  public static void beforeAll() {
+    postgresService = PostgresService.defaultService(EnumVersion.LATEST);
+    postgresService.startAsync();
+    postgresService.awaitRunning();
+  }
+
+  @AfterAll
+  public static void afterAll() {
+    if (postgresService != null && postgresService.isRunning()) {
+      postgresService.stopAsync();
+      postgresService.awaitTerminated();
+    }
   }
 
   @Override
-  protected DatabaseTestContext getDatabaseTestContext() {
-    return new PostgreSqlDatabaseTestContextFactory().createInstance();
-  }
-
-  @Override
-  protected String getSqlTypeOf(FieldType fieldType) {
-    if (!typesDictionary.containsKey(fieldType))
-      throw new RuntimeException("Unsupported type " + fieldType.name());
-
-    return typesDictionary.get(fieldType);
+  protected BackendTestContextFactory getBackendTestContextFactory() {
+    return new PostgreSqlTestContextFactory(postgresService);
   }
 
 }

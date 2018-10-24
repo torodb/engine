@@ -37,12 +37,25 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
+/**
+ * A {@link MultiShardBundle} is a {@link ShardBundle} designed to replicate from a single shard
+ * meanwhile other instances are replicating from other shards.
+ *
+ * This kind of {@link ShardBundle} are compatible with theirself iff each instance has a different
+ * {@link ShardBundleConfig#getShardId() }.
+ */
 public class MultiShardBundle extends ShardBundle {
 
   private final Logger logger;
   private final String shardId;
+  /**
+   * The real torod bundle.
+   */
   private final TorodBundle actualTorodBundle;
-  private final TorodBundle torodBundle;
+  /**
+   * A wrapper on the torodBundle, used to isolate this shard from the others.
+   */
+  private final DbIsolatedTorodBundle torodBundle;
   private final MongoDbCoreBundle coreBundle;
   private final MongoDbReplBundle replBundle;
 
@@ -112,11 +125,13 @@ public class MultiShardBundle extends ShardBundle {
     return new MongoDbReplConfigBuilder(config)
         .setConsistencyHandler(config.getConsistencyHandler())
         .setCoreBundle(coreBundle)
-        .setMongoClientConfiguration(config.getClientConfig())
+        .setSeeds(config.getSeeds())
+        .setMongoClientConfigurationProperties(config.getClientConfigProperties())
         .setReplSetName(config.getReplSetName())
         .setReplicationFilters(config.getUserReplFilter())
         .setMetricRegistry(shardMetricRegistry)
         .setLoggerFactory(new ComponentLoggerFactory("REPL-" + config.getShardId()))
+        .setOffHeapBufferConfig(config.getOffHeapBufferConfig())
         .build();
   }
 

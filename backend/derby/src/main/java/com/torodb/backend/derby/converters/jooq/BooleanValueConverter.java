@@ -37,11 +37,11 @@ public class BooleanValueConverter implements KvValueConverter<Boolean, Boolean,
 
   private static final long serialVersionUID = 1L;
 
-  public static final DataType<Boolean> BOOLEAN_TYPE =
+  public static final DataType<Boolean> BOOLEAN =
       new DefaultDataType<Boolean>(SQLDialect.DERBY, SQLDataType.BOOLEAN, "BOOLEAN");
 
-  public static final DataTypeForKv<KvBoolean> TYPE = DataTypeForKv.from(BOOLEAN_TYPE,
-      new BooleanValueConverter());
+  public static final DataTypeForKv<KvBoolean> TYPE = DataTypeForKv.from(
+      BooleanValueConverter.BOOLEAN, new BooleanValueConverter());
 
   @Override
   public KvType getErasuredType() {

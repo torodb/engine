@@ -18,16 +18,16 @@
 
 package com.torodb.mongodb.repl.commands.impl;
 
-import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.tools.Empty;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
 import org.apache.logging.log4j.Logger;
 
 import javax.inject.Inject;
+
 
 public class DropDatabaseReplImpl extends ReplCommandImpl<Empty, Empty> {
 
@@ -43,25 +43,15 @@ public class DropDatabaseReplImpl extends ReplCommandImpl<Empty, Empty> {
   @Override
   public Status<Empty> apply(Request req,
       Command<? super Empty, ? super Empty> command, Empty arg,
-      SharedWriteTorodTransaction trans) {
+      SchemaOperationExecutor schemaEx) {
 
     if (!filterUtil.testDbFilter(req.getDatabase(), command)) {
       return Status.ok();
     }
     
-    try {
-      logger.info("Dropping database {}", req.getDatabase());
+    logger.info("Dropping database {}", req.getDatabase());
 
-      if (trans.existsDatabase(req.getDatabase())) {
-        trans.dropDatabase(req.getDatabase());
-      } else {
-        logger.info("Trying to drop database " + req.getDatabase() + " but it has not been found. "
-            + "This is normal since the database could have a collection being filtered "
-            + "or we are reapplying oplog during a recovery. Ignoring operation");
-      }
-    } catch (UserException ex) {
-      reportErrorIgnored(logger, command, ex);
-    }
+    schemaEx.dropDatabase(req.getDatabase());
 
     return Status.ok();
   }

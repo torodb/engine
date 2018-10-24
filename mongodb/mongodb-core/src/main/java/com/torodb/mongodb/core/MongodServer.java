@@ -18,18 +18,24 @@
 
 package com.torodb.mongodb.core;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalNotification;
 import com.torodb.core.annotations.TorodbIdleService;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.services.IdleTorodbService;
+import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.commands.CommandClassifier;
-import com.torodb.mongodb.language.ObjectIdFactory;
+import com.torodb.mongowp.Status;
+import com.torodb.mongowp.commands.Command;
+import com.torodb.mongowp.commands.CommandExecutor;
+import com.torodb.mongowp.commands.Request;
+import com.torodb.torod.DocTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
 import com.torodb.torod.TorodServer;
+import com.torodb.torod.WriteDocTransaction;
 import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -37,51 +43,78 @@ import javax.inject.Singleton;
 @Singleton
 public class MongodServer extends IdleTorodbService {
 
-  private final LoggerFactory loggerFactory;
   private final Logger logger;
   private final TorodServer torodServer;
-  private final Cache<Integer, MongodConnection> openConnections;
-  private final CommandClassifier commandsExecutorClassifier;
-  private final MongodMetrics metrics;
-  private final ObjectIdFactory objectIdFactory;
+  private final ReadMongodTransactionFactory readTransFactory;
+  private final WriteMongodTransactionFactory writeTransFactory;
+  private final MongodSchemaExecutorFactory executorFactory;
+  private final Supervisor supervisor;
+  private final CommandExecutor<? super MongodServer> serverExecutor;
 
   @Inject
   public MongodServer(@TorodbIdleService ThreadFactory threadFactory,
       LoggerFactory loggerFactory,
       TorodServer torodServer,
-      CommandClassifier commandsExecutorClassifier,
-      MongodMetrics metrics,
-      ObjectIdFactory objectIdFactory) {
+      ReadMongodTransactionFactory readMongodTransactionFactory,
+      WriteMongodTransactionFactory writeMongodTransactionFactory,
+      MongodSchemaExecutorFactory executorFactory,
+      CommandClassifier commandClassifier,
+      Supervisor supervisor) {
     super(threadFactory);
-    this.loggerFactory = loggerFactory;
     this.logger = loggerFactory.apply(this.getClass());
     this.torodServer = torodServer;
-    openConnections = CacheBuilder.newBuilder()
-        .weakValues()
-        .removalListener(this::onConnectionInvalidated)
-        .build();
-    this.commandsExecutorClassifier = commandsExecutorClassifier;
-    this.metrics = metrics;
-    this.objectIdFactory = objectIdFactory;
+    this.readTransFactory = readMongodTransactionFactory;
+    this.writeTransFactory = writeMongodTransactionFactory;
+    this.executorFactory = executorFactory;
+    this.supervisor = supervisor;
+    this.serverExecutor = commandClassifier.getServerCommandsExecutor();
   }
 
   public TorodServer getTorodServer() {
     return torodServer;
   }
 
-  public MongodConnection openConnection() {
-    MongodConnection connection = new MongodConnection(this);
-    openConnections.put(connection.getConnectionId(), connection);
-
-    return connection;
+  public MongodTransaction openReadTransaction(long timeout, TimeUnit timeUnit)
+      throws TimeoutException {
+    return readTransFactory.createReadTransaction(
+        torodServer.openReadTransaction(timeout, timeUnit)
+    );
   }
 
-  public MongodMetrics getMetrics() {
-    return metrics;
+  public MongodTransaction openReadTransaction() throws TimeoutException {
+    return readTransFactory.createReadTransaction(
+        torodServer.openReadTransaction()
+    );
   }
 
-  public ObjectIdFactory getObjectIdFactory() {
-    return objectIdFactory;
+  public WriteMongodTransaction openWriteTransaction(long timeout, TimeUnit timeUnit)
+      throws InterruptedException, TimeoutException {
+    return writeTransFactory.createWriteTransaction(
+        torodServer.openWriteTransaction(timeout, timeUnit)
+    );
+  }
+
+  public WriteMongodTransaction openWriteTransaction() throws TimeoutException {
+    return writeTransFactory.createWriteTransaction(
+        torodServer.openWriteTransaction()
+    );
+  }
+
+  public MongodSchemaExecutor openSchemaExecutor(long timeout, TimeUnit timeUnit)
+      throws InterruptedException, TimeoutException {
+    return executorFactory.createMongodSchemaExecutor(
+        torodServer.openSchemaOperationExecutor(timeout, timeUnit)
+    );
+  }
+
+  public MongodSchemaExecutor openSchemaExecutor() throws TimeoutException {
+    return executorFactory.createMongodSchemaExecutor(
+        new MongoSchemaOperationExecutor(
+            logger,
+            torodServer.openSchemaOperationExecutor(),
+            supervisor
+        )
+    );
   }
 
   @Override
@@ -93,27 +126,22 @@ public class MongodServer extends IdleTorodbService {
 
   @Override
   protected void shutDown() throws Exception {
-    openConnections.invalidateAll();
   }
 
-  public CommandClassifier getCommandsExecutorClassifier() {
-    return commandsExecutorClassifier;
+  public <A, R> Status<R> execute(Request req, Command<? super A, ? super R> command, A arg) {
+    return serverExecutor.execute(req, command, arg, this);
   }
 
-  void onConnectionClose(MongodConnection connection) {
-    openConnections.invalidate(connection.getConnectionId());
+  static interface ReadMongodTransactionFactory {
+    MongodTransaction createReadTransaction(DocTransaction docTrans);
   }
 
-  private void onConnectionInvalidated(
-      RemovalNotification<Integer, MongodConnection> notification) {
-    MongodConnection value = notification.getValue();
-    if (value != null) {
-      value.close();
-    }
+  static interface WriteMongodTransactionFactory {
+    WriteMongodTransaction createWriteTransaction(WriteDocTransaction docTrans);
   }
 
-  public LoggerFactory getLoggerFactory() {
-    return loggerFactory;
+  static interface MongodSchemaExecutorFactory {
+    MongodSchemaExecutor createMongodSchemaExecutor(SchemaOperationExecutor torodSchemaOperationEx);
   }
 
 }

@@ -18,13 +18,7 @@
 
 package com.torodb.mongodb.repl.commands.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.torodb.core.exceptions.user.UnsupportedCompoundIndexException;
-import com.torodb.core.exceptions.user.UnsupportedUniqueIndexException;
-import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.language.AttributeReference;
-import com.torodb.core.language.AttributeReference.Key;
-import com.torodb.core.language.AttributeReference.ObjectKey;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.transaction.metainf.FieldIndexOrdering;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions;
@@ -36,17 +30,19 @@ import com.torodb.mongodb.commands.pojos.index.type.IndexType;
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand.CreateIndexesArgument;
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand.CreateIndexesResult;
 import com.torodb.mongodb.filters.IndexFilter;
-import com.torodb.mongodb.utils.DefaultIdUtils;
 import com.torodb.mongowp.ErrorCode;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.torod.IndexFieldInfo;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.exception.UnexistentCollectionException;
+import com.torodb.torod.exception.UnexistentDatabaseException;
+import com.torodb.torod.exception.UnsupportedIndexException;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,9 +51,8 @@ import javax.inject.Inject;
 public class CreateIndexesReplImpl
     extends ReplCommandImpl<CreateIndexesArgument, CreateIndexesResult> {
 
-  @SuppressWarnings("checkstyle:LineLength")
-  private static final FieldIndexOrderingConverterIndexTypeVisitor fieldIndexOrderingConverterVisitor =
-      new FieldIndexOrderingConverterIndexTypeVisitor();
+  private static final FieldIndexOrderingConverterVisitor fieldIndexOrderingConverterVisitor =
+      new FieldIndexOrderingConverterVisitor();
   private final Logger logger;
   private final CommandFilterUtil filterUtil;
   private final IndexFilter indexFilter;
@@ -73,27 +68,22 @@ public class CreateIndexesReplImpl
   @Override
   public Status<CreateIndexesResult> apply(Request req,
       Command<? super CreateIndexesArgument, ? super CreateIndexesResult> command,
-      CreateIndexesArgument arg, SharedWriteTorodTransaction trans) {
+      CreateIndexesArgument arg, SchemaOperationExecutor schemaEx) {
 
     if (!filterUtil.testNamespaceFilter(req.getDatabase(), arg.getCollection(), command)) {
       return Status.ok(new CreateIndexesResult(0, 0, null, false));
     }
 
-    int indexesBefore = (int) trans.getIndexesInfo(req.getDatabase(), arg.getCollection()).count();
+    int indexesBefore = (int) schemaEx.getIndexesInfo(req.getDatabase(), arg.getCollection())
+        .count();
     int indexesAfter = indexesBefore;
 
     try {
-      boolean existsCollection = trans.existsCollection(req.getDatabase(), arg.getCollection());
-      final boolean createdCollectionAutomatically = !existsCollection;
-
-      if (!existsCollection) {
-        logger.info("Creating collection {} on {}.{}", req.getDatabase(), arg.getCollection());
-
-        trans.createIndex(req.getDatabase(), arg.getCollection(), DefaultIdUtils.ID_INDEX,
-            ImmutableList.<IndexFieldInfo>of(new IndexFieldInfo(new AttributeReference(Arrays
-                .asList(new Key[]{new ObjectKey(DefaultIdUtils.ID_KEY)})), FieldIndexOrdering.ASC
-                .isAscending())), true);
-      }
+      boolean createdCollectionAutomatically = schemaEx.prepareSchema(
+          req.getDatabase(),
+          arg.getCollection(),
+          Collections.emptyList()
+      );
 
       for (IndexOptions indexOptions : arg.getIndexesToCreate()) {
         assert req.getDatabase().equals(indexOptions.getDatabase()) : "Database modified by the "
@@ -159,18 +149,13 @@ public class CreateIndexesReplImpl
           logger.info("Creating index {} on collection {}.{}",
               indexOptions.getName(), req.getDatabase(), arg.getCollection());
 
-          if (trans.createIndex(req.getDatabase(), arg.getCollection(), indexOptions.getName(),
+          if (schemaEx.createIndex(req.getDatabase(), arg.getCollection(), indexOptions.getName(),
               fields, indexOptions.isUnique())) {
             indexesAfter++;
           }
-        } catch (UnsupportedCompoundIndexException ex) {
+        } catch (UnsupportedIndexException ex) {
           String note =
-              "Compound indexes are not supported. Skipping index.";
-          logger.info(note);
-          continue;
-        } catch (UnsupportedUniqueIndexException ex) {
-          String note =
-              "Unique index with keys on distinct subdocuments is not supported. Skipping index.";
+              "Index is not supported. Skipping index.";
           logger.info(note);
           continue;
         }
@@ -184,12 +169,12 @@ public class CreateIndexesReplImpl
 
       return Status.ok(new CreateIndexesResult(indexesBefore, indexesAfter, note,
           createdCollectionAutomatically));
-    } catch (UserException ex) {
+    } catch (UnexistentCollectionException | UnexistentDatabaseException ex) {
       return Status.from(ErrorCode.COMMAND_FAILED, ex.getLocalizedMessage());
     }
   }
 
-  private static class FieldIndexOrderingConverterIndexTypeVisitor
+  private static class FieldIndexOrderingConverterVisitor
       extends DefaultIndexTypeVisitor<Void, Optional<FieldIndexOrdering>> {
 
     @Override

@@ -199,11 +199,12 @@ public class ImmutableMetaCollection implements MetaCollection {
 
     public ImmutableMetaCollection build() {
       Preconditions.checkState(!built, "This builder has already been built");
-      Preconditions.checkState(
-          docPartsByIdentifier.values().isEmpty() || docPartsByIdentifier.values().stream()
-          .anyMatch((dp) -> dp.getTableRef().isRoot()),
-          "Tryng to create a MetaCollection without a root doc part"
-      );
+      if (!docPartsByIdentifier.values().isEmpty() && !docPartsByIdentifier.values().stream()
+          .anyMatch(
+              dp -> dp.getTableRef().isRoot())) {
+        throw new IllegalStateException("Tryng to create a MetaCollection with name " + name
+            + " without a root doc part\"");
+      }
       built = true;
       return new ImmutableMetaCollection(name, identifier, docPartsByIdentifier, indexesByName);
     }

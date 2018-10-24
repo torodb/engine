@@ -44,8 +44,7 @@ public class OplogApplierServiceModule extends PrivateModule {
 
     install(new FactoryModuleBuilder()
         //To use the old applier that emulates MongoDB
-        //                .implement(OplogApplierService.class, SequentialOplogApplierService.class)
-
+        //  .implement(OplogApplierService.class, SequentialOplogApplierService.class)
         //To use the applier service that delegates on a OplogApplier
         .implement(OplogApplierService.class, DefaultOplogApplierService.class)
         .build(OplogApplierService.OplogApplierServiceFactory.class)

@@ -59,6 +59,13 @@ public class  DataTypeForKv<T extends KvValue<?>> implements DataType<T> {
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   public static <DT, JT, T extends KvValue<?>> DataTypeForKv<T> from(DataType<DT> dataType,
+      KvValueConverter<DT, JT, T> converter, int sqlType, String jdbcName) {
+    return new DataTypeForKv<>(dataType.asConvertedDataType(new KvChainConverter(dataType
+        .getConverter(), converter)), converter, sqlType, jdbcName);
+  }
+
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public static <DT, JT, T extends KvValue<?>> DataTypeForKv<T> from(DataType<DT> dataType,
       KvValueConverter<DT, JT, T> converter, Binding<DT, T> binding) {
     return new DataTypeForKv<>(dataType.asConvertedDataType(new KvChainBinding(binding, dataType
             .getConverter(), converter)), converter);
@@ -71,14 +78,23 @@ public class  DataTypeForKv<T extends KvValue<?>> implements DataType<T> {
         .getConverter(), converter)), converter, sqlType);
   }
 
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public static <DT, JT, T extends KvValue<?>> DataTypeForKv<T> from(DataType<DT> dataType,
+      KvValueConverter<DT, JT, T> converter, Binding<DT, T> binding, int sqlType, String jdbcName) {
+    return new DataTypeForKv<>(dataType.asConvertedDataType(new KvChainBinding(binding, dataType
+        .getConverter(), converter)), converter, sqlType, jdbcName);
+  }
+
   private final DataType<T> dataType;
   private final int sqlType;
+  private final String jdbcName;
   private final KvValueConverter<?, ?, T> kvValueConverter;
 
   private DataTypeForKv(DataType<T> dataType, KvValueConverter<?, ?, T> kvValueConverter) {
     super();
     this.dataType = dataType;
     this.sqlType = dataType.getSQLType();
+    this.jdbcName = dataType.getTypeName();
     this.kvValueConverter = kvValueConverter;
   }
 
@@ -87,11 +103,25 @@ public class  DataTypeForKv<T extends KvValue<?>> implements DataType<T> {
     super();
     this.dataType = dataType;
     this.sqlType = sqlType;
+    this.jdbcName = dataType.getTypeName();
+    this.kvValueConverter = kvValueConverter;
+  }
+
+  private DataTypeForKv(DataType<T> dataType, KvValueConverter<?, ?, T> kvValueConverter,
+      int sqlType, String jdbcName) {
+    super();
+    this.dataType = dataType;
+    this.sqlType = sqlType;
+    this.jdbcName = jdbcName;
     this.kvValueConverter = kvValueConverter;
   }
 
   public KvValueConverter<?, ?, T> getKvValueConverter() {
     return kvValueConverter;
+  }
+
+  public String getJdbcName() {
+    return jdbcName;
   }
 
   @SuppressFBWarnings(value = "NM_CONFUSING", justification = "we cannot "
@@ -172,7 +202,7 @@ public class  DataTypeForKv<T extends KvValue<?>> implements DataType<T> {
   public String getCastTypeName() {
     return dataType.getCastTypeName();
   }
-
+  
   @Override
   public String getCastTypeName(Configuration configuration) {
     return dataType.getCastTypeName(configuration);

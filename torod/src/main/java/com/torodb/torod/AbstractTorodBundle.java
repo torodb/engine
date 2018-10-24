@@ -20,8 +20,6 @@ package com.torodb.torod;
 
 import com.torodb.core.bundle.AbstractBundle;
 import com.torodb.core.bundle.BundleConfig;
-import com.torodb.core.d2r.ReservedIdGenerator;
-import com.torodb.torod.pipeline.InsertPipelineFactory;
 import org.apache.logging.log4j.Logger;
 
 
@@ -41,33 +39,9 @@ public abstract class AbstractTorodBundle extends AbstractBundle<TorodExtInt>
    * <p>It must always return the same instance (or at least instances that share the service state)
    */
   protected abstract TorodServer getTorodServer();
-  
-  /**
-   * Returns the {@linkplain ReservedIdGenerator} this bundle will use.
-   * 
-   * <p>It must always return the same instance (or at least instances that share the service state)
-   */
-  protected abstract ReservedIdGenerator getReservedIdGenerator();
-
-  /**
-   * Returns the {@linkplain InsertPipelineFactory} this bundle will use.
-   *
-   * <p>It must always return the same instance (or at least instances that share the service state)
-   */
-  protected abstract InsertPipelineFactory getInsertPipelineFactory();
 
   @Override
   protected void postDependenciesStartUp() throws Exception {
-    ReservedIdGenerator reservedIdGenerator = getReservedIdGenerator();
-    LOGGER.debug("Reading last used rids...");
-    reservedIdGenerator.startAsync();
-    reservedIdGenerator.awaitRunning();
-
-    LOGGER.trace("Starting insert pipeline factories");
-    InsertPipelineFactory insertPipelineFactory = getInsertPipelineFactory();
-    insertPipelineFactory.startAsync();
-    insertPipelineFactory.awaitRunning();
-
     LOGGER.debug("Starting Torod sevice");
     TorodServer torodServer = getTorodServer();
     torodServer.startAsync();
@@ -80,14 +54,6 @@ public abstract class AbstractTorodBundle extends AbstractBundle<TorodExtInt>
     TorodServer torodServer = getTorodServer();
     torodServer.stopAsync();
     torodServer.awaitTerminated();
-
-    InsertPipelineFactory insertPipelineFactory = getInsertPipelineFactory();
-    insertPipelineFactory.stopAsync();
-    insertPipelineFactory.awaitTerminated();
-
-    ReservedIdGenerator reservedIdGenerator = getReservedIdGenerator();
-    reservedIdGenerator.stopAsync();
-    reservedIdGenerator.awaitTerminated();
   }
 
   @Override

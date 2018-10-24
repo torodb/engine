@@ -29,7 +29,6 @@ import com.torodb.kvdocument.values.KvInstant;
 import com.torodb.kvdocument.values.heap.InstantKvInstant;
 
 import java.sql.Timestamp;
-import java.time.Instant;
 
 public class InstantValueConverter implements KvValueConverter<Timestamp, Timestamp, KvInstant> {
 
@@ -45,21 +44,12 @@ public class InstantValueConverter implements KvValueConverter<Timestamp, Timest
 
   @Override
   public KvInstant from(Timestamp databaseObject) {
-    return new InstantKvInstant(
-        Instant.ofEpochSecond(databaseObject.getTime() / 1000, databaseObject.getNanos())
-    );
+    return new InstantKvInstant(databaseObject.toInstant());
   }
 
   @Override
   public Timestamp to(KvInstant userObject) {
-    Instant instant = userObject.getValue();
-    try {
-      Timestamp ts = new Timestamp(instant.getEpochSecond() * 1000);
-      ts.setNanos(instant.getNano());
-      return ts;
-    } catch (ArithmeticException ex) {
-      throw new IllegalArgumentException(ex);
-    }
+    return Timestamp.from(userObject.getValue());
   }
 
   @Override

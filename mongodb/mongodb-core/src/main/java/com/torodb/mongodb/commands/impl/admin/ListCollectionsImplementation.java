@@ -74,7 +74,7 @@ public class ListCollectionsImplementation implements
         new ListCollectionsResult(
             CursorResult.createSingleBatchCursor(req.getDatabase(),
                 NamespaceUtil.LIST_COLLECTIONS_GET_MORE_COLLECTION,
-                context.getTorodTransaction().getCollectionsInfo(req.getDatabase()).map(colInfo ->
+                context.getDocTransaction().getCollectionsInfo(req.getDatabase()).map(colInfo ->
                     new Entry(colInfo.getName(), colInfo.getType(), DEFAULT_COLLECTION_OPTIONS)
                 )
             )

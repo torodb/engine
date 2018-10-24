@@ -19,8 +19,8 @@
 package com.torodb.mongodb.commands.impl.authentication;
 
 import com.torodb.core.logging.LoggerFactory;
-import com.torodb.mongodb.commands.impl.ConnectionTorodbCommandImpl;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.commands.impl.ServerCommandImpl;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
@@ -33,7 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
 
 @ThreadSafe
-public class GetNonceImplementation extends ConnectionTorodbCommandImpl<Empty, String> {
+public class GetNonceImplementation extends ServerCommandImpl<Empty, String> {
 
   private final Logger logger;
   private final Random random = new Random();
@@ -48,7 +48,7 @@ public class GetNonceImplementation extends ConnectionTorodbCommandImpl<Empty, S
       Request req,
       Command<? super Empty, ? super String> command,
       Empty arg,
-      MongodConnection context) {
+      MongodServer context) {
     logger.warn("Authentication not supported. Operation 'getnonce' called. A fake value is "
         + "returned");
 

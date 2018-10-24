@@ -18,7 +18,7 @@
 
 package com.torodb.mongodb.repl;
 
-
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -32,8 +32,11 @@ import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.core.MongoDbCoreConfig;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
 import com.torodb.mongodb.repl.impl.AlwaysConsistentConsistencyHandler;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
-import com.torodb.torod.MemoryTorodBundle;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.BufferRollCycle;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
+import com.torodb.torod.impl.memory.MemoryTorodBundle;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,19 +52,16 @@ public class MongoDbReplBundleTest {
 
   @Before
   public void setUp() {
-    Supervisor supervisor = new Supervisor() {
-      @Override
-      public SupervisorDecision onError(Object supervised, Throwable error) {
-        throw new AssertionError("error on " + supervised, error);
-      }
-    };
-    Injector essentialInjector = Guice.createInjector(
-        new EssentialModule(
-            DefaultLoggerFactory.getInstance(),
-            () -> true,
-            Clock.systemUTC()
-        )
-    );
+    Supervisor supervisor =
+        new Supervisor() {
+          @Override
+          public SupervisorDecision onError(Object supervised, Throwable error) {
+            throw new AssertionError("error on " + supervised, error);
+          }
+        };
+    Injector essentialInjector =
+        Guice.createInjector(
+            new EssentialModule(DefaultLoggerFactory.getInstance(), () -> true, Clock.systemUTC()));
 
     generalConfig = new BundleConfigImpl(essentialInjector, supervisor);
     torodBundle = new MemoryTorodBundle(generalConfig);
@@ -69,12 +69,9 @@ public class MongoDbReplBundleTest {
     torodBundle.startAsync();
     torodBundle.awaitRunning();
 
-    MongoDbCoreConfig config = MongoDbCoreConfig.simpleNonServerConfig(
-        torodBundle,
-        DefaultLoggerFactory.getInstance(),
-        Optional.empty(),
-        generalConfig
-    );
+    MongoDbCoreConfig config =
+        MongoDbCoreConfig.simpleNonServerConfig(
+            torodBundle, DefaultLoggerFactory.getInstance(), Optional.empty(), generalConfig);
     coreBundle = new MongoDbCoreBundle(config);
 
     coreBundle.startAsync();
@@ -92,24 +89,52 @@ public class MongoDbReplBundleTest {
   public void testConstruction() {
     //This bundle requires remotes nodes, so it cannot start without them
     //This is why this test only checks that the bundle can be created, but not that it can start
-    MongoDbReplBundle replBundle = new MongoDbReplBundle(new MongoDbReplConfigBuilder(generalConfig)
-        .setConsistencyHandler(new AlwaysConsistentConsistencyHandler())
-        .setMongoClientConfiguration(createMongoClientConfiguration())
-        .setReplSetName("replTest")
-        .setReplicationFilters(createReplicationFilters())
-        .setCoreBundle(coreBundle)
-        .setMetricRegistry(Optional.empty())
-        .setLoggerFactory(DefaultLoggerFactory.getInstance())
-        .build()
-    );
+    MongoDbReplBundle replBundle =
+        new MongoDbReplBundle(
+            new MongoDbReplConfigBuilder(generalConfig)
+                .setConsistencyHandler(new AlwaysConsistentConsistencyHandler())
+                .setSeeds(ImmutableList.of(HostAndPort.fromParts("localhost", 27017)))
+                .setMongoClientConfigurationProperties(createMongoClientConfigurationProperties())
+                .setReplSetName("replTest")
+                .setReplicationFilters(createReplicationFilters())
+                .setCoreBundle(coreBundle)
+                .setMetricRegistry(Optional.empty())
+                .setLoggerFactory(DefaultLoggerFactory.getInstance())
+                .setOffHeapBufferConfig(createOffHeapBufferConfig())
+                .build());
     assert !replBundle.isRunning();
   }
 
-  private MongoClientConfiguration createMongoClientConfiguration() {
-    return MongoClientConfiguration.unsecure(HostAndPort.fromParts("localhost", 27017));
+  private MongoClientConfigurationProperties createMongoClientConfigurationProperties() {
+    return MongoClientConfigurationProperties.unsecure();
   }
 
   private ReplicationFilters createReplicationFilters() {
     return ReplicationFilters.allowAll();
+  }
+
+  private OffHeapBufferConfig createOffHeapBufferConfig() {
+    OffHeapBufferConfig offHeapConfig = new OffHeapBufferConfig() {
+      @Override
+      public Boolean getEnabled() {
+        return true;
+      }
+
+      @Override
+      public String getPath() {
+        return "";
+      }
+
+      @Override
+      public int getMaxFiles() {
+        return 10;
+      }
+
+      @Override
+      public BufferRollCycle getRollCycle() {
+        return BufferRollCycle.HOURLY;
+      }
+    };
+    return offHeapConfig;
   }
 }

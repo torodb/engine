@@ -46,7 +46,7 @@ import com.torodb.kvdocument.values.heap.LocalDateKvDate;
 import com.torodb.kvdocument.values.heap.LocalTimeKvTime;
 import com.torodb.kvdocument.values.heap.MapKvDocument;
 import com.torodb.kvdocument.values.heap.StringKvString;
-import java.util.TimeZone;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,6 +62,7 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 /** @author gortiz */

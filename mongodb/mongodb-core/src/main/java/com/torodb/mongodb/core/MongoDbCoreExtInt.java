@@ -18,6 +18,7 @@
 
 package com.torodb.mongodb.core;
 
+import com.torodb.mongodb.commands.CommandClassifier;
 import com.torodb.mongowp.commands.CommandLibrary;
 
 /**
@@ -27,10 +28,13 @@ public class MongoDbCoreExtInt {
 
   private final MongodServer mongodServer;
   private final CommandLibrary commandLibrary;
+  private final CommandClassifier commandClassifier;
 
-  public MongoDbCoreExtInt(MongodServer mongodServer, CommandLibrary commandLibrary) {
+  public MongoDbCoreExtInt(MongodServer mongodServer, CommandLibrary commandLibrary,
+      CommandClassifier commandClassifier) {
     this.mongodServer = mongodServer;
     this.commandLibrary = commandLibrary;
+    this.commandClassifier = commandClassifier;
   }
 
   public MongodServer getMongodServer() {
@@ -39,5 +43,9 @@ public class MongoDbCoreExtInt {
 
   public CommandLibrary getCommandLibrary() {
     return commandLibrary;
+  }
+
+  public CommandClassifier getCommandClassifier() {
+    return commandClassifier;
   }
 }

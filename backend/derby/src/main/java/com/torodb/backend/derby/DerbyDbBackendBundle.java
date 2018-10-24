@@ -25,34 +25,32 @@ import com.torodb.backend.derby.driver.DerbyDbBackendConfig;
 import com.torodb.backend.derby.guice.DerbyBackendModule;
 import com.torodb.core.backend.BackendExtInt;
 import com.torodb.core.backend.BackendService;
-import com.torodb.core.backend.SnapshotUpdater;
 import com.torodb.core.d2r.IdentifierFactory;
 import com.torodb.core.d2r.ReservedIdGenerator;
-import com.torodb.core.dsl.backend.BackendTransactionJobFactory;
 
 /**
- * A {@link BackendBundle} that uses DerbyDB.
+ * A {@link com.torodb.core.backend.BackendBundle} that uses DerbyDB.
  */
 public class DerbyDbBackendBundle extends AbstractBackendBundle {
 
   private final DbBackendService lowLevelService;
   private final BackendService backendService;
   private final ReservedIdGenerator reservedIdGenerator;
-  private final SnapshotUpdater snapshotUpdater;
   private final IdentifierFactory identifierFactory;
-  private final BackendTransactionJobFactory backendTransactionJobFactory;
 
   @SuppressWarnings("checkstyle:JavadocMethod")
   public DerbyDbBackendBundle(DerbyDbBackendConfig config) {
     super(config);
-    Injector injector = config.getEssentialInjector().createChildInjector(
-        new DerbyBackendModule(config));
+    Injector injector = createInjector(config);
     this.lowLevelService = injector.getInstance(DbBackendService.class);
     this.backendService = injector.getInstance(BackendService.class);
     this.reservedIdGenerator = injector.getInstance(ReservedIdGenerator.class);
-    this.snapshotUpdater = injector.getInstance(SnapshotUpdater.class);
     this.identifierFactory = injector.getInstance(IdentifierFactory.class);
-    this.backendTransactionJobFactory = injector.getInstance(BackendTransactionJobFactory.class);
+  }
+
+  protected Injector createInjector(DerbyDbBackendConfig config) {
+    return config.getEssentialInjector().createChildInjector(
+        new DerbyBackendModule(config));
   }
 
   @Override
@@ -74,11 +72,6 @@ public class DerbyDbBackendBundle extends AbstractBackendBundle {
       }
 
       @Override
-      public SnapshotUpdater getSnapshotUpdater() {
-        return snapshotUpdater;
-      }
-
-      @Override
       public ReservedIdGenerator getReservedIdGenerator() {
         return reservedIdGenerator;
       }
@@ -86,11 +79,6 @@ public class DerbyDbBackendBundle extends AbstractBackendBundle {
       @Override
       public IdentifierFactory getIdentifierFactory() {
         return identifierFactory;
-      }
-
-      @Override
-      public BackendTransactionJobFactory getBackendTransactionJobFactory() {
-        return backendTransactionJobFactory;
       }
     };
   }

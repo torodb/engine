@@ -60,9 +60,9 @@ public abstract class AbstractMetaDataWriteInterface implements MetaDataWriteInt
   private final MetaDocPartTable<?, ?> metaDocPartTable;
   private final MetaFieldTable<?, ?> metaFieldTable;
   private final MetaScalarTable<?, ?> metaScalarTable;
-  private final MetaIndexTable<?> metaIndexTable;
+  private final MetaIndexTable<?, ?> metaIndexTable;
   private final MetaIndexFieldTable<?, ?> metaIndexFieldTable;
-  private final MetaDocPartIndexTable<?, ?> metaDocPartIndexTable;
+  private final MetaDocPartIndexTable<?, ?, ?> metaDocPartIndexTable;
   private final MetaDocPartIndexColumnTable<?, ?> metaDocPartIndexColumnTable;
   private final KvTable<?> kvTable;
   private final SqlHelper sqlHelper;
@@ -528,11 +528,11 @@ public abstract class AbstractMetaDataWriteInterface implements MetaDataWriteInt
 
   @Override
   public String writeMetaInfo(DSLContext dsl, MetaInfoKey key, String newValue) {
-    Condition c = kvTable.KEY.eq(key.getKeyName());
+    Condition cond = kvTable.KEY.eq(key.getKeyName());
 
     Optional<String> oldValue = dsl.select(kvTable.VALUE)
         .from(kvTable)
-        .where(c)
+        .where(cond)
         .fetchOptional()
         .map(Record1::value1);
 
@@ -540,7 +540,7 @@ public abstract class AbstractMetaDataWriteInterface implements MetaDataWriteInt
       int updatedRows = dsl.update(kvTable)
           .set(kvTable.KEY, key.getKeyName())
           .set(kvTable.VALUE, newValue)
-          .where(c)
+          .where(cond)
           .execute();
       assert updatedRows == 1;
     } else {

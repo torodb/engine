@@ -1,0 +1,11 @@
+{
+    "oplog": [
+        {
+            "op": "c",
+            "ns": "db1.$cmd",
+            "o": {
+                "dropDatabase": 1
+            }
+        }
+    ]
+}

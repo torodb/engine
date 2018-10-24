@@ -18,7 +18,6 @@
 
 package com.torodb.backend.converters.array;
 
-
 import com.torodb.kvdocument.types.KvType;
 
 import java.io.Serializable;

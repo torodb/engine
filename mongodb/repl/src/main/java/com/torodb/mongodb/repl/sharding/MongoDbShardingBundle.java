@@ -53,7 +53,10 @@ public class MongoDbShardingBundle extends AbstractBundle<MongoDbShardingExtInt>
   private static String showShardInfo(MongoDbShardingConfig config) {
     return config.getShardConfigs().stream()
         .sorted((s1, s2) -> s1.getShardId().compareTo(s2.getShardId()))
-        .map(shard -> shard.getShardId() + " (" + shard.getClientConfig().getHostAndPort() + ')')
+        .map(shard -> shard.getShardId() + " (" 
+            + shard.getSeeds().stream()
+              .map(seed -> seed.toString())
+              .collect(Collectors.joining(", ")) + ')')
         .collect(Collectors.joining(", "));
   }
 
@@ -111,13 +114,15 @@ public class MongoDbShardingBundle extends AbstractBundle<MongoDbShardingExtInt>
     return new ShardBundleConfig(
         shardConfig.getShardId(),
         generalConf.getTorodBundle(),
-        shardConfig.getClientConfig(),
+        shardConfig.getSeeds(),
+        shardConfig.getClientConfigProperties(),
         shardConfig.getReplSetName(),
         generalConf.getUserReplFilter(),
         shardConfig.getConsistencyHandler(),
         generalConf.getLifecycleLoggingFactory(),
         generalConf.getEssentialInjector(),
-        generalConf.getSupervisor()
+        generalConf.getSupervisor(),
+        generalConf.getOffHeapBufferConfig()
     );
 
   }

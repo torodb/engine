@@ -45,8 +45,6 @@ import com.torodb.core.retrier.Retrier;
 import com.torodb.core.retrier.RetrierAbortException;
 import com.torodb.core.retrier.RetrierGiveUpException;
 import com.torodb.core.transaction.RollbackException;
-import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
-import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.OplogOperationApplier;
@@ -63,6 +61,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 public class SimpleAnalyzedOplogBatchExecutorTest {
@@ -76,15 +75,11 @@ public class SimpleAnalyzedOplogBatchExecutorTest {
   private Retrier retrier;
   @Mock
   private NamespaceJobExecutor namespaceJobExecutor;
-  @Mock
-  private MongodConnection conn;
-  @Mock
-  private ExclusiveWriteMongodTransaction writeTrans;
   private SimpleAnalyzedOplogBatchExecutor executor;
   private SimpleAnalyzedOplogBatchExecutor actualExecutor;
 
   @Before
-  public void setUp() {
+  public void setUp() throws TimeoutException {
     this.retrier = spy(NeverRetryRetrier.getInstance());
     MockitoAnnotations.initMocks(this);
 
@@ -92,10 +87,6 @@ public class SimpleAnalyzedOplogBatchExecutorTest {
         server, retrier, namespaceJobExecutor);
 
     executor = spy(actualExecutor);
-
-    given(server.openConnection()).willReturn(conn);
-    given(conn.openExclusiveWriteTransaction()).willReturn(writeTrans);
-    given(conn.openWriteTransaction()).willReturn(writeTrans);
 
     given(metrics.getCudBatchSize()).willReturn(mock(Histogram.class));
     given(metrics.getCudBatchTimer()).willReturn(mock(Timer.class));
@@ -125,11 +116,7 @@ public class SimpleAnalyzedOplogBatchExecutorTest {
     executor.execute(op, applierContext);
 
     //THEN
-    then(server).should().openConnection();
-    then(conn).should().close();
-    then(conn).should().openExclusiveWriteTransaction();
-    then(writeTrans).should().close();
-    then(applier).should().apply(op, writeTrans, applierContext);
+    then(applier).should().apply(op, server, applierContext);
   }
 
   @Test
@@ -145,7 +132,7 @@ public class SimpleAnalyzedOplogBatchExecutorTest {
     NamespaceJob job2 = mock(NamespaceJob.class);
     NamespaceJob job3 = mock(NamespaceJob.class);
 
-    doNothing().when(executor).execute(any(), any(), any());
+    doNothing().when(executor).execute(any(NamespaceJob.class), any());
     given(cudBatch.streamNamespaceJobs())
         .willReturn(Stream.of(job1, job2, job3));
 
@@ -153,11 +140,9 @@ public class SimpleAnalyzedOplogBatchExecutorTest {
     executor.execute(cudBatch, applierContext);
 
     //THEN
-    then(server).should().openConnection();
-    then(conn).should().close();
-    then(executor).should().execute(job1, applierContext, conn);
-    then(executor).should().execute(job2, applierContext, conn);
-    then(executor).should().execute(job3, applierContext, conn);
+    then(executor).should().execute(job1, applierContext);
+    then(executor).should().execute(job2, applierContext);
+    then(executor).should().execute(job3, applierContext);
   }
 
   @Test
@@ -172,15 +157,14 @@ public class SimpleAnalyzedOplogBatchExecutorTest {
     given(metrics.getNamespaceBatchTimer().time()).willReturn(context);
 
     //WHEN
-    executor.execute(job, applierContext, conn);
+    executor.execute(job, applierContext);
 
     //THEN
     then(metrics).should(atLeastOnce()).getNamespaceBatchTimer();
     then(metrics.getNamespaceBatchTimer()).should().time();
     then(context).should().close();
     //TODO: This might be changed once the backend throws UniqueIndexViolation
-    then(namespaceJobExecutor).should().apply(eq(job), eq(writeTrans), eq(applierContext), any(
-        Boolean.class));
+    then(namespaceJobExecutor).should().apply(eq(job), eq(server), any(Boolean.class));
   }
 
   @Test

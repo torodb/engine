@@ -18,33 +18,29 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import static com.torodb.mongowp.bson.utils.DefaultBsonValues.newDocument;
-
+import com.torodb.core.exceptions.user.UserException;
 import com.torodb.core.logging.LoggerFactory;
+import com.torodb.core.transaction.RollbackException;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions;
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand;
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand.CreateIndexesArgument;
-import com.torodb.mongodb.commands.signatures.general.DeleteCommand;
-import com.torodb.mongodb.commands.signatures.general.DeleteCommand.DeleteArgument;
-import com.torodb.mongodb.commands.signatures.general.DeleteCommand.DeleteStatement;
-import com.torodb.mongodb.commands.signatures.general.InsertCommand;
-import com.torodb.mongodb.commands.signatures.general.UpdateCommand;
-import com.torodb.mongodb.commands.signatures.general.UpdateCommand.UpdateArgument;
-import com.torodb.mongodb.commands.signatures.general.UpdateCommand.UpdateResult;
-import com.torodb.mongodb.commands.signatures.general.UpdateCommand.UpdateStatement;
-import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
+import com.torodb.mongodb.core.MongodSchemaExecutor;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.repl.OplogManager;
 import com.torodb.mongodb.repl.commands.ReplCommandExecutor;
 import com.torodb.mongodb.repl.commands.ReplCommandLibrary;
-import com.torodb.mongodb.utils.DefaultIdUtils;
+import com.torodb.mongodb.repl.oplogreplier.analyzed.AnalyzedOp;
+import com.torodb.mongodb.repl.oplogreplier.analyzed.AnalyzedOpReducer;
+import com.torodb.mongodb.repl.oplogreplier.batch.NamespaceJob;
+import com.torodb.mongodb.repl.oplogreplier.batch.NamespaceJobExecutionException;
+import com.torodb.mongodb.repl.oplogreplier.batch.NamespaceJobExecutor;
 import com.torodb.mongodb.utils.NamespaceUtil;
-import com.torodb.mongowp.ErrorCode;
 import com.torodb.mongowp.Status;
-import com.torodb.mongowp.WriteConcern;
 import com.torodb.mongowp.bson.BsonDocument;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.CommandLibrary.LibraryEntry;
 import com.torodb.mongowp.commands.Request;
+import com.torodb.mongowp.commands.oplog.CollectionOplogOperation;
 import com.torodb.mongowp.commands.oplog.DbCmdOplogOperation;
 import com.torodb.mongowp.commands.oplog.DbOplogOperation;
 import com.torodb.mongowp.commands.oplog.DeleteOplogOperation;
@@ -55,11 +51,10 @@ import com.torodb.mongowp.commands.oplog.OplogOperationVisitor;
 import com.torodb.mongowp.commands.oplog.UpdateOplogOperation;
 import com.torodb.mongowp.exceptions.CommandNotFoundException;
 import com.torodb.mongowp.exceptions.MongoException;
-import com.torodb.torod.ExclusiveWriteTorodTransaction;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
@@ -71,13 +66,18 @@ public class OplogOperationApplier {
   private final Visitor visitor = new Visitor();
   private final ReplCommandLibrary library;
   private final ReplCommandExecutor executor;
+  private final NamespaceJobExecutor namespaceJobExecutor;
+  private final AnalyzedOpReducer analyzedOpReducer;
 
   @Inject
   public OplogOperationApplier(ReplCommandLibrary library, ReplCommandExecutor executor,
-      LoggerFactory loggerFactory) {
+      LoggerFactory loggerFactory, NamespaceJobExecutor namespaceJobExecutor,
+      AnalyzedOpReducer analyzedOpReducer) {
     this.logger = loggerFactory.apply(this.getClass());
     this.library = library;
     this.executor = executor;
+    this.namespaceJobExecutor = namespaceJobExecutor;
+    this.analyzedOpReducer = analyzedOpReducer;
   }
 
   /**
@@ -86,39 +86,39 @@ public class OplogOperationApplier {
    * <p>This method <b>DO NOT</b> modify the {@link OplogManager} state.
    */
   @SuppressWarnings("unchecked")
-  public void apply(OplogOperation op,
-      ExclusiveWriteMongodTransaction transaction,
-      ApplierContext applierContext) throws OplogApplyingException {
+  public void apply(OplogOperation op, MongodServer server, ApplierContext applierContext)
+      throws OplogApplyingException {
     op.accept(visitor, null).apply(
-        op,
-        transaction,
+        server,
         applierContext
     );
   }
 
   private <A, R> Status<R> executeReplCommand(String db, Command<? super A, ? super R> command,
-      A arg, ExclusiveWriteTorodTransaction trans) {
+      A arg, MongodServer server) throws TimeoutException {
     Request req = new Request(db, null, true, null);
 
-    Status<R> result = executor.execute(req, command, arg, trans);
-
-    return result;
-  }
-
-  private <A, R> Status<R> executeTorodCommand(String db, Command<? super A, ? super R> command,
-      A arg, ExclusiveWriteMongodTransaction trans) throws MongoException {
-    Request req = new Request(db, null, true, null);
-
-    Status<R> result = trans.execute(req, command, arg);
-
-    return result;
+    try (MongodSchemaExecutor schemaEx = server.openSchemaExecutor()) {
+      return executor.execute(req, command, arg, schemaEx.getDocSchemaExecutor());
+    }
   }
 
   public static class OplogApplyingException extends Exception {
 
-    private static final long serialVersionUID = 660910523948847788L;
+    private static final long serialVersionUID = 5423815920382391458L;
 
-    public OplogApplyingException(MongoException cause) {
+    public OplogApplyingException() {
+    }
+
+    public OplogApplyingException(String message) {
+      super(message);
+    }
+
+    public OplogApplyingException(String message, Throwable cause) {
+      super(message, cause);
+    }
+
+    public OplogApplyingException(Throwable cause) {
       super(cause);
     }
 
@@ -129,202 +129,83 @@ public class OplogOperationApplier {
 
     @Override
     public OplogOperationApplierFunction visit(DbCmdOplogOperation op, Void arg) {
-      return (operation, trans, applierContext) ->
-          applyCmd((DbCmdOplogOperation) operation, trans, applierContext);
+      return (server, applierContext) ->
+          applyCmd(op, server);
     }
 
     @Override
     public OplogOperationApplierFunction visit(DbOplogOperation op, Void arg) {
-      return (operation, con, applierContext) -> {
+      return (server, applierContext) -> {
         logger.debug("Ignoring a db operation");
       };
     }
 
     @Override
-    public OplogOperationApplierFunction visit(DeleteOplogOperation op, Void arg) {
-      return (operation, con, applierContext) ->
-          applyDelete((DeleteOplogOperation) operation, con, applierContext);
-    }
-
-    @Override
-    public OplogOperationApplierFunction visit(InsertOplogOperation op, Void arg) {
-      return (operation, con, applierContext) ->
-          applyInsert((InsertOplogOperation) operation, con, applierContext);
-    }
-
-    @Override
     public OplogOperationApplierFunction visit(NoopOplogOperation op, Void arg) {
-      return (operation, con, applierContext) -> {
+      return (server, applierContext) -> {
         logger.debug("Ignoring a noop operation");
       };
     }
 
     @Override
+    public OplogOperationApplierFunction visit(DeleteOplogOperation op, Void arg) {
+      return (server, context) -> applyCud(op, server, context);
+    }
+
+    @Override
+    public OplogOperationApplierFunction visit(InsertOplogOperation op, Void arg) {
+      BsonDocument docToInsert = op.getDocToInsert();
+      if (NamespaceUtil.isIndexesMetaCollection(op.getCollection())) {
+        return (server, context) -> {
+          insertIndex(docToInsert, op.getDatabase(), server);
+        };
+      } else {
+        return (server, context) -> applyCud(op, server, context);
+      }
+    }
+
+    @Override
     public OplogOperationApplierFunction visit(UpdateOplogOperation op, Void arg) {
-      return (operation, con, applierContext) ->
-          applyUpdate((UpdateOplogOperation) operation, con, applierContext);
+      return (server, context) -> applyCud(op, server, context);
     }
   }
 
-  private void applyInsert(
-      InsertOplogOperation op,
-      ExclusiveWriteMongodTransaction trans,
-      ApplierContext applierContext) throws OplogApplyingException {
-    BsonDocument docToInsert = op.getDocToInsert();
-    if (NamespaceUtil.isIndexesMetaCollection(op.getCollection())) {
-      insertIndex(docToInsert, op.getDatabase(), trans);
-    } else {
-      try {
-        insertDocument(op, trans);
-      } catch (MongoException ex) {
-        throw new OplogApplyingException(ex);
-      }
+  private void applyCud(CollectionOplogOperation op, MongodServer server, ApplierContext context)
+      throws RollbackException, OplogApplyingException {
+    AnalyzedOp analyzed = analyzedOpReducer.analyze(op, context);
+    NamespaceJob job = new NamespaceJob(
+        op.getDatabase(), op.getDatabase(), Collections.singleton(analyzed)
+    );
+    try {
+      namespaceJobExecutor.apply(job, server, true);
+    } catch (UserException | NamespaceJobExecutionException ex) {
+      throw new OplogApplyingException(ex);
     }
   }
 
   private void insertIndex(BsonDocument indexDoc, String database,
-      ExclusiveWriteMongodTransaction trans) throws OplogApplyingException {
+      MongodServer server) throws OplogApplyingException {
     try {
       CreateIndexesCommand command = CreateIndexesCommand.INSTANCE;
       IndexOptions indexOptions = IndexOptions.unmarshall(indexDoc);
 
       CreateIndexesArgument arg = new CreateIndexesArgument(
-          indexOptions.getCollection(), Arrays.asList(
-          new IndexOptions[]{indexOptions}));
-
-      Status executionResult = executeReplCommand(database, command, arg,
-          trans.getTorodTransaction());
+          indexOptions.getCollection(),
+          Collections.singletonList(indexOptions)
+      );
+      Status executionResult = executeReplCommand(database, command, arg, server);
       if (!executionResult.isOk()) {
         throw new OplogApplyingException(new MongoException(executionResult));
       }
     } catch (MongoException ex) {
       throw new OplogApplyingException(ex);
-    }
-  }
-
-  private void insertDocument(InsertOplogOperation op,
-      ExclusiveWriteMongodTransaction trans) throws MongoException {
-
-    BsonDocument docToInsert = op.getDocToInsert();
-
-    //TODO: Inserts must be executed as upserts to be idempotent
-    //TODO: This implementation works iff this connection is the only one that is writing
-    BsonDocument query;
-    if (!DefaultIdUtils.containsIdKey(docToInsert)) {
-      //as we dont have _id, we need the whole document to be sure selector is correct
-      query = docToInsert;
-    } else {
-      query = newDocument(
-          DefaultIdUtils.ID_KEY,
-          DefaultIdUtils.getIdKey(docToInsert)
-      );
-    }
-    while (true) {
-      executeTorodCommand(
-          op.getDatabase(),
-          DeleteCommand.INSTANCE,
-          new DeleteCommand.DeleteArgument(
-              op.getCollection(),
-              Collections.singletonList(
-                  new DeleteCommand.DeleteStatement(query, true)
-              ),
-              true,
-              null
-          ),
-          trans);
-      executeTorodCommand(
-          op.getDatabase(),
-          InsertCommand.INSTANCE,
-          new InsertCommand.InsertArgument(op.getCollection(), Collections
-              .singletonList(docToInsert), WriteConcern.fsync(), true, null),
-          trans);
-      break;
-    }
-  }
-
-  private void applyUpdate(
-      UpdateOplogOperation op,
-      ExclusiveWriteMongodTransaction trans,
-      ApplierContext applierContext) throws OplogApplyingException {
-
-    boolean upsert = op.isUpsert() || applierContext.treatUpdateAsUpsert();
-
-    Status<UpdateResult> status;
-    try {
-      status = executeTorodCommand(
-          op.getDatabase(),
-          UpdateCommand.INSTANCE,
-          new UpdateArgument(
-              op.getCollection(),
-              Collections.singletonList(
-                  new UpdateStatement(op.getFilter(), op.getModification(), upsert, true)
-              ),
-              true,
-              WriteConcern.fsync()
-          ),
-          trans
-      );
-    } catch (MongoException ex) {
-      throw new OplogApplyingException(ex);
-    }
-
-    if (!status.isOk()) {
-      //TODO: improve error code
-      throw new OplogApplyingException(new MongoException(status));
-    }
-    UpdateResult updateResult = status.getResult();
-    assert updateResult != null;
-    if (!updateResult.isOk()) {
-      throw new OplogApplyingException(new MongoException(updateResult.getErrorMessage(),
-          ErrorCode.UNKNOWN_ERROR));
-    }
-
-    if (!upsert && updateResult.getModifiedCounter() != 0) {
-      logger.info("Oplog update operation with optime {} and hash {} did not find the doc to "
-          + "modify. Filter is {}", op.getOpTime(), op.getHash(), op.getFilter());
-    }
-
-    if (upsert && !updateResult.getUpserts().isEmpty()) {
-      logger.warn("Replication couldn't find doc for op " + op);
-    }
-  }
-
-  private void applyDelete(
-      DeleteOplogOperation op,
-      ExclusiveWriteMongodTransaction trans,
-      ApplierContext applierContext) throws OplogApplyingException {
-    try {
-      //TODO: Check that the operation is executed even if the execution is interrupted!
-      Status<Long> status = executeTorodCommand(
-          op.getDatabase(),
-          DeleteCommand.INSTANCE,
-          new DeleteArgument(
-              op.getCollection(),
-              Collections.singletonList(
-                  new DeleteStatement(op.getFilter(), op.isJustOne())
-              ),
-              true,
-              WriteConcern.fsync()
-          ),
-          trans
-      );
-      if (!status.isOk()) {
-        throw new OplogApplyingException(new MongoException(status));
-      }
-      if (status.getResult() == 0 && applierContext.treatUpdateAsUpsert()) {
-        logger.info("Oplog delete operation with optime {} and hash {} did not find the "
-            + "doc to delete. Filter is {}", op.getOpTime(), op.getHash(), op.getFilter());
-      }
-    } catch (MongoException ex) {
+    } catch (TimeoutException ex) {
       throw new OplogApplyingException(ex);
     }
   }
 
   @SuppressWarnings("unchecked")
-  private void applyCmd(
-      DbCmdOplogOperation op,
-      ExclusiveWriteMongodTransaction trans,
-      ApplierContext applierContext) throws OplogApplyingException {
+  private void applyCmd(DbCmdOplogOperation op, MongodServer server) throws OplogApplyingException {
 
     LibraryEntry librayEntry = library.find(op.getRequest());
 
@@ -337,8 +218,7 @@ public class OplogOperationApplier {
     if (command == null) {
       BsonDocument document = op.getRequest();
       if (document.isEmpty()) {
-        throw new OplogApplyingException(new CommandNotFoundException(
-            "Empty document query"));
+        throw new OplogApplyingException(new CommandNotFoundException("Empty document query"));
       }
       String firstKey = document.getFirstEntry().getKey();
       throw new OplogApplyingException(new CommandNotFoundException(firstKey));
@@ -350,8 +230,12 @@ public class OplogOperationApplier {
       throw new OplogApplyingException(ex);
     }
 
-    Status executionResult = executeReplCommand(op.getDatabase(), command,
-        arg, trans.getTorodTransaction());
+    Status executionResult;
+    try {
+      executionResult = executeReplCommand(op.getDatabase(), command, arg, server);
+    } catch (TimeoutException ex) {
+      throw new OplogApplyingException(ex);
+    }
     if (!executionResult.isOk()) {
       throw new OplogApplyingException(new MongoException(executionResult));
     }
@@ -360,9 +244,7 @@ public class OplogOperationApplier {
   @FunctionalInterface
   private static interface OplogOperationApplierFunction<E extends OplogOperation> {
 
-    public void apply(
-        E op,
-        ExclusiveWriteMongodTransaction transaction,
-        ApplierContext applierContext) throws OplogApplyingException;
+    public void apply(MongodServer server, ApplierContext applierContext)
+        throws OplogApplyingException;
   }
 }

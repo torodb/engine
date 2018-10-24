@@ -18,4 +18,3 @@ ToroDB engine is the core technology used by [ToroDB Stampede][1] and [ToroDB Se
 
 [1]: https://github.com/torodb/stampede/
 [2]: https://github.com/torodb/server/
-

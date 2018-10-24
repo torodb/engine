@@ -30,7 +30,7 @@ import com.torodb.core.guice.EssentialModule;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.core.supervision.SupervisorDecision;
-import com.torodb.torod.MemoryTorodBundle;
+import com.torodb.torod.impl.memory.MemoryTorodBundle;
 import com.torodb.torod.TorodBundle;
 import org.junit.After;
 import org.junit.Before;

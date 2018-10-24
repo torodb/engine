@@ -24,8 +24,7 @@ import com.torodb.core.logging.LoggerFactory;
 import com.torodb.mongodb.commands.CmdImplMapSupplier;
 import com.torodb.mongodb.commands.CommandClassifier;
 import com.torodb.mongodb.commands.RequiredTransaction;
-import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.core.MongodServerConfig;
 import com.torodb.mongodb.core.MongodTransaction;
 import com.torodb.mongodb.core.ReadOnlyMongodTransaction;
@@ -34,6 +33,7 @@ import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.CommandExecutor;
 import com.torodb.mongowp.commands.CommandImplementation;
 import com.torodb.mongowp.commands.impl.MapBasedCommandExecutor;
+import com.torodb.torod.SchemaOperationExecutor;
 import org.apache.logging.log4j.Logger;
 
 import java.time.Clock;
@@ -48,24 +48,24 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class CommandClassifierImpl implements CommandClassifier {
-  private final CommandExecutor<ExclusiveWriteMongodTransaction> exclusiveWriteCommandsExecutor;
+  private final CommandExecutor<SchemaOperationExecutor> exclusiveWriteCommandsExecutor;
   private final CommandExecutor<WriteMongodTransaction> writeCommandsExecutor;
   private final CommandExecutor<ReadOnlyMongodTransaction> readOnlyCommandsExecutor;
-  private final CommandExecutor<MongodConnection> connectionCommandsExecutor;
+  private final CommandExecutor<MongodServer> serverCommandsExecutor;
   private final HashMap<Command<?, ?>, RequiredTransaction> requiredTranslationMap;
 
   @SuppressWarnings("checkstyle:LineLength")
   public CommandClassifierImpl(
-      CmdImplMapSupplier<ExclusiveWriteMongodTransaction> exclusiveWriteTransImpls,
+      CmdImplMapSupplier<SchemaOperationExecutor> exclusiveWriteTransImpls,
       CmdImplMapSupplier<WriteMongodTransaction> writeTransImpls,
       CmdImplMapSupplier<MongodTransaction> generalTransImpls,
-      CmdImplMapSupplier<MongodConnection> connTransImpls,
+      CmdImplMapSupplier<MongodServer> serverTransImpls,
       Logger logger) {
 
     this.requiredTranslationMap = classifyCommands(exclusiveWriteTransImpls, writeTransImpls,
-        generalTransImpls, connTransImpls, logger);
+        generalTransImpls, serverTransImpls, logger);
 
-    ImmutableMap.Builder<Command<?, ?>, CommandImplementation<?, ?, ? super ExclusiveWriteMongodTransaction>> exclusiveWriteMapBuilder =
+    ImmutableMap.Builder<Command<?, ?>, CommandImplementation<?, ?, ? super SchemaOperationExecutor>> exclusiveWriteMapBuilder =
         ImmutableMap.builder();
     ImmutableMap.Builder<Command<?, ?>, CommandImplementation<?, ?, ? super WriteMongodTransaction>> writeMapBuilder =
         ImmutableMap.builder();
@@ -75,7 +75,6 @@ public class CommandClassifierImpl implements CommandClassifier {
     generalTransImpls.get().entrySet().stream()
         .filter(CommandClassifierImpl::isImplemented)
         .forEach((entry) -> {
-          exclusiveWriteMapBuilder.put(entry);
           writeMapBuilder.put(entry);
           readOnlyMapBuilder.put(entry);
         });
@@ -84,7 +83,6 @@ public class CommandClassifierImpl implements CommandClassifier {
         .filter(CommandClassifierImpl::isImplemented)
         .forEach(entry -> {
           writeMapBuilder.put(entry);
-          exclusiveWriteMapBuilder.put(entry);
         });
 
     exclusiveWriteTransImpls.get().entrySet().stream()
@@ -95,7 +93,7 @@ public class CommandClassifierImpl implements CommandClassifier {
         .build());
     this.writeCommandsExecutor = MapBasedCommandExecutor.fromMap(writeMapBuilder.build());
     this.readOnlyCommandsExecutor = MapBasedCommandExecutor.fromMap(readOnlyMapBuilder.build());
-    this.connectionCommandsExecutor = MapBasedCommandExecutor.fromMap(connTransImpls.get()
+    this.serverCommandsExecutor = MapBasedCommandExecutor.fromMap(serverTransImpls.get()
     );
   }
 
@@ -105,7 +103,7 @@ public class CommandClassifierImpl implements CommandClassifier {
   public static CommandClassifierImpl createDefault(LoggerFactory loggerFactory, Clock clock,
       BuildProperties buildProp, MongodServerConfig mongodServerConfig) {
     return new CommandClassifierImpl(
-        new ExclusiveWriteTransactionCmdsImpl(),
+        new SchemaCmdsImpl(loggerFactory),
         new WriteTransactionCmdImpl(loggerFactory),
         new GeneralTransactionCmdImpl(loggerFactory),
         new ConnectionCmdImpl(loggerFactory, clock, buildProp, mongodServerConfig),
@@ -114,16 +112,16 @@ public class CommandClassifierImpl implements CommandClassifier {
   }
 
   private static HashMap<Command<?, ?>, RequiredTransaction> classifyCommands(
-      CmdImplMapSupplier<ExclusiveWriteMongodTransaction> exclusiveWriteTransImpls,
+      CmdImplMapSupplier<SchemaOperationExecutor> exclusiveWriteTransImpls,
       CmdImplMapSupplier<WriteMongodTransaction> writeTransImpls,
       CmdImplMapSupplier<MongodTransaction> generalTransImpls,
-      CmdImplMapSupplier<MongodConnection> connTransImpls,
+      CmdImplMapSupplier<MongodServer> serverTransImpls,
       Logger logger) {
 
     HashMap<Command<?, ?>, RequiredTransaction> map = new HashMap<>();
 
     exclusiveWriteTransImpls.get().keySet().stream()
-        .forEach(cmd -> classifyCommand(map, cmd, RequiredTransaction.EXCLUSIVE_WRITE_TRANSACTION,
+        .forEach(cmd -> classifyCommand(map, cmd, RequiredTransaction.EXCLUSIVE_TRANSACTION,
             logger
         )
     );
@@ -131,7 +129,7 @@ public class CommandClassifierImpl implements CommandClassifier {
         .forEach(cmd -> classifyCommand(map, cmd, RequiredTransaction.WRITE_TRANSACTION, logger));
     generalTransImpls.get().keySet().stream()
         .forEach(cmd -> classifyCommand(map, cmd, RequiredTransaction.READ_TRANSACTION, logger));
-    connTransImpls.get().keySet().stream()
+    serverTransImpls.get().keySet().stream()
         .forEach(cmd -> classifyCommand(map, cmd, RequiredTransaction.NO_TRANSACTION, logger));
 
     return map;
@@ -148,7 +146,7 @@ public class CommandClassifierImpl implements CommandClassifier {
 
   @SuppressWarnings("checkstyle:LineLength")
   @Override
-  public CommandExecutor<? super ExclusiveWriteMongodTransaction> getExclusiveWriteCommandsExecutor() {
+  public CommandExecutor<? super SchemaOperationExecutor> getSchemaCommandsExecutor() {
     return exclusiveWriteCommandsExecutor;
   }
 
@@ -158,13 +156,13 @@ public class CommandClassifierImpl implements CommandClassifier {
   }
 
   @Override
-  public CommandExecutor<? super ReadOnlyMongodTransaction> getReadOnlyCommandsExecutor() {
+  public CommandExecutor<? super ReadOnlyMongodTransaction> getReadCommandsExecutor() {
     return readOnlyCommandsExecutor;
   }
 
   @Override
-  public CommandExecutor<? super MongodConnection> getConnectionCommandsExecutor() {
-    return connectionCommandsExecutor;
+  public CommandExecutor<? super MongodServer> getServerCommandsExecutor() {
+    return serverCommandsExecutor;
   }
 
   @Override

@@ -42,6 +42,7 @@ import com.torodb.common.util.RetryHelper.ExceptionHandler;
 import com.torodb.core.concurrent.ActorSystemTorodbService;
 import com.torodb.core.concurrent.ConcurrentToolsFactory;
 import com.torodb.core.exceptions.user.UserException;
+import com.torodb.core.language.AttributeReference;
 import com.torodb.core.logging.DefaultLoggerFactory;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.retrier.Retrier;
@@ -49,9 +50,15 @@ import com.torodb.core.retrier.Retrier.Hint;
 import com.torodb.core.retrier.RetrierAbortException;
 import com.torodb.core.retrier.RetrierGiveUpException;
 import com.torodb.core.transaction.RollbackException;
+import com.torodb.core.transaction.metainf.FieldIndexOrdering;
 import com.torodb.mongodb.commands.pojos.CollectionOptions;
 import com.torodb.mongodb.commands.pojos.CursorResult;
 import com.torodb.mongodb.commands.pojos.index.IndexOptions;
+import com.torodb.mongodb.commands.pojos.index.IndexOptions.KnownType;
+import com.torodb.mongodb.commands.pojos.index.type.AscIndexType;
+import com.torodb.mongodb.commands.pojos.index.type.DefaultIndexTypeVisitor;
+import com.torodb.mongodb.commands.pojos.index.type.DescIndexType;
+import com.torodb.mongodb.commands.pojos.index.type.IndexType;
 import com.torodb.mongodb.commands.signatures.admin.CreateCollectionCommand;
 import com.torodb.mongodb.commands.signatures.admin.CreateCollectionCommand.CreateCollectionArgument;
 import com.torodb.mongodb.commands.signatures.admin.CreateIndexesCommand;
@@ -62,7 +69,7 @@ import com.torodb.mongodb.commands.signatures.admin.ListCollectionsCommand.ListC
 import com.torodb.mongodb.commands.signatures.general.InsertCommand;
 import com.torodb.mongodb.commands.signatures.general.InsertCommand.InsertArgument;
 import com.torodb.mongodb.commands.signatures.general.InsertCommand.InsertResult;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.core.MongodSchemaExecutor;
 import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongodb.utils.DbCloner;
@@ -74,7 +81,6 @@ import com.torodb.mongowp.WriteConcern;
 import com.torodb.mongowp.bson.BsonDocument;
 import com.torodb.mongowp.client.core.MongoClient;
 import com.torodb.mongowp.client.core.MongoConnection;
-import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.impl.CollectionCommandArgument;
 import com.torodb.mongowp.commands.pojos.MongoCursor;
@@ -82,7 +88,7 @@ import com.torodb.mongowp.exceptions.MongoException;
 import com.torodb.mongowp.exceptions.NotMasterException;
 import com.torodb.mongowp.messages.request.QueryMessage.QueryOption;
 import com.torodb.mongowp.messages.request.QueryMessage.QueryOptions;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.Logger;
 
@@ -97,6 +103,8 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 /**
@@ -115,6 +123,9 @@ import java.util.function.Function;
 @Beta
 public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
 
+  private static final FieldIndexOrderingConverterVisitor fieldIndexOrderingConverterVisitor =
+      new FieldIndexOrderingConverterVisitor();
+  
   private final Logger logger;
   /**
    * The number of parallel task that can be used to clone each collection.
@@ -134,8 +145,7 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
       int maxParallelInsertTasks, int cursorBatchBufferSize,
       CommitHeuristic commitHeuristic, Clock clock, Retrier retrier, LoggerFactory loggerFactory) {
     super(threadFactory,
-        () -> concurrentToolsFactory.createExecutorService(
-            "db-cloner", false),
+        () -> concurrentToolsFactory.createExecutorService("db-cloner", false),
         "akka-db-cloner"
     );
     this.logger = loggerFactory.apply(this.getClass());
@@ -183,14 +193,20 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
       throw new NotMasterException("Destiny database cannot be written "
           + "after get collections info");
     }
-    
+
     cloneDatabase(collsToClone, dstDb, remoteClient, localServer, opts);
   }
 
   private void cloneDatabase(List<Entry> collsToClone, String dstDb, MongoClient remoteClient,
       MongodServer localServer, CloneOptions opts) throws MongoException {
 
+    if (collsToClone.isEmpty()) {
+      return;
+    }
+
     prepareCollections(collsToClone, localServer, dstDb);
+
+    enableImportMode(localServer, dstDb);
     
     try (MongoConnection remoteConnection = remoteClient.openConnection()) {
       if (opts.isCloneData()) {
@@ -199,6 +215,8 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
       if (opts.isCloneIndexes()) {
         cloneIndexes(collsToClone, remoteConnection, dstDb, localServer, opts);
       }
+    } finally {
+      disableImportMode(localServer, dstDb);
     }
   }
 
@@ -380,9 +398,9 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
   }
 
   private int insertDocuments(MongodServer localServer, String toDb, String collection,
-      List<BsonDocument> docsToInsert) throws RollbackException {
+      List<BsonDocument> docsToInsert) throws RollbackException, RetrierGiveUpException {
 
-    try (WriteMongodTransaction transaction = createWriteMongodTransaction(localServer)) {
+    try (WriteMongodTransaction transaction = localServer.openWriteTransaction()) {
 
       Status<InsertResult> insertResult = transaction.execute(
           new Request(toDb, null, true, null),
@@ -409,6 +427,8 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
       return insertedDocs;
     } catch (UserException ex) {
       throw new CloningException("Unexpected error while cloning documents", ex);
+    } catch (TimeoutException ex) {
+      throw new RollbackException(ex);
     }
   }
 
@@ -468,28 +488,58 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
 
   private void prepareCollections(List<Entry> collsToClone, MongodServer localServer,
       String dstDb) {
-    try {
+    try (MongodSchemaExecutor schemaEx = localServer.openSchemaExecutor()) {
       for (Entry entry : collsToClone) {
-        prepareCollection(localServer, dstDb, entry);
+        prepareCollection(schemaEx, localServer, dstDb, entry);
       }
     } catch (RollbackException ex) {
       throw new AssertionError("Unexpected rollback exception", ex);
+    } catch (TimeoutException ex) {
+      throw new CloningException(
+          "Impossible to adquire a schema executor on the expected time", ex);
     }
   }
 
-  private void prepareCollection(MongodServer localServer, String dstDb, Entry colEntry)
-      throws RetrierAbortException {
+  private void prepareCollection(MongodSchemaExecutor schemaEx, MongodServer localServer,
+      String dstDb, Entry colEntry) throws RetrierAbortException {
     try {
       retrier.retry(() -> {
-        try (WriteMongodTransaction transaction = createWriteMongodTransaction(localServer)) {
-          dropCollection(transaction, dstDb, colEntry.getCollectionName());
-          createCollection(transaction, dstDb, colEntry.getCollectionName(),
-              colEntry.getCollectionOptions());
-          transaction.commit();
-          return null;
-        } catch (UserException ex) {
-          throw new RetrierAbortException("An unexpected user exception was catched", ex);
+        dropCollection(schemaEx, dstDb, colEntry.getCollectionName());
+        createCollection(schemaEx, dstDb, colEntry.getCollectionName(),
+            colEntry.getCollectionOptions());
+        return null;
+      });
+    } catch (RetrierGiveUpException ex) {
+      throw new CloningException(ex);
+    }
+  }
+
+  private void enableImportMode(MongodServer localServer, String dstDb) {
+    try {
+      retrier.retry(() -> {
+        try (SchemaOperationExecutor schemaOp = localServer.getTorodServer()
+            .openSchemaOperationExecutor(30, TimeUnit.SECONDS)) {
+          schemaOp.enableDataImportMode(dstDb);
+        } catch (TimeoutException ex) {
+          throw new RollbackException(ex);
         }
+        return null;
+      });
+    } catch (RetrierGiveUpException ex) {
+      throw new CloningException(ex);
+    }
+  }
+
+  private void disableImportMode(MongodServer localServer, String dstDb) {
+    try {
+      retrier.retry(() -> {
+        try (SchemaOperationExecutor schemaOp = localServer.getTorodServer()
+            .openSchemaOperationExecutor(30, TimeUnit.SECONDS)) {
+          schemaOp.disableDataImportMode(dstDb);
+        } catch (TimeoutException ex) {
+          throw new RollbackException(ex);
+        }
+        return null;
       });
     } catch (RetrierGiveUpException ex) {
       throw new CloningException(ex);
@@ -504,34 +554,32 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
       CloneOptions opts,
       String fromCol,
       String toCol) throws CloningException {
-    WriteMongodTransaction transaction = createWriteMongodTransaction(localServer);
-    try {
-      try {
-        List<IndexOptions> indexesToClone = getIndexesToClone(Lists.newArrayList(
-            ListIndexesRequester.getListCollections(remoteConnection, dstDb, fromCol)
-                .getFirstBatch()
-        ), dstDb, toCol, fromDb, fromCol, opts);
-        if (indexesToClone.isEmpty()) {
-          return;
-        }
-
-        Status<CreateIndexesResult> status = transaction.execute(
-            new Request(dstDb, null, true, null),
-            CreateIndexesCommand.INSTANCE,
-            new CreateIndexesArgument(
-                fromCol,
-                indexesToClone
-            )
-        );
-        if (!status.isOk()) {
-          throw new CloningException("Error while cloning indexes: " + status.getErrorMsg());
-        }
-        transaction.commit();
-      } catch (UserException | MongoException ex) {
-        throw new CloningException("Unexpected error while cloning indexes", ex);
+    try (MongodSchemaExecutor schemaEx = localServer.openSchemaExecutor()) {
+      List<IndexOptions> indexesToClone = getIndexesToClone(Lists.newArrayList(
+          ListIndexesRequester.getListCollections(remoteConnection, dstDb, fromCol)
+              .getFirstBatch()
+      ), dstDb, toCol, fromDb, fromCol, opts);
+      if (indexesToClone.isEmpty()) {
+        return;
       }
-    } finally {
-      transaction.close();
+
+      Status<CreateIndexesResult> status = schemaEx.execute(
+          new Request(dstDb, null, true, null),
+          CreateIndexesCommand.INSTANCE,
+          new CreateIndexesArgument(
+              fromCol,
+              indexesToClone
+          )
+      );
+      if (!status.isOk()) {
+        throw new CloningException("Error while cloning indexes: " + status.getErrorMsg());
+      }
+    } catch (MongoException ex) {
+      throw new CloningException("Unexpected error while cloning indexes", ex);
+    } catch (TimeoutException ex) {
+      throw new CloningException(
+          "Impossible to adquire a schema executor on the expected time",
+          ex);
     }
   }
 
@@ -550,91 +598,99 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
             reason.get().apply(indexEntry));
         continue;
       }
+      
+      if (indexEntry.isBackground()) {
+        logger.info("Building index in background is not supported. Ignoring option");
+        indexEntry = new IndexOptions(
+            indexEntry.getVersion(), 
+            indexEntry.getName(), 
+            indexEntry.getDatabase(), 
+            indexEntry.getCollection(), 
+            false, 
+            indexEntry.isUnique(),
+            indexEntry.isSparse(),
+            indexEntry.getExpireAfterSeconds(), 
+            indexEntry.getKeys(), 
+            indexEntry.getStorageEngine(), 
+            indexEntry.getOtherProps());
+      }
+
+      if (indexEntry.isSparse()) {
+        logger.info("Sparse index are not supported. Ignoring option");
+        indexEntry = new IndexOptions(
+            indexEntry.getVersion(), 
+            indexEntry.getName(), 
+            indexEntry.getDatabase(), 
+            indexEntry.getCollection(), 
+            indexEntry.isBackground(),
+            indexEntry.isUnique(),
+            false,
+            indexEntry.getExpireAfterSeconds(), 
+            indexEntry.getKeys(), 
+            indexEntry.getStorageEngine(), 
+            indexEntry.getOtherProps());
+      }
+
+      boolean skipIndex = false;
+      for (IndexOptions.Key indexKey : indexEntry.getKeys()) {
+        AttributeReference.Builder attRefBuilder = new AttributeReference.Builder();
+        for (String key : indexKey.getKeys()) {
+          attRefBuilder.addObjectKey(key);
+        }
+
+        IndexType indexType = indexKey.getType();
+
+        if (!KnownType.contains(indexType)) {
+          String note = "Bad index key pattern: Unknown index type '"
+              + indexKey.getType().getName() + "'. Skipping index.";
+          logger.info(note);
+          skipIndex = true;
+          break;
+        }
+
+        Optional<FieldIndexOrdering> ordering = indexType.accept(
+            fieldIndexOrderingConverterVisitor, null);
+        if (!ordering.isPresent()) {
+          String note = "Index of type " + indexType.getName()
+              + " is not supported. Skipping index.";
+          logger.info(note);
+          skipIndex = true;
+          break;
+        }
+      }
+      
+      if (skipIndex) {
+        continue;
+      }
+      
+      if (indexEntry.getKeys().size() > 1) {
+        String note =
+            "Compound indexes are not supported. Skipping index.";
+        logger.info(note);
+        continue;
+      }
+
       logger.info("Index {}.{}.{} will be cloned", fromDb, fromCol, indexEntry.getName());
       indexesToClone.add(indexEntry);
     }
     return indexesToClone;
   }
 
-  private Status<?> createCollection(
-      WriteMongodTransaction transaction,
-      String db,
-      String collection,
+  private Status<?> createCollection(MongodSchemaExecutor schemaEx, String dbName, String colName,
       CollectionOptions options) {
-    return transaction.execute(
-        new Request(db, null, true, null),
+    return schemaEx.execute(
+        new Request(dbName, null, true, null),
         CreateCollectionCommand.INSTANCE,
-        new CreateCollectionArgument(collection, options)
+        new CreateCollectionArgument(colName, options)
     );
   }
 
-  private Status<?> dropCollection(
-      WriteMongodTransaction transaction,
-      String db,
-      String collection) {
-    return transaction.execute(
-        new Request(db, null, true, null),
+  private Status<?> dropCollection(MongodSchemaExecutor schemaEx, String dbName, String colName) {
+    return schemaEx.execute(
+        new Request(dbName, null, true, null),
         DropCollectionCommand.INSTANCE,
-        new CollectionCommandArgument(collection, DropCollectionCommand.INSTANCE)
+        new CollectionCommandArgument(colName, DropCollectionCommand.INSTANCE)
     );
-  }
-
-  private WriteMongodTransaction createWriteMongodTransaction(MongodServer server) {
-    MongodConnection connection = server.openConnection();
-    WriteMongodTransaction delegateTransaction = connection.openWriteTransaction();
-    return new CloseConnectionWriteMongodTransaction(delegateTransaction);
-  }
-
-  private static class CloseConnectionWriteMongodTransaction implements WriteMongodTransaction {
-
-    private final WriteMongodTransaction delegate;
-
-    public CloseConnectionWriteMongodTransaction(WriteMongodTransaction delegate) {
-      this.delegate = delegate;
-    }
-
-    @Override
-    public void commit() throws RollbackException, UserException {
-      delegate.commit();
-    }
-
-    @Override
-    public SharedWriteTorodTransaction getTorodTransaction() {
-      return delegate.getTorodTransaction();
-    }
-
-    @Override
-    public MongodConnection getConnection() {
-      return delegate.getConnection();
-    }
-
-    @Override
-    public <A, R> Status<R> execute(Request req, Command<? super A, ? super R> command, A arg)
-        throws RollbackException {
-      return delegate.execute(req, command, arg);
-    }
-
-    @Override
-    public Request getCurrentRequest() {
-      return delegate.getCurrentRequest();
-    }
-
-    @Override
-    public void rollback() {
-      delegate.rollback();
-    }
-
-    @Override
-    public void close() {
-      delegate.close();
-      getConnection().close();
-    }
-
-    @Override
-    public boolean isClosed() {
-      return delegate.isClosed();
-    }
-
   }
 
   private static class CollectionIterator implements Iterator<BsonDocument> {
@@ -684,5 +740,24 @@ public class AkkaDbCloner extends ActorSystemTorodbService implements DbCloner {
       return retrier.retry(callable, NEXT_HANDLER, Hint.TIME_SENSIBLE, Hint.INFREQUENT_ROLLBACK);
     }
 
+  }
+
+  private static class FieldIndexOrderingConverterVisitor
+      extends DefaultIndexTypeVisitor<Void, Optional<FieldIndexOrdering>> {
+
+    @Override
+    protected Optional<FieldIndexOrdering> defaultVisit(IndexType indexType, Void arg) {
+      return Optional.empty();
+    }
+
+    @Override
+    public Optional<FieldIndexOrdering> visit(AscIndexType indexType, Void arg) {
+      return Optional.of(FieldIndexOrdering.ASC);
+    }
+
+    @Override
+    public Optional<FieldIndexOrdering> visit(DescIndexType indexType, Void arg) {
+      return Optional.of(FieldIndexOrdering.DESC);
+    }
   }
 }

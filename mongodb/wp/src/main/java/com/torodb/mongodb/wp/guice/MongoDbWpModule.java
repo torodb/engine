@@ -180,7 +180,7 @@ public class MongoDbWpModule extends PrivateModule {
     bind(CommandLibrary.class)
         .toInstance(coreExtInt.getCommandLibrary());
     bind(CommandClassifier.class)
-        .toInstance(coreExtInt.getMongodServer().getCommandsExecutorClassifier());
+        .toInstance(coreExtInt.getCommandClassifier());
     bind(MongodServer.class)
         .toInstance(coreExtInt.getMongodServer());
   }

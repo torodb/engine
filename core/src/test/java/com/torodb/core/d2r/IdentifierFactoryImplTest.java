@@ -18,6 +18,8 @@
 
 package com.torodb.core.d2r;
 
+import static org.junit.Assert.assertEquals;
+
 import com.torodb.core.TableRef;
 import com.torodb.core.TableRefFactory;
 import com.torodb.core.impl.TableRefFactoryImpl;
@@ -25,7 +27,6 @@ import com.torodb.core.transaction.metainf.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
 
 public class IdentifierFactoryImplTest {
 
@@ -34,7 +35,8 @@ public class IdentifierFactoryImplTest {
 
   @Before
   public void setUp() throws Exception {
-    this.identifierFactory = new DefaultIdentifierFactory(new MockIdentifierInterface());
+    this.identifierFactory = new DefaultIdentifierFactory(
+        new UniqueIdentifierGenerator(new MockIdentifierInterface()));
   }
 
   @Test

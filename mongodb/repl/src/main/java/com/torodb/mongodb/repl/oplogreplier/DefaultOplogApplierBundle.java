@@ -45,14 +45,24 @@ public class DefaultOplogApplierBundle extends AbstractBundle<DefaultOplogApplie
 
   @Override
   protected void postDependenciesStartUp() throws Exception {
-    aoe.startAsync();
-    aoe.awaitRunning();
+    boolean correct = false;
+    try {
+      aoe.startAsync();
+      aoe.awaitRunning();
+      correct = true;
+    } finally {
+      if (!correct) {
+        oplogApplier.close();
+      }
+    }
   }
 
   @Override
   protected void preDependenciesShutDown() throws Exception {
     aoe.stopAsync();
     aoe.awaitTerminated();
+
+    oplogApplier.close();
   }
 
   @Override

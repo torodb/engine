@@ -24,7 +24,7 @@ import com.torodb.backend.tables.records.MetaDocPartIndexRecord;
 import com.torodb.core.TableRef;
 import com.torodb.core.TableRefFactory;
 
-public class PostgreSqlMetaDocPartIndexRecord extends MetaDocPartIndexRecord<String[]> {
+public class PostgreSqlMetaDocPartIndexRecord extends MetaDocPartIndexRecord<String[], Boolean> {
 
   private static final long serialVersionUID = 2263619273193694206L;
 
@@ -64,6 +64,16 @@ public class PostgreSqlMetaDocPartIndexRecord extends MetaDocPartIndexRecord<Str
   @Override
   public TableRef getTableRefValue(TableRefFactory tableRefFactory) {
     return TableRefConverter.fromStringArray(tableRefFactory, getTableRef());
+  }
+
+  @Override
+  protected Boolean toBooleanType(Boolean value) {
+    return value;
+  }
+
+  @Override
+  public Boolean getUniqueAsBoolean() {
+    return getUnique();
   }
 
 }

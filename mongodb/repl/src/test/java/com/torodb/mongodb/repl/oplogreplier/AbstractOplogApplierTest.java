@@ -18,56 +18,84 @@
 
 package com.torodb.mongodb.repl.oplogreplier;
 
-import com.torodb.mongodb.repl.oplogreplier.OplogTestContextResourceRule.OplogApplierBundleFactory;
-import org.jooq.lambda.Unchecked;
-import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple2;
-import org.junit.Assume;
-import org.junit.Rule;
+
+import com.torodb.mongodb.repl.oplogreplier.utils.ClosableContext;
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogApplierTest;
+import com.torodb.mongodb.repl.oplogreplier.utils.OplogApplierTestFactory;
+import com.torodb.mongodb.repl.oplogreplier.utils.ResourceOplogTestStreamer;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
+import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-@RunWith(Parameterized.class)
+@RunWith(JUnitPlatform.class)
 public abstract class AbstractOplogApplierTest {
+  
+  protected String getName(OplogApplierTest oplogTest) {
+    return oplogTest.getTestName().orElse("unknown");
+  }
+  
+  protected abstract Supplier<ClosableContext> contextSupplier();
 
-  @Parameter(0)
-  public String testName;
-  @Parameter(1)
-  public OplogTest oplogTest;
-  @Rule
-  public OplogTestContextResourceRule testContextResource =
-      new OplogTestContextResourceRule(getApplierBundleFactory());
-
-  public abstract OplogApplierBundleFactory getApplierBundleFactory();
-
-  protected static Collection<Object[]> loadData(ArrayList<String> filesList) {
-    return filesList.stream()
-        .map(filename -> Tuple.tuple(filename, filename + ".json"))
-        .map(Unchecked.<Tuple2<String, String>, Tuple2<String, OplogTest>>function((
-            Tuple2<String, String> tuple) -> {
-          try {
-            OplogTest test = OplogTestParser.fromExtendedJsonResource(tuple.v2);
-            return Tuple.tuple(tuple.v1, test);
-          } catch (Throwable ex) {
-            throw new AssertionError("Failed to parse '" + tuple.v2 + "'", ex);
-          }
-        }))
-        .map(tuple -> new Object[]{
-      tuple.v2.getTestName().orElse(tuple.v1),
-      tuple.v2
-    })
-        .collect(Collectors.toList());
+  @TestFactory
+  protected Stream<DynamicTest> createJsonTests() throws Exception {
+    return oplogTestSupplier()
+        .map(oplogTest -> OplogApplierTestFactory.oplogTest(
+            getName(oplogTest),
+            oplogTest,
+            contextSupplier())
+        );
   }
 
-  protected void test() throws Exception {
-    Assume.assumeTrue("Test " + this.oplogTest + " marked as ignorable", !oplogTest.shouldIgnore());
+  protected Stream<OplogApplierTest> oplogTestSupplier() {
+    return new DefaultTestsStreamer().get();
+  }
 
-    oplogTest.execute(testContextResource.getTestContext());
+  static class DefaultTestsStreamer extends ResourceOplogTestStreamer {
+
+    @Override
+    protected Stream<String> streamFileNames() {
+      return Stream.of(
+          "createCollectionFiltered",
+          "deleteIndex",
+          "deleteIndexes",
+          "doNothing",
+          "dropDatabase",
+          "dropDatabaseIgnored",
+          "dropCollectionFiltered",
+          "simpleFirstInsert",
+          "simpleInsert",
+          "insertRepeated",
+          "insertUpdateAdd",
+          "letschatUpsert",
+          "updateArray",
+          "updateNoUpsert",
+          "updateUpsert",
+          "renameCollectionFiltered1",
+          "renameCollectionFiltered2",
+          "renameCollectionNoDropTarget",
+          "renameCollectionDropTarget",
+          "createIndexesFiltered",
+
+          //test that have to fail
+          "failing/applyOps",
+          "failing/deleteArrId",
+          "failing/deleteDocId",
+          "failing/deleteWithoutId",
+          "failing/emptyCommand",
+          "failing/insertArrId",
+          "failing/insertDocId",
+          "failing/insertWithoutId",
+          "failing/unknownCommand",
+          "failing/updateArrId",
+          "failing/updateDocId",
+          "failing/updateNoUpsertWithoutId"
+      ).map(name -> "/oplogapplier/" + name + ".json");
+    }
+
   }
 
 }

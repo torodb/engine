@@ -21,13 +21,13 @@ package com.torodb.mongodb.commands.impl;
 import com.google.common.collect.ImmutableMap;
 import com.torodb.mongodb.commands.CommandClassifier;
 import com.torodb.mongodb.commands.RequiredTransaction;
-import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.core.ReadOnlyMongodTransaction;
 import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.CommandExecutor;
 import com.torodb.mongowp.commands.impl.MapBasedCommandExecutor;
+import com.torodb.torod.SchemaOperationExecutor;
 
 import java.util.stream.Stream;
 
@@ -35,7 +35,7 @@ public class EmptyCommandClassifier implements CommandClassifier {
 
   @SuppressWarnings("checkstyle:LineLength")
   @Override
-  public CommandExecutor<? super ExclusiveWriteMongodTransaction> getExclusiveWriteCommandsExecutor() {
+  public CommandExecutor<? super SchemaOperationExecutor> getSchemaCommandsExecutor() {
     return MapBasedCommandExecutor.fromMap(ImmutableMap.of());
   }
 
@@ -45,12 +45,12 @@ public class EmptyCommandClassifier implements CommandClassifier {
   }
 
   @Override
-  public CommandExecutor<? super ReadOnlyMongodTransaction> getReadOnlyCommandsExecutor() {
+  public CommandExecutor<? super ReadOnlyMongodTransaction> getReadCommandsExecutor() {
     return MapBasedCommandExecutor.fromMap(ImmutableMap.of());
   }
 
   @Override
-  public CommandExecutor<? super MongodConnection> getConnectionCommandsExecutor() {
+  public CommandExecutor<? super MongodServer> getServerCommandsExecutor() {
     return MapBasedCommandExecutor.fromMap(ImmutableMap.of());
   }
 

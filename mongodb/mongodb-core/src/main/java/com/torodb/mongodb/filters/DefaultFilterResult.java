@@ -18,7 +18,6 @@
 
 package com.torodb.mongodb.filters;
 
-
 import java.util.Optional;
 import java.util.function.Function;
 

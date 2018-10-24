@@ -19,10 +19,9 @@
 package com.torodb.backend;
 
 import com.torodb.core.backend.BackendBundle;
-import com.torodb.core.backend.BackendConnection;
 import com.torodb.core.backend.BackendExtInt;
 import com.torodb.core.backend.BackendService;
-import com.torodb.core.backend.ExclusiveWriteBackendTransaction;
+import com.torodb.core.backend.DdlOperationExecutor;
 import com.torodb.core.bundle.AbstractBundle;
 import org.apache.logging.log4j.Logger;
 
@@ -63,11 +62,8 @@ public abstract class AbstractBackendBundle extends AbstractBundle<BackendExtInt
     LOGGER.debug("Backend service started");
 
     LOGGER.debug("Validating database metadata");
-    try (BackendConnection conn = backendService.openConnection();
-        ExclusiveWriteBackendTransaction trans = conn.openExclusiveWriteTransaction()) {
-
-      trans.checkOrCreateMetaDataTables();
-      trans.commit();
+    try (DdlOperationExecutor ddlOpsEx = backendService.openDdlOperationExecutor()) {
+      ddlOpsEx.checkOrCreateMetaDataTables();
     }
     LOGGER.info("Database metadata has been validated");
   }

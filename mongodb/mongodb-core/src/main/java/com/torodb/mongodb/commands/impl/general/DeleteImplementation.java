@@ -22,10 +22,9 @@ import com.torodb.core.language.AttributeReference;
 import com.torodb.core.language.AttributeReference.Builder;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.kvdocument.values.KvValue;
-import com.torodb.mongodb.commands.impl.WriteTorodbCommandImpl;
+import com.torodb.mongodb.commands.impl.WriteTransactionCommandImpl;
 import com.torodb.mongodb.commands.signatures.general.DeleteCommand.DeleteArgument;
 import com.torodb.mongodb.commands.signatures.general.DeleteCommand.DeleteStatement;
-import com.torodb.mongodb.core.MongodMetrics;
 import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongowp.ErrorCode;
 import com.torodb.mongowp.Status;
@@ -33,30 +32,27 @@ import com.torodb.mongowp.bson.BsonDocument;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.exceptions.CommandFailed;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.torod.WriteDocTransaction;
 import org.apache.logging.log4j.Logger;
 
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import javax.annotation.concurrent.ThreadSafe;
 
-@Singleton
-public class DeleteImplementation implements WriteTorodbCommandImpl<DeleteArgument, Long> {
+@ThreadSafe
+public class DeleteImplementation implements WriteTransactionCommandImpl<DeleteArgument, Long> {
 
   private final Logger logger;
 
-  @Inject
   public DeleteImplementation(LoggerFactory loggerFactory) {
     this.logger = loggerFactory.apply(this.getClass());
   }
-
+  
   @Override
   public Status<Long> apply(Request req, Command<? super DeleteArgument, ? super Long> command,
       DeleteArgument arg,
       WriteMongodTransaction context) {
-    MongodMetrics mongodMetrics = context.getConnection().getServer().getMetrics();
     Long deleted = 0L;
 
     for (DeleteStatement deleteStatement : arg.getStatements()) {
@@ -64,14 +60,14 @@ public class DeleteImplementation implements WriteTorodbCommandImpl<DeleteArgume
 
       switch (query.size()) {
         case 0: {
-          deleted += context.getTorodTransaction()
+          deleted += context.getDocTransaction()
               .deleteAll(req.getDatabase(), arg.getCollection());
           break;
         }
         case 1: {
           try {
             logDeleteCommand(arg);
-            deleted += deleteByAttribute(context.getTorodTransaction(), req.getDatabase(), arg
+            deleted += deleteByAttribute(context.getDocTransaction(), req.getDatabase(), arg
                 .getCollection(), query);
           } catch (CommandFailed ex) {
             return Status.from(ex);
@@ -84,12 +80,12 @@ public class DeleteImplementation implements WriteTorodbCommandImpl<DeleteArgume
         }
       }
     }
-    mongodMetrics.getDeletes().mark(deleted);
+    context.getMetrics().getDeletes().mark(deleted);
     return Status.ok(deleted);
 
   }
 
-  private long deleteByAttribute(SharedWriteTorodTransaction transaction, String db, String col,
+  private long deleteByAttribute(WriteDocTransaction transaction, String db, String col,
       BsonDocument query) throws CommandFailed {
     Builder refBuilder = new AttributeReference.Builder();
     KvValue<?> kvValue = AttrRefHelper.calculateValueAndAttRef(query, refBuilder);

@@ -18,12 +18,12 @@
 
 package com.torodb.mongodb.commands;
 
-import com.torodb.mongodb.core.ExclusiveWriteMongodTransaction;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.core.ReadOnlyMongodTransaction;
 import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.CommandExecutor;
+import com.torodb.torod.SchemaOperationExecutor;
 
 import java.util.stream.Stream;
 
@@ -36,13 +36,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface CommandClassifier {
 
-  CommandExecutor<? super ExclusiveWriteMongodTransaction> getExclusiveWriteCommandsExecutor();
+  CommandExecutor<? super SchemaOperationExecutor> getSchemaCommandsExecutor();
 
   CommandExecutor<? super WriteMongodTransaction> getWriteCommandsExecutor();
 
-  CommandExecutor<? super ReadOnlyMongodTransaction> getReadOnlyCommandsExecutor();
+  CommandExecutor<? super ReadOnlyMongodTransaction> getReadCommandsExecutor();
 
-  CommandExecutor<? super MongodConnection> getConnectionCommandsExecutor();
+  CommandExecutor<? super MongodServer> getServerCommandsExecutor();
 
   RequiredTransaction classify(Command<?, ?> command);
 

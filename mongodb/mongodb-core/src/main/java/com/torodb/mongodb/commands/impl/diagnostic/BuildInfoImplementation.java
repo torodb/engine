@@ -19,10 +19,10 @@
 package com.torodb.mongodb.commands.impl.diagnostic;
 
 import com.torodb.core.BuildProperties;
-import com.torodb.mongodb.commands.impl.ConnectionTorodbCommandImpl;
+import com.torodb.mongodb.commands.impl.ServerCommandImpl;
 import com.torodb.mongodb.commands.signatures.diagnostic.BuildInfoCommand.BuildInfoResult;
 import com.torodb.mongodb.core.MongoLayerConstants;
-import com.torodb.mongodb.core.MongodConnection;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongowp.MongoVersion;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
@@ -31,7 +31,7 @@ import com.torodb.mongowp.commands.tools.Empty;
 
 import javax.inject.Inject;
 
-public class BuildInfoImplementation extends ConnectionTorodbCommandImpl<Empty, BuildInfoResult> {
+public class BuildInfoImplementation extends ServerCommandImpl<Empty, BuildInfoResult> {
 
   private final BuildProperties buildProperties;
 
@@ -44,7 +44,7 @@ public class BuildInfoImplementation extends ConnectionTorodbCommandImpl<Empty, 
   @Override
   public Status<BuildInfoResult> apply(Request req,
       Command<? super Empty, ? super BuildInfoResult> command,
-      Empty arg, MongodConnection context) {
+      Empty arg, MongodServer context) {
     return Status.<BuildInfoResult>ok(new BuildInfoResult(
         MongoVersion.V3_2,
         7,

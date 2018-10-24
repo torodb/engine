@@ -23,6 +23,7 @@ import com.torodb.core.bundle.BundleConfig;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
 import com.torodb.torod.TorodBundle;
 
 import java.util.ArrayList;
@@ -40,20 +41,24 @@ class MultipleShardConfigBuilder extends MongoDbShardingConfigBuilder {
   protected MultipleShardConfigBuilder(Injector essentialInjector, Supervisor supervisor) {
     super(essentialInjector, supervisor);
   }
-  
+
   @Override
   public MongoDbShardingConfigBuilder addShard(MongoDbShardingConfig.ShardConfig config) {
     if (shardConfigs.containsKey(config.getShardId())) {
-      throw new IllegalArgumentException("The shard " + config.getShardId() + " has been already"
-          + "added");
+      throw new IllegalArgumentException(
+          "The shard " + config.getShardId() + " has been already" + "added");
     }
     shardConfigs.put(config.getShardId(), config);
     return this;
   }
 
   @Override
-  protected MongoDbShardingConfig build(TorodBundle torodBundle, ReplicationFilters userReplFilter,
-      LoggerFactory lifecycleLoggerFactory, BundleConfig generalConfig) {
+  protected MongoDbShardingConfig build(
+      TorodBundle torodBundle,
+      ReplicationFilters userReplFilter,
+      LoggerFactory lifecycleLoggerFactory,
+      BundleConfig generalConfig,
+      OffHeapBufferConfig offHeapBufferConfig) {
     if (shardConfigs.isEmpty()) {
       throw new IllegalArgumentException("At least one shard is required");
     }
@@ -63,8 +68,7 @@ class MultipleShardConfigBuilder extends MongoDbShardingConfigBuilder {
         new ArrayList<>(shardConfigs.values()),
         userReplFilter,
         lifecycleLoggerFactory,
-        generalConfig
-    );
+        generalConfig,
+        offHeapBufferConfig);
   }
-
 }

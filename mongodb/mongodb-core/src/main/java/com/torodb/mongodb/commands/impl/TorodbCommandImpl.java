@@ -18,13 +18,12 @@
 
 package com.torodb.mongodb.commands.impl;
 
-import com.torodb.mongodb.core.MongodTransaction;
 import com.torodb.mongowp.commands.CommandImplementation;
 
 /**
  *
  */
-public interface TorodbCommandImpl<A, R, T extends MongodTransaction> extends
+public interface TorodbCommandImpl<A, R, T> extends
     CommandImplementation<A, R, T> {
 
   boolean requiresWritePermission();

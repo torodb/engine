@@ -19,53 +19,29 @@
 package com.torodb.backend.derby;
 
 import com.torodb.backend.tests.common.AbstractStructureIntegrationSuite;
-import com.torodb.backend.tests.common.DatabaseTestContext;
-import com.torodb.core.transaction.metainf.FieldType;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.torodb.backend.tests.common.BackendTestContextFactory;
+import org.junit.jupiter.api.Disabled;
 
 public class DerbyStructureIT extends AbstractStructureIntegrationSuite {
 
-  private Map<FieldType, String> typesDictionary = new HashMap<>();
-
-  public DerbyStructureIT() {
-    typesDictionary.put(FieldType.STRING, "VARCHAR");
-    typesDictionary.put(FieldType.BINARY, "VARCHAR () FOR BIT DATA");
-    typesDictionary.put(FieldType.BOOLEAN, "BOOLEAN");
-    typesDictionary.put(FieldType.DATE, "DATE");
-    typesDictionary.put(FieldType.DOUBLE, "DOUBLE");
-    typesDictionary.put(FieldType.INSTANT, "TIMESTAMP");
-    typesDictionary.put(FieldType.INTEGER, "INTEGER");
-    typesDictionary.put(FieldType.LONG, "BIGINT");
-    typesDictionary.put(FieldType.MONGO_OBJECT_ID, "VARCHAR () FOR BIT DATA");
-    typesDictionary.put(FieldType.MONGO_TIME_STAMP, "VARCHAR");
-    typesDictionary.put(FieldType.NULL, "BOOLEAN");
-    typesDictionary.put(FieldType.TIME, "TIME");
-    typesDictionary.put(FieldType.CHILD, "BOOLEAN");
-    typesDictionary.put(FieldType.DECIMAL128, "VARCHAR");
-    typesDictionary.put(FieldType.JAVASCRIPT, "VARCHAR");
-    typesDictionary.put(FieldType.JAVASCRIPT_WITH_SCOPE, "VARCHAR");
-    typesDictionary.put(FieldType.MIN_KEY, "BOOLEAN");
-    typesDictionary.put(FieldType.MAX_KEY, "BOOLEAN");
-    typesDictionary.put(FieldType.UNDEFINED, "BOOLEAN");
-    typesDictionary.put(FieldType.MONGO_REGEX, "VARCHAR");
-    typesDictionary.put(FieldType.MONGO_DB_POINTER, "VARCHAR");
-    typesDictionary.put(FieldType.DEPRECATED, "VARCHAR");
+  @Override
+  protected BackendTestContextFactory getBackendTestContextFactory() {
+    return new DerbyTestContextFactory();
   }
 
   @Override
-  protected DatabaseTestContext getDatabaseTestContext() {
-    return new DerbyDatabaseTestContextFactory().createInstance();
+  @Disabled
+  public void shouldDeleteAll() throws Exception {
   }
 
   @Override
-  protected String getSqlTypeOf(FieldType fieldType) {
-    if (!typesDictionary.containsKey(fieldType))
-      throw new RuntimeException("Unsupported type " + fieldType.name());
-
-    return typesDictionary.get(fieldType);
+  @Disabled
+  public void shouldDeleteUserData() throws Exception {
   }
 
-
+  @Override
+  @Disabled
+  public void shouldMoveCollection() throws Exception {
+  }
+  
 }

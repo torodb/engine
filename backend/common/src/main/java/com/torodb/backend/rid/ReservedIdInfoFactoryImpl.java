@@ -18,58 +18,44 @@
 
 package com.torodb.backend.rid;
 
-import com.google.common.base.Preconditions;
 import com.torodb.backend.SqlInterface;
 import com.torodb.core.TableRef;
-import com.torodb.core.annotations.TorodbIdleService;
-import com.torodb.core.services.IdleTorodbService;
-import com.torodb.core.transaction.metainf.ImmutableMetaSnapshot;
+import com.torodb.core.exceptions.ToroRuntimeException;
 import com.torodb.core.transaction.metainf.MetaSnapshot;
-import com.torodb.core.transaction.metainf.MetainfoRepository;
-import com.torodb.core.transaction.metainf.MetainfoRepository.SnapshotStage;
 import org.jooq.DSLContext;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
-@Singleton
-public class ReservedIdInfoFactoryImpl extends IdleTorodbService implements ReservedIdInfoFactory {
+@ThreadSafe
+public class ReservedIdInfoFactoryImpl implements ReservedIdInfoFactory {
 
-  private final MetainfoRepository metainfoRepository;
   private final SqlInterface sqlInterface;
   @SuppressWarnings("checkstyle:LineLength")
   private ConcurrentHashMap<String, ConcurrentHashMap<String, ConcurrentHashMap<TableRef, ReservedIdInfo>>> megaMap;
 
   @Inject
-  public ReservedIdInfoFactoryImpl(@TorodbIdleService ThreadFactory threadFactory,
-      MetainfoRepository metainfoRepository, SqlInterface sqlInterface) {
-    super(threadFactory);
-    this.metainfoRepository = metainfoRepository;
+  public ReservedIdInfoFactoryImpl(SqlInterface sqlInterface)
+      throws SQLException {
     this.sqlInterface = sqlInterface;
   }
 
   @Override
-  protected void startUp() throws Exception {
-    ImmutableMetaSnapshot snapshot;
-    try (SnapshotStage snapshotStage = metainfoRepository.startSnapshotStage()) {
-      snapshot = snapshotStage.createImmutableSnapshot();
-    }
+  public void load(MetaSnapshot snapshot) {
 
     try (Connection connection = sqlInterface.getDbBackend().createSystemConnection()) {
       DSLContext dsl = sqlInterface.getDslContextFactory().createDslContext(connection);
 
       megaMap = loadRowIds(dsl, snapshot);
+    } catch (SQLException ex) {
+      throw new ToroRuntimeException("It was impossible to open a connection with the remote "
+          + "database", ex);
     }
 
-  }
-
-  @Override
-  protected void shutDown() throws Exception {
-    megaMap.clear();
   }
 
   @SuppressWarnings("checkstyle:LineLength")
@@ -98,14 +84,11 @@ public class ReservedIdInfoFactoryImpl extends IdleTorodbService implements Rese
 
   @Override
   public ReservedIdInfo create(String dbName, String collectionName, TableRef tableRef) {
-    Preconditions.checkState(isRunning(), "This " + ReservedIdInfoFactory.class
-        + " is also a service and it is not running");
-
-    assert megaMap != null;
-
     ConcurrentHashMap<String, ConcurrentHashMap<TableRef, ReservedIdInfo>> collectionsMap =
-        this.megaMap.computeIfAbsent(dbName,
-            name -> new ConcurrentHashMap<>());
+        this.megaMap.computeIfAbsent(
+            dbName,
+            name -> new ConcurrentHashMap<>()
+        );
     ConcurrentHashMap<TableRef, ReservedIdInfo> docPartsMap = collectionsMap.computeIfAbsent(
         collectionName,
         name -> new ConcurrentHashMap<>());

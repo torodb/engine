@@ -18,38 +18,54 @@
 
 package com.torodb.mongodb.repl.sharding;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.net.HostAndPort;
 import com.google.inject.Injector;
 import com.torodb.core.bundle.BundleConfigImpl;
 import com.torodb.core.logging.LoggerFactory;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.repl.ConsistencyHandler;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 import com.torodb.torod.TorodBundle;
 
 public class ShardBundleConfig extends BundleConfigImpl {
+
   private final String shardId;
   private final TorodBundle torodBundle;
-  private final MongoClientConfiguration clientConfig;
+  private final ImmutableList<HostAndPort> seeds;
+  private final MongoClientConfigurationProperties clientConfigProperties;
   private final String replSetName;
   private final ReplicationFilters userReplFilter;
   private final ConsistencyHandler consistencyHandler;
   private final LoggerFactory lifecycleLoggingFactory;
+  private final OffHeapBufferConfig offHeapBufferConfig;
 
   public ShardBundleConfig(String shardId, TorodBundle torodBundle,
-      MongoClientConfiguration clientConfig, String replSetName, ReplicationFilters userReplFilter,
+      ImmutableList<HostAndPort> seeds,
+      MongoClientConfigurationProperties clientConfigProperties,
+      String replSetName, ReplicationFilters userReplFilter,
       ConsistencyHandler consistencyHandler, LoggerFactory lifecycleLoggingFactory,
-      Injector essentialInjector, Supervisor supervisor) {
+      Injector essentialInjector, Supervisor supervisor, OffHeapBufferConfig offHeapBufferConfig) {
     super(essentialInjector, supervisor);
     this.shardId = shardId;
     this.torodBundle = torodBundle;
-    this.clientConfig = clientConfig;
+    this.seeds = seeds;
+    this.clientConfigProperties = clientConfigProperties;
     this.replSetName = replSetName;
     this.userReplFilter = userReplFilter;
     this.consistencyHandler = consistencyHandler;
     this.lifecycleLoggingFactory = lifecycleLoggingFactory;
+    this.offHeapBufferConfig = offHeapBufferConfig;
   }
 
+  /**
+   * The id of the shard that is going to be replicated.
+   *
+   * Two {@link ShardBundle} can be running concurrently on the same backend if they compatible
+   * between them and their shard id is different.
+   */
   public String getShardId() {
     return shardId;
   }
@@ -58,8 +74,12 @@ public class ShardBundleConfig extends BundleConfigImpl {
     return torodBundle;
   }
 
-  public MongoClientConfiguration getClientConfig() {
-    return clientConfig;
+  public ImmutableList<HostAndPort> getSeeds() {
+    return seeds;
+  }
+
+  public MongoClientConfigurationProperties getClientConfigProperties() {
+    return clientConfigProperties;
   }
 
   public ConsistencyHandler getConsistencyHandler() {
@@ -78,5 +98,7 @@ public class ShardBundleConfig extends BundleConfigImpl {
     return lifecycleLoggingFactory;
   }
 
-
+  public OffHeapBufferConfig getOffHeapBufferConfig() {
+    return offHeapBufferConfig;
+  }
 }

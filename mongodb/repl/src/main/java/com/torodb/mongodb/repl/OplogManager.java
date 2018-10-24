@@ -41,9 +41,8 @@ import com.torodb.mongodb.commands.signatures.general.FindCommand.FindResult;
 import com.torodb.mongodb.commands.signatures.general.InsertCommand;
 import com.torodb.mongodb.commands.signatures.general.InsertCommand.InsertArgument;
 import com.torodb.mongodb.commands.signatures.general.InsertCommand.InsertResult;
-import com.torodb.mongodb.core.MongodConnection;
 import com.torodb.mongodb.core.MongodServer;
-import com.torodb.mongodb.core.ReadOnlyMongodTransaction;
+import com.torodb.mongodb.core.MongodTransaction;
 import com.torodb.mongodb.core.WriteMongodTransaction;
 import com.torodb.mongowp.ErrorCode;
 import com.torodb.mongowp.OpTime;
@@ -83,7 +82,7 @@ public class OplogManager extends IdleTorodbService {
   private final ReadWriteLock lock = new ReentrantReadWriteLock();
   private long lastAppliedHash;
   private OpTime lastAppliedOpTime;
-  private final MongodConnection connection;
+  private final MongodServer server;
   private final Retrier retrier;
   private final ReplMetrics metrics;
 
@@ -92,7 +91,7 @@ public class OplogManager extends IdleTorodbService {
       MongodServer mongodServer, Retrier retrier, ReplMetrics metrics) {
     super(threadFactory);
     this.logger = lf.apply(this.getClass());
-    this.connection = mongodServer.openConnection();
+    this.server = mongodServer;
     this.retrier = retrier;
     this.metrics = metrics;
   }
@@ -127,7 +126,6 @@ public class OplogManager extends IdleTorodbService {
   @Override
   protected void shutDown() throws Exception {
     logger.debug("Stopping OplogManager");
-    connection.close();
   }
 
   @Locked(exclusive = true)
@@ -136,7 +134,7 @@ public class OplogManager extends IdleTorodbService {
 
     try {
       retrier.retry(() -> {
-        try (WriteMongodTransaction transaction = connection.openWriteTransaction()) {
+        try (WriteMongodTransaction transaction = server.openWriteTransaction()) {
           Status<Long> deleteResult = transaction.execute(
               new Request(OPLOG_DB, null, true, null),
               DeleteCommand.INSTANCE,
@@ -186,7 +184,7 @@ public class OplogManager extends IdleTorodbService {
   private void loadState() throws OplogManagerPersistException {
     try {
       retrier.retry(() -> {
-        try (ReadOnlyMongodTransaction transaction = connection.openReadOnlyTransaction()) {
+        try (MongodTransaction transaction = server.openReadTransaction()) {
           Status<FindResult> status = transaction.execute(
               new Request(OPLOG_DB, null, true, null),
               FindCommand.INSTANCE,

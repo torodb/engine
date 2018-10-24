@@ -18,6 +18,7 @@
 
 package com.torodb.mongodb.repl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Injector;
 import com.torodb.core.bundle.BundleConfig;
@@ -26,7 +27,8 @@ import com.torodb.core.metrics.ToroMetricRegistry;
 import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ReplicationFilters;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongodb.repl.oplogreplier.offheapbuffer.OffHeapBufferConfig;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 
 import java.util.Optional;
 import java.util.concurrent.ThreadFactory;
@@ -35,36 +37,47 @@ import java.util.concurrent.ThreadFactory;
  * The configuration used by {@link MongoDbReplBundle}.
  */
 public class MongoDbReplConfig implements BundleConfig {
+
   private final MongoDbCoreBundle coreBundle;
-  private final MongoClientConfiguration mongoClientConfiguration;
+  private final ImmutableList<HostAndPort> seeds;
+  private final MongoClientConfigurationProperties mongoClientConfigurationProperties;
   private final ReplicationFilters userReplFilter;
   private final String replSetName;
   private final ConsistencyHandler consistencyHandler;
   private final Optional<ToroMetricRegistry> metricRegistry;
   private final LoggerFactory loggerFactory;
   private final BundleConfig generalConfig;
+  private final OffHeapBufferConfig offHeapBufferConfig;
 
-  public MongoDbReplConfig(MongoDbCoreBundle coreBundle,
-      MongoClientConfiguration mongoClientConfiguration, ReplicationFilters userReplFilter,
+  public MongoDbReplConfig(MongoDbCoreBundle coreBundle, ImmutableList<HostAndPort> seeds,
+      MongoClientConfigurationProperties mongoClientConfigurationProperties,
+      ReplicationFilters userReplFilter,
       String replSetName, ConsistencyHandler consistencyHandler, 
       Optional<ToroMetricRegistry> metricRegistry,
-      LoggerFactory loggerFactory, BundleConfig generalConfig) {
+      LoggerFactory loggerFactory, BundleConfig generalConfig,
+      OffHeapBufferConfig offHeapBufferConfig) {
     this.coreBundle = coreBundle;
-    this.mongoClientConfiguration = mongoClientConfiguration;
+    this.seeds = seeds;
+    this.mongoClientConfigurationProperties = mongoClientConfigurationProperties;
     this.userReplFilter = userReplFilter;
     this.replSetName = replSetName;
     this.consistencyHandler = consistencyHandler;
     this.metricRegistry = metricRegistry;
     this.loggerFactory = loggerFactory;
     this.generalConfig = generalConfig;
+    this.offHeapBufferConfig = offHeapBufferConfig;
   }
 
   public MongoDbCoreBundle getMongoDbCoreBundle() {
     return coreBundle;
   }
 
-  public MongoClientConfiguration getMongoClientConfiguration() {
-    return mongoClientConfiguration;
+  public ImmutableList<HostAndPort> getSeeds() {
+    return seeds;
+  }
+
+  public MongoClientConfigurationProperties getMongoClientConfigurationProperties() {
+    return mongoClientConfigurationProperties;
   }
 
   public ReplicationFilters getUserReplicationFilter() {
@@ -102,7 +115,8 @@ public class MongoDbReplConfig implements BundleConfig {
     return generalConfig.getSupervisor();
   }
 
-  public HostAndPort getSyncSourceSeed() {
-    return getMongoClientConfiguration().getHostAndPort();
+  public OffHeapBufferConfig getOffHeapBufferConfig() {
+    return offHeapBufferConfig;
   }
+
 }

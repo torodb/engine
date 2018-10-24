@@ -21,8 +21,8 @@ package com.torodb.mongodb.core;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Injector;
 import com.torodb.core.bundle.AbstractBundle;
+import com.torodb.mongodb.commands.CommandClassifier;
 import com.torodb.mongodb.guice.MongodCoreEssentialOverrideModule;
-import com.torodb.mongodb.guice.MongodCoreModule;
 import com.torodb.mongowp.commands.CommandLibrary;
 import com.torodb.torod.TorodBundle;
 
@@ -34,12 +34,14 @@ public class MongoDbCoreBundle extends AbstractBundle<MongoDbCoreExtInt> {
   private final TorodBundle torodBundle;
   private final MongodServer mongodServer;
   private final CommandLibrary commandLibrary;
+  private final CommandClassifier commandClassifier;
 
   public MongoDbCoreBundle(MongoDbCoreConfig bundleConfig) {
     super(bundleConfig);
 
     this.torodBundle = bundleConfig.getTorodBundle();
     this.commandLibrary = bundleConfig.getCommandsLibrary();
+    this.commandClassifier = bundleConfig.getCommandClassifier();
 
     Injector injector = bundleConfig.getEssentialInjector().createChildInjector(
         new MongodCoreEssentialOverrideModule(
@@ -49,7 +51,7 @@ public class MongoDbCoreBundle extends AbstractBundle<MongoDbCoreExtInt> {
         new MongodCoreModule(bundleConfig)
     );
 
-    mongodServer = injector.getInstance(MongodServer.class);
+    this.mongodServer = injector.getInstance(MongodServer.class);
   }
 
   @Override
@@ -71,7 +73,7 @@ public class MongoDbCoreBundle extends AbstractBundle<MongoDbCoreExtInt> {
 
   @Override
   public MongoDbCoreExtInt getExternalInterface() {
-    return new MongoDbCoreExtInt(mongodServer, commandLibrary);
+    return new MongoDbCoreExtInt(mongodServer, commandLibrary, commandClassifier);
   }
 
   

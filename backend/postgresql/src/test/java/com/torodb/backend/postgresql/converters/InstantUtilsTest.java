@@ -15,15 +15,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.torodb.backend.postgresql.converters;
 
 import com.torodb.backend.postgresql.converters.util.InstantUtils;
-import java.util.Calendar;
-import java.util.TimeZone;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Calendar;
+import java.util.TimeZone;
 
 public class InstantUtilsTest {
 

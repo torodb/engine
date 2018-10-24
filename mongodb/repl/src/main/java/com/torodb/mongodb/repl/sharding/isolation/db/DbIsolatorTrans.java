@@ -25,8 +25,8 @@ import com.torodb.core.language.AttributeReference;
 import com.torodb.kvdocument.values.KvValue;
 import com.torodb.mongodb.repl.sharding.isolation.TransDecorator;
 import com.torodb.torod.CollectionInfo;
+import com.torodb.torod.DocTransaction;
 import com.torodb.torod.IndexInfo;
-import com.torodb.torod.TorodTransaction;
 import com.torodb.torod.cursors.TorodCursor;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -35,111 +35,106 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class DbIsolatorTrans<D extends TorodTransaction>
-    extends TransDecorator<D, DbIsolatorConn> {
-  
-  public DbIsolatorTrans(DbIsolatorConn connection, D decorated) {
-    super(connection, decorated);
+public class DbIsolatorTrans<D extends DocTransaction> extends TransDecorator<D> {
+
+  private final Converter converter;
+
+  public DbIsolatorTrans(Converter converter, D decorated) {
+    super(decorated);
+    this.converter = converter;
   }
 
-  final String convertDatabaseName(String dbName) {
-    return getConnection().convertDatabaseName(dbName);
-  }
-
-  final String convertIndexName(String indexName) {
-    return getConnection().convertIndexName(indexName);
-  }
-
-  final boolean isVisibleDatabase(String dbName) {
-    return getConnection().isVisibleDatabase(dbName);
+  Converter getConverter() {
+    return converter;
   }
 
   @Override
   public IndexInfo getIndexInfo(String dbName, String colName, String idxName) throws
       IndexNotFoundException {
-    return super.getIndexInfo(convertDatabaseName(dbName), colName, idxName);
+    return super.getIndexInfo(converter.convertDatabaseName(dbName), colName, idxName);
   }
 
   @Override
   public Stream<IndexInfo> getIndexesInfo(String dbName, String colName) {
-    return super.getIndexesInfo(convertDatabaseName(dbName), colName);
+    return super.getIndexesInfo(converter.convertDatabaseName(dbName), colName);
   }
 
   @Override
   public CollectionInfo getCollectionInfo(String dbName, String colName) throws
       CollectionNotFoundException {
-    return super.getCollectionInfo(convertDatabaseName(dbName), colName);
+    return super.getCollectionInfo(converter.convertDatabaseName(dbName), colName);
   }
 
   @Override
   public Stream<CollectionInfo> getCollectionsInfo(String dbName) {
-    return super.getCollectionsInfo(convertDatabaseName(dbName));
+    return super.getCollectionsInfo(converter.convertDatabaseName(dbName));
   }
 
   @Override
   public TorodCursor fetch(String dbName, String colName, Cursor<Integer> didCursor) {
-    return super.fetch(convertDatabaseName(dbName), colName, didCursor);
+    return super.fetch(converter.convertDatabaseName(dbName), colName, didCursor);
   }
 
   @Override
   public Cursor<Tuple2<Integer, KvValue<?>>> findByAttRefInProjection(String dbName, String colName,
       AttributeReference attRef,
       Collection<KvValue<?>> values) {
-    return super.findByAttRefInProjection(convertDatabaseName(dbName), colName, attRef, values);
+    return super.findByAttRefInProjection(converter.convertDatabaseName(dbName), colName,
+        attRef, values);
   }
 
   @Override
   public TorodCursor findByAttRefIn(String dbName, String colName, AttributeReference attRef,
       Collection<KvValue<?>> values) {
-    return super.findByAttRefIn(convertDatabaseName(dbName), colName, attRef, values);
+    return super.findByAttRefIn(converter.convertDatabaseName(dbName), colName, attRef, values);
   }
 
   @Override
   public TorodCursor findByAttRef(String dbName, String colName, AttributeReference attRef,
       KvValue<?> value) {
-    return super.findByAttRef(convertDatabaseName(dbName), colName, attRef, value);
+    return super.findByAttRef(converter.convertDatabaseName(dbName), colName, attRef, value);
   }
 
   @Override
   public TorodCursor findAll(String dbName, String colName) {
-    return super.findAll(convertDatabaseName(dbName), colName);
+    return super.findAll(converter.convertDatabaseName(dbName), colName);
   }
 
   @Override
   public long getDocumentsSize(String dbName, String colName) {
-    return super.getDocumentsSize(convertDatabaseName(dbName), colName);
+    return super.getDocumentsSize(converter.convertDatabaseName(dbName), colName);
   }
 
   @Override
   public long getCollectionSize(String dbName, String colName) {
-    return super.getCollectionSize(convertDatabaseName(dbName), colName);
+    return super.getCollectionSize(converter.convertDatabaseName(dbName), colName);
   }
 
   @Override
   public long countAll(String dbName, String colName) {
-    return super.countAll(convertDatabaseName(dbName), colName);
+    return super.countAll(converter.convertDatabaseName(dbName), colName);
   }
 
   @Override
   public long getDatabaseSize(String dbName) {
-    return super.getDatabaseSize(convertDatabaseName(dbName));
+    return super.getDatabaseSize(converter.convertDatabaseName(dbName));
   }
 
   @Override
   public List<String> getDatabases() {
     return super.getDatabases().stream()
-        .filter(this::isVisibleDatabase)
+        .filter(converter::isVisibleDatabase)
         .collect(Collectors.toList());
   }
 
   @Override
   public boolean existsCollection(String dbName, String colName) {
-    return super.existsCollection(convertDatabaseName(dbName), colName);
+    return super.existsCollection(converter.convertDatabaseName(dbName), colName);
   }
 
   @Override
   public boolean existsDatabase(String dbName) {
-    return super.existsDatabase(convertDatabaseName(dbName));
+    return super.existsDatabase(converter.convertDatabaseName(dbName));
   }
 
 

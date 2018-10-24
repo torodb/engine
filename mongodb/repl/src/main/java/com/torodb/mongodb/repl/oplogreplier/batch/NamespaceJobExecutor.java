@@ -27,8 +27,8 @@ import com.torodb.core.language.AttributeReference;
 import com.torodb.core.transaction.RollbackException;
 import com.torodb.kvdocument.values.KvDocument;
 import com.torodb.kvdocument.values.KvValue;
+import com.torodb.mongodb.core.MongodServer;
 import com.torodb.mongodb.core.WriteMongodTransaction;
-import com.torodb.mongodb.repl.oplogreplier.ApplierContext;
 import com.torodb.mongodb.repl.oplogreplier.analyzed.AnalyzedOp;
 import com.torodb.mongodb.repl.oplogreplier.analyzed.AnalyzedOpType;
 import com.torodb.mongodb.utils.DefaultIdUtils;
@@ -37,6 +37,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,32 +53,48 @@ public class NamespaceJobExecutor {
   private static final AttributeReference _ID_ATT_REF = new AttributeReference.Builder()
       .addObjectKey(DefaultIdUtils.ID_KEY)
       .build();
+  private static final int MAX_ATTEMPTS = 2;
 
-  public void apply(NamespaceJob job, WriteMongodTransaction transaction,
-      ApplierContext applierContext, boolean optimisticDeleteAndCreate)
+  public void apply(NamespaceJob job, MongodServer server, boolean optimisticDeleteAndCreate)
       throws RollbackException, UserException, NamespaceJobExecutionException,
       UniqueIndexViolationException {
 
-    Map<AnalyzedOp, Integer> fetchDids = fetchDids(job, transaction, optimisticDeleteAndCreate);
+    int attempts = 1;
+    while (attempts <= MAX_ATTEMPTS) {
+      attempts++;
+      try (WriteMongodTransaction trans = server.openWriteTransaction()) {
+        apply(job, trans, optimisticDeleteAndCreate);
+        trans.commit();
+        break;
+      } catch (RollbackException ignore) {
+        //just retry in case the transaction rolled because it was needed to change the schema
+      } catch (TimeoutException ex) {
+        throw new RollbackException(ex);
+      }
+    }
+  }
+
+  private final void apply(NamespaceJob job, WriteMongodTransaction trans,
+      boolean optimisticDeleteAndCreate)
+      throws RollbackException, UserException, NamespaceJobExecutionException,
+      UniqueIndexViolationException {
+
+    Map<AnalyzedOp, Integer> fetchDids = fetchDids(job, trans, optimisticDeleteAndCreate);
 
     List<Status<?>> errors = findErrors(job, fetchDids);
     if (!errors.isEmpty()) {
       throw new NamespaceJobExecutionException(job, errors);
     }
     if (errors.isEmpty()) {
-      Map<AnalyzedOp, ToroDocument> fetchDocs = fetchDocs(job, transaction, fetchDids);
-      deleteDocs(job, transaction, fetchDids);
-      insertDocs(job, transaction, fetchDocs);
+      Map<AnalyzedOp, ToroDocument> fetchDocs = fetchDocs(job, trans, fetchDids);
+      deleteDocs(job, trans, fetchDids);
+      insertDocs(job, trans, fetchDocs);
     }
-
   }
 
   /**
    * Returns a map whose entries are the did of each analyzed op that requires to fetch them.
    *
-   * @param job
-   * @param transaction
-   * @return
    * @see AnalyzedOp#requiresToFetchToroId()
    */
   private static Map<AnalyzedOp, Integer> fetchDids(NamespaceJob job,
@@ -96,7 +113,7 @@ public class NamespaceJobExecutor {
             Function.identity()
         ));
 
-    return transaction.getTorodTransaction()
+    return transaction.getDocTransaction()
         .findByAttRefInProjection(
             job.getDatabase(),
             job.getCollection(),
@@ -135,7 +152,7 @@ public class NamespaceJobExecutor {
         );
 
     Cursor<Integer> didCursor = new IteratorCursor<>(didToOps.keySet().iterator());
-    return transaction.getTorodTransaction()
+    return transaction.getDocTransaction()
         .fetch(job.getDatabase(), job.getCollection(), didCursor)
         .asDocCursor()
         .getRemaining()
@@ -157,7 +174,7 @@ public class NamespaceJobExecutor {
         .map(op -> fetchDids.get(op))
         .filter(did -> did != null);
 
-    transaction.getTorodTransaction().delete(job.getDatabase(), job.getCollection(),
+    transaction.getDocTransaction().delete(job.getDatabase(), job.getCollection(),
         new IteratorCursor<>(didsToDelete.iterator()));
   }
 
@@ -175,6 +192,6 @@ public class NamespaceJobExecutor {
         .map(op -> op.calculateDocToInsert(getFetchDocFun))
         .filter(doc -> doc != null);
 
-    transaction.getTorodTransaction().insert(job.getDatabase(), job.getCollection(), docsToInsert);
+    transaction.getDocTransaction().insert(job.getDatabase(), job.getCollection(), docsToInsert);
   }
 }

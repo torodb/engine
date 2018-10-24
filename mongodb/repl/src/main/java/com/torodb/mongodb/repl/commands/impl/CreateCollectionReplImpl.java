@@ -18,26 +18,20 @@
 
 package com.torodb.mongodb.repl.commands.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.torodb.core.exceptions.user.UserException;
-import com.torodb.core.language.AttributeReference;
-import com.torodb.core.language.AttributeReference.Key;
-import com.torodb.core.language.AttributeReference.ObjectKey;
 import com.torodb.core.logging.LoggerFactory;
-import com.torodb.core.transaction.metainf.FieldIndexOrdering;
 import com.torodb.mongodb.commands.signatures.admin.CreateCollectionCommand.CreateCollectionArgument;
-import com.torodb.mongodb.utils.DefaultIdUtils;
 import com.torodb.mongowp.Status;
 import com.torodb.mongowp.commands.Command;
 import com.torodb.mongowp.commands.Request;
 import com.torodb.mongowp.commands.tools.Empty;
-import com.torodb.torod.IndexFieldInfo;
-import com.torodb.torod.SharedWriteTorodTransaction;
+import com.torodb.torod.SchemaOperationExecutor;
+import com.torodb.torod.exception.UserSchemaException;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import javax.inject.Inject;
+
 
 public class CreateCollectionReplImpl extends ReplCommandImpl<CreateCollectionArgument, Empty> {
 
@@ -55,38 +49,22 @@ public class CreateCollectionReplImpl extends ReplCommandImpl<CreateCollectionAr
       Request req,
       Command<? super CreateCollectionArgument, ? super Empty> command,
       CreateCollectionArgument arg,
-      SharedWriteTorodTransaction trans) {
+      SchemaOperationExecutor schemaEx) {
 
     if (!filterUtil.testNamespaceFilter(req.getDatabase(), arg.getCollection(), command)) {
       return Status.ok();
     }
 
+    logger.info("Creating collection {}.{}", req.getDatabase(), arg.getCollection());
+
+    if (arg.getOptions().isCapped()) {
+      logger.info("Ignoring capped flag for collection {}.{}", req.getDatabase(), arg
+          .getCollection());
+    }
+
     try {
-      logger.info("Creating collection {}.{}", req.getDatabase(), arg.getCollection());
-
-      if (arg.getOptions().isCapped()) {
-        logger.info("Ignoring capped flag for collection {}.{}", req.getDatabase(), arg
-            .getCollection());
-      }
-
-      if (!trans.existsCollection(req.getDatabase(), arg.getCollection())) {
-        trans.createIndex(
-            req.getDatabase(),
-            arg.getCollection(),
-            DefaultIdUtils.ID_INDEX,
-            ImmutableList.of(
-                new IndexFieldInfo(
-                    new AttributeReference(
-                        Arrays.asList(new Key[]{
-                          new ObjectKey(DefaultIdUtils.ID_KEY)})),
-                    FieldIndexOrdering.ASC.isAscending()
-                )
-            ), true
-        );
-      }
-
-      trans.createCollection(req.getDatabase(), arg.getCollection());
-    } catch (UserException ex) {
+      schemaEx.prepareSchema(req.getDatabase(), arg.getCollection(), Collections.emptyList());
+    } catch (UserSchemaException ex) {
       reportErrorIgnored(logger, command, ex);
     }
     return Status.ok();

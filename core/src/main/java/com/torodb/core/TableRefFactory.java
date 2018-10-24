@@ -18,6 +18,12 @@
 
 package com.torodb.core;
 
+import com.torodb.core.language.AttributeReference;
+import com.torodb.core.language.AttributeReference.Key;
+
+import java.util.List;
+import java.util.function.Function;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -26,23 +32,37 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface TableRefFactory {
 
-  /**
-   *
-   * @return
-   */
   public TableRef createRoot();
 
-  /**
-   *
-   * @param name
-   * @return
-   */
   public TableRef createChild(TableRef parent, String name);
 
-  /**
-   *
-   * @param arrayDimension
-   * @return
-   */
   public TableRef createChild(TableRef parent, int arrayDimension);
+
+  /**
+   * Translates the given attribute reference into a table ref.
+   */
+  public default TableRef translate(AttributeReference attRef) {
+    TableRef ref = createRoot();
+
+    if (attRef.getKeys().isEmpty()) {
+      throw new IllegalArgumentException("The empty attribute reference is not valid");
+    }
+
+    Function<Key<?>, String> extractKeyName = (key) -> {
+      if (key instanceof AttributeReference.ObjectKey) {
+        return ((AttributeReference.ObjectKey) key).getKey();
+      } else {
+        throw new IllegalArgumentException("Keys whose type is not object are not valid");
+      }
+    };
+
+    if (attRef.getKeys().size() > 1) {
+      List<AttributeReference.Key<?>> keys = attRef.getKeys();
+      List<AttributeReference.Key<?>> tableKeys = keys.subList(0, keys.size() - 1);
+      for (AttributeReference.Key<?> key : tableKeys) {
+        ref = createChild(ref, extractKeyName.apply(key));
+      }
+    }
+    return ref;
+  }
 }

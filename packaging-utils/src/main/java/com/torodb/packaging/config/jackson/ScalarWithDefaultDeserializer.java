@@ -23,7 +23,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.torodb.packaging.config.model.common.ScalarWithDefault;
 
 import java.io.IOException;
@@ -34,48 +33,30 @@ public abstract class ScalarWithDefaultDeserializer<T>
 
   private final Class<? extends ScalarWithDefault<T>> scalarWithDefaultImplementationClass;
   private final Class<T> scalarImplementationClass;
+  private final Class<?> scalarArgumentClass;
   
   public <SWC extends ScalarWithDefault<T>> ScalarWithDefaultDeserializer(
       Class<SWC> scalarWithDefaultImplementationClass,
       Class<T> scalarImplementationClass) {
     this.scalarWithDefaultImplementationClass = scalarWithDefaultImplementationClass;
     this.scalarImplementationClass = scalarImplementationClass;
+    Class<?> scalarArgumentClass = scalarImplementationClass;
+    while (scalarArgumentClass.getSuperclass() != Object.class) {
+      scalarArgumentClass = scalarArgumentClass.getSuperclass();
+    }
+    this.scalarArgumentClass = scalarArgumentClass;
   }
   
   @Override
   public ScalarWithDefault<T> deserialize(JsonParser jp, DeserializationContext ctxt) 
       throws IOException, JsonProcessingException {
-    JsonNode node = jp.getCodec().readTree(jp);
-
     try {
-      Class<?> scalarArgumentClass = scalarImplementationClass;
-      while (scalarArgumentClass.getSuperclass() != Object.class) {
-        scalarArgumentClass = scalarArgumentClass.getSuperclass();
-      }
       Constructor<? extends ScalarWithDefault<T>> scalarWithDefaultConstructor = 
           scalarWithDefaultImplementationClass.getConstructor(
               scalarArgumentClass, boolean.class);
       
-      if (node.isArray()) {
-        throw new JsonParseException("Should be a scalar or a default", jp.getCurrentLocation());
-      } else if (node.isObject()) {
-        JsonNode valueNode = node.get("value");
-        JsonNode defaultNode = node.get("default");
-        
-        if (!valueNode.isValueNode()) {
-          throw new JsonParseException("value should be a scalar", jp.getCurrentLocation());
-        }
-        
-        if (!defaultNode.isBoolean()) {
-          throw new JsonParseException("default should be a boolean", jp.getCurrentLocation());
-        }
-        
-        return scalarWithDefaultConstructor.newInstance(
-            jp.getCodec().treeToValue(node, scalarImplementationClass), defaultNode.asBoolean());
-      }
-
       return scalarWithDefaultConstructor.newInstance(
-          jp.getCodec().treeToValue(node, scalarImplementationClass), false);
+          jp.getCodec().readValue(jp, scalarImplementationClass), false);
     } catch (JsonParseException exception) {
       throw exception;
     } catch (Exception exception) {

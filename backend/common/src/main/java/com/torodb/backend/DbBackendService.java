@@ -19,7 +19,6 @@
 package com.torodb.backend;
 
 import com.torodb.core.services.TorodbService;
-import com.torodb.core.transaction.metainf.MetaDatabase;
 
 import java.sql.Connection;
 
@@ -33,23 +32,11 @@ public interface DbBackendService extends TorodbService {
 
   public DataSource getGlobalCursorDatasource();
 
-  public void disableDataInsertMode(String schemaName);
+  public void disableDataInsertMode(String dbName);
 
-  public default void disableDataInsertMode(MetaDatabase db) {
-    disableDataInsertMode(db.getIdentifier());
-  }
+  public void enableDataInsertMode(String dbName);
 
-  public void enableDataInsertMode(String schemaName);
-
-  public default void enableDataInsertMode(MetaDatabase db) {
-    enableDataInsertMode(db.getIdentifier());
-  }
-
-  public boolean isOnDataInsertMode(String schemaName);
-
-  public default boolean isOnDataInsertMode(MetaDatabase db) {
-    return isOnDataInsertMode(db.getIdentifier());
-  }
+  public boolean isOnDataInsertMode(String dbName);
 
   public boolean includeForeignKeys();
 

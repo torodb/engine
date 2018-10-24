@@ -1,0 +1,112 @@
+{
+    "initialState": {
+        "test": {
+            "test": [
+                {
+                    "_id": 1
+                }
+            ]
+        }
+    },
+    "expectedState": {
+        "test": {
+            "test": [
+                {
+                    "_id": 1
+                }
+            ]        }
+    },
+    "oplog": [
+        {
+            "op": "i",
+            "ns": "test.system.indexes",
+            "o": {
+                "ns": "test.test",
+                "key": {
+                    "a": 1,
+                    "b": 1
+                },
+                "name": "a_1_b_1"
+            }
+        },
+        {
+            "op": "i",
+            "ns": "test.system.indexes",
+            "o": {
+                "ns": "test.test",
+                "key": {
+                    "a": "text"
+                },
+                "name": "a_text"
+            }
+        },
+        {
+            "op": "i",
+            "ns": "test.system.indexes",
+            "o": {
+                "ns": "test.test",
+                "key": {
+                    "a": "hashed"
+                },
+                "name": "a_hashed"
+            }
+        },
+        {
+            "op": "i",
+            "ns": "test.system.indexes",
+            "o": {
+                "ns": "test.test",
+                "key": {
+                    "a": "2d"
+                },
+                "name": "a_2d"
+            }
+        },
+        {
+            "op": "i",
+            "ns": "test.system.indexes",
+            "o": {
+                "ns": "test.test",
+                "key": {
+                    "a": "2dsphere"
+                },
+                "name": "a_2dsphere"
+            }
+        },
+        {
+            "op": "i",
+            "ns": "test.system.indexes",
+            "o": {
+                "ns": "test.test",
+                "key": {
+                    "a": 1
+                },
+                "name": "a_background",
+                "background": true
+            }
+        },
+        {
+            "op": "i",
+            "ns": "test.system.indexes",
+            "o": {
+                "ns": "test.test",
+                "key": {
+                    "a": 1
+                },
+                "name": "a_sparse",
+                "sparse": true
+            }
+        },
+        {
+            "op": "i",
+            "ns": "test.system.indexes",
+            "o": {
+                "ns": "test.test",
+                "key": {
+                    "a": "unknown_type"
+                },
+                "name": "a_unknown_type"
+            }
+        }
+    ]
+}

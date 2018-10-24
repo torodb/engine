@@ -18,6 +18,8 @@
 
 package com.torodb.mongodb.repl.topology;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.net.HostAndPort;
 import com.torodb.common.util.CompletionExceptions;
 import com.torodb.core.logging.LoggerFactory;
@@ -42,6 +44,7 @@ import org.jooq.lambda.UncheckedException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Iterator;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadFactory;
@@ -57,7 +60,7 @@ public class TopologyHeartbeatHandler extends IdleTorodbService {
 
   private final Logger logger;
 
-  private final HostAndPort seed;
+  private final ImmutableList<HostAndPort> seeds;
   private final Clock clock;
   private final String replSetName;
   private final HeartbeatNetworkHandler networkHandler;
@@ -71,7 +74,7 @@ public class TopologyHeartbeatHandler extends IdleTorodbService {
   public TopologyHeartbeatHandler(Clock clock, @ReplSetName String replSetName,
       LoggerFactory loggerFactory, HeartbeatNetworkHandler heartbeatSender,
       TopologyExecutor executor, TopologyErrorHandler errorHandler, ThreadFactory threadFactory,
-      @RemoteSeed HostAndPort seed) {
+      @RemoteSeed ImmutableList<HostAndPort> seeds) {
     super(threadFactory);
     this.logger = loggerFactory.apply(this.getClass());
     this.clock = clock;
@@ -80,7 +83,7 @@ public class TopologyHeartbeatHandler extends IdleTorodbService {
     this.executor = executor;
     this.errorHandler = errorHandler;
     this.versionChangeListener = this::scheduleHeartbeats;
-    this.seed = seed;
+    this.seeds = seeds;
   }
 
   @Override
@@ -92,9 +95,10 @@ public class TopologyHeartbeatHandler extends IdleTorodbService {
   protected void startUp() throws Exception {
     logger.debug("Starting up {}", serviceName());
 
+    Iterator<HostAndPort> seedIterator = Iterables.cycle(seeds).iterator();
     boolean finished = false;
     while (!finished) {
-      finished = start(seed)
+      finished = start(seedIterator.next())
           .handle(this::checkHeartbeatStarted)
           .join();
       if (!finished) {
@@ -126,7 +130,7 @@ public class TopologyHeartbeatHandler extends IdleTorodbService {
         switch (status.getErrorCode()) {
           case NO_REPLICATION_ENABLED:
             logger.warn("The sync source {} is not running with "
-                + "replication enabled", seed);
+                + "replication enabled", seeds);
             break;
           case INCONSISTENT_REPLICA_SET_NAMES:
           default:
@@ -144,7 +148,7 @@ public class TopologyHeartbeatHandler extends IdleTorodbService {
             ? usefulThrowable.getCause() : usefulThrowable;
       }
 
-      logger.warn("Heartbeat start failed (sync source: " + seed + "): " + usefulThrowable
+      logger.warn("Heartbeat start failed (sync source: " + seeds + "): " + usefulThrowable
           .getLocalizedMessage(),
           usefulThrowable);
       return false;

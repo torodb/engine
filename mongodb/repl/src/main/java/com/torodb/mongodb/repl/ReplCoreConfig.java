@@ -24,22 +24,22 @@ import com.torodb.core.supervision.Supervisor;
 import com.torodb.mongodb.core.MongoDbCoreBundle;
 import com.torodb.mongodb.repl.filters.ToroDbReplicationFilters;
 import com.torodb.mongodb.repl.guice.ReplEssentialOverrideModule;
-import com.torodb.mongowp.client.wrapper.MongoClientConfiguration;
+import com.torodb.mongowp.client.wrapper.MongoClientConfigurationProperties;
 
 public class ReplCoreConfig implements BundleConfig {
 
-  private final MongoClientConfiguration mongoClientConfig;
+  private final MongoClientConfigurationProperties mongoClientConfigProperties;
   private final ToroDbReplicationFilters replicationFilters;
   private final MongoDbCoreBundle mongoDbCoreBundle;
   private final ReplEssentialOverrideModule essentialOverrideModule;
   private final Injector essentialInjector;
   private final Supervisor replSupervisor;
 
-  public ReplCoreConfig(MongoClientConfiguration mongoClientConfig,
+  public ReplCoreConfig(MongoClientConfigurationProperties mongoClientConfigProperties,
       ToroDbReplicationFilters replicationFilters, MongoDbCoreBundle mongoDbCoreBundle,
       ReplEssentialOverrideModule replEssentialOverrideModule, Injector essentialInjector,
       Supervisor replSupervisor) {
-    this.mongoClientConfig = mongoClientConfig;
+    this.mongoClientConfigProperties = mongoClientConfigProperties;
     this.replicationFilters = replicationFilters;
     this.mongoDbCoreBundle = mongoDbCoreBundle;
     this.essentialOverrideModule = replEssentialOverrideModule;
@@ -47,8 +47,8 @@ public class ReplCoreConfig implements BundleConfig {
     this.replSupervisor = replSupervisor;
   }
 
-  public MongoClientConfiguration getMongoClientConfig() {
-    return mongoClientConfig;
+  public MongoClientConfigurationProperties getMongoClientConfigProperties() {
+    return mongoClientConfigProperties;
   }
 
   public ToroDbReplicationFilters getReplicationFilters() {

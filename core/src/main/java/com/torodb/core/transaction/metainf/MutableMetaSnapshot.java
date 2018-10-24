@@ -47,7 +47,7 @@ public interface MutableMetaSnapshot extends MetaSnapshot {
   public Stream<? extends MutableMetaDatabase> streamMetaDatabases();
 
   @Nonnull
-  public abstract MutableMetaDatabase addMetaDatabase(String dbName, String dbId) throws
+  public MutableMetaDatabase addMetaDatabase(String dbName, String dbId) throws
       IllegalArgumentException;
 
   /**
@@ -56,7 +56,7 @@ public interface MutableMetaSnapshot extends MetaSnapshot {
    * @param dbName
    * @return true iff the meta database was removed
    */
-  public abstract boolean removeMetaDatabaseByName(String dbName);
+  public boolean removeMetaDatabaseByName(String dbName);
 
   /**
    * REmoves a meta database selected by its identifier
@@ -64,12 +64,12 @@ public interface MutableMetaSnapshot extends MetaSnapshot {
    * @param dbId
    * @return true iff the meta database was removed
    */
-  public abstract boolean removeMetaDatabaseByIdentifier(String dbId);
+  public boolean removeMetaDatabaseByIdentifier(String dbId);
 
   @DoNotChange
   public Stream<ChangedElement<MutableMetaDatabase>> streamModifiedDatabases();
 
-  public abstract boolean hasChanged();
+  public boolean hasChanged();
 
   public default boolean containsMetaDatabaseByName(String dbName) {
     return getMetaDatabaseByName(dbName) != null;

@@ -19,13 +19,13 @@
 package com.torodb.backend.derby;
 
 import com.torodb.backend.tests.common.AbstractMetaDataIntegrationSuite;
-import com.torodb.backend.tests.common.DatabaseTestContext;
+import com.torodb.backend.tests.common.BackendTestContextFactory;
 
 public class DerbyMetaDataIT extends AbstractMetaDataIntegrationSuite {
 
   @Override
-  protected DatabaseTestContext getDatabaseTestContext() {
-    return new DerbyDatabaseTestContextFactory().createInstance();
+  protected BackendTestContextFactory getBackendTestContextFactory() {
+    return new DerbyTestContextFactory();
   }
 
 }

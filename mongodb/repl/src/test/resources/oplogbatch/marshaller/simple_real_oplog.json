@@ -1,0 +1,84 @@
+{
+    "oplog": [
+        {
+            "ts": {
+                "$timestamp": {
+                    "t": 1492608167,
+                    "i": 1
+                }
+            },
+            "h": {
+                "$numberLong": "-537263543960398290"
+            },
+            "v": 2,
+            "op": "n",
+            "ns": "",
+            "o": {
+                "msg": "initiating set"
+            }
+        },
+        { 
+            "ts": {
+                "$timestamp": {
+                    "t": 1492608168,
+                    "i": 1
+                }
+            },
+            "t": {
+                "$numberLong": "1"
+            },
+            "h": {
+                "$numberLong": "-5676701671529054088"
+            },
+            "v": 2,
+            "op": "n",
+            "ns": "",
+            "o": {
+                "msg": "new primary"
+            }
+        },
+        {
+            "ts": {
+                "$timestamp": {
+                    "t": 1492608193,
+                    "i": 1
+                }
+            },
+            "t": {
+                "$numberLong": "1"
+            },
+            "h": {
+                "$numberLong": "6809970619761706410"
+            },
+            "v": 2,
+            "op": "c",
+            "ns": "test.$cmd",
+            "o": {
+                "create": "test"
+            }
+        },
+        {
+            "ts": {
+                "$timestamp": {
+                    "t": 1492608193,
+                    "i": 1
+                }
+            },
+            "t": {
+                "$numberLong": "1"
+            },
+            "h": {
+                "$numberLong": "-2694716018027655196"
+            },
+            "v": 2,
+            "op": "i",
+            "ns": "test.test",
+            "o": {
+                "_id": {
+                    "$oid": "58f764c168d626caa5cc1c3b"
+                }
+            }
+        }
+
+    ]
+}

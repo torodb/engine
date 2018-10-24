@@ -18,8 +18,6 @@
 
 package com.torodb.core.impl;
 
-
-
 import com.torodb.core.TableRef;
 
 import java.util.Optional;
