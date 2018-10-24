@@ -18,9 +18,6 @@
 
 package com.torodb.backend.mysql.driver;
 
-import com.mysql.cj.core.conf.ModifiableBooleanProperty;
-import com.mysql.cj.core.conf.ModifiableStringProperty;
-import com.mysql.cj.core.conf.PropertyDefinitions;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import com.torodb.backend.BackendConfigImpl;
 import com.torodb.backend.BackendLoggerFactory;
@@ -64,23 +61,12 @@ public class OfficialMySqlDriver implements MySqlDriverProvider {
     dataSource.setServerName(configuration.getDbHost());
     dataSource.setPortNumber(configuration.getDbPort());
     dataSource.setDatabaseName(configuration.getDbName());
-    ModifiableBooleanProperty useSsl = 
-        (ModifiableBooleanProperty) PropertyDefinitions.PROPERTY_NAME_TO_PROPERTY_DEFINITION
-        .get(PropertyDefinitions.PNAME_useSSL).createRuntimeProperty();
-    useSsl.setValue(configuration.getSslEnabled());
-    dataSource.addProperty(useSsl);
-    ModifiableStringProperty connectionAttributes = 
-        (ModifiableStringProperty) PropertyDefinitions.PROPERTY_NAME_TO_PROPERTY_DEFINITION
-        .get(PropertyDefinitions.PNAME_connectionAttributes).createRuntimeProperty();
-    connectionAttributes.setValue("applicationName=torodb-" + poolName);
-    dataSource.addProperty(connectionAttributes);
-    ModifiableStringProperty serverTimezone =
-            (ModifiableStringProperty) PropertyDefinitions.PROPERTY_NAME_TO_PROPERTY_DEFINITION
-                    .get(PropertyDefinitions.PNAME_serverTimezone).createRuntimeProperty();
-    serverTimezone.setValue(TimeZone.getDefault().getID());
-    dataSource.addProperty(serverTimezone);
 
     try {
+      dataSource.setUseSSL(configuration.getSslEnabled());
+      dataSource.setConnectionAttributes("applicationName=torodb-" + poolName);
+      dataSource.setServerTimezone(TimeZone.getDefault().getID());
+      
       if (JDBC_LOGGER.isTraceEnabled()) {
         dataSource.setLogWriter(LOGGER_WRITER);
       }
